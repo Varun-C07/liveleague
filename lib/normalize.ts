@@ -1,0 +1,119 @@
+import type { Match, MatchStatus } from "@/lib/types";
+import type { ApiMatch, TeamRef } from "@/lib/api-shape";
+import { TEAMS } from "@/data/teams";
+
+// ---- name -> code index (built once) ----
+const NAME2CODE: Record<string, string> = {};
+function norm(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z]/g, "");
+}
+for (const code of Object.keys(TEAMS)) {
+  NAME2CODE[norm(TEAMS[code].name)] = code;
+  NAME2CODE[norm(code)] = code;
+  for (const a of TEAMS[code].alias || []) NAME2CODE[norm(a)] = code;
+}
+export function codeFromName(name: string): string | null {
+  return NAME2CODE[norm(name)] || null;
+}
+
+// ---- upstream status string -> our status + minute label ----
+export function parseStatus(s: string | undefined): { st: MatchStatus; min: string | null } {
+  const raw = (s || "").trim();
+  const u = raw.toUpperCase();
+  if (["MATCH FINISHED", "FT", "AET", "PEN", "AFTER ET", "AFTER PEN.", "FINISHED", "FULL TIME"].includes(u))
+    return { st: "ft", min: null };
+  if (["NS", "NOT STARTED", "SCHEDULED", "TBD", "TBC", "POSTP", ""].includes(u))
+    return { st: "sched", min: null };
+  const min = /HT|HALF/i.test(raw) ? "HALF" : /^\d/.test(raw) ? raw + "'" : u;
+  return { st: "live", min };
+}
+
+// Upstream event shape we care about (TheSportsDB v1 eventsseason).
+export type RawEvent = {
+  strHomeTeam?: string;
+  strAwayTeam?: string;
+  intHomeScore?: string | number | null;
+  intAwayScore?: string | number | null;
+  strStatus?: string;
+  strProgress?: string;
+  strTimestamp?: string;
+};
+
+// Merge upstream events onto a fresh copy of the schedule, matched by team pair.
+export function applyEvents(matches: Match[], events: RawEvent[]): { matches: Match[]; liveCount: number } {
+  const byPair = new Map<string, Match>();
+  for (const m of matches) {
+    byPair.set(m.h + ">" + m.a, m);
+    byPair.set(m.a + ">" + m.h, m);
+  }
+  let liveCount = 0;
+
+  for (const ev of events) {
+    const hc = codeFromName(ev.strHomeTeam || "");
+    const ac = codeFromName(ev.strAwayTeam || "");
+    if (!hc || !ac) continue;
+    const m = byPair.get(hc + ">" + ac);
+    if (!m) continue;
+    const flip = m.h !== hc; // upstream listed teams reversed vs our schedule
+
+    const ps = parseStatus(ev.strStatus || ev.strProgress);
+    let hs = coerce(ev.intHomeScore);
+    let as = coerce(ev.intAwayScore);
+    if (flip) { const t = hs; hs = as; as = t; }
+
+    m.st = ps.st;
+    (m as Match & { minute?: string | null }).minute = ps.min;
+    if (ps.st === "sched") { m.hs = null; m.as = null; }
+    else { m.hs = hs; m.as = as; }
+
+    if (ev.strTimestamp) {
+      const iso = ev.strTimestamp.replace(" ", "T").replace(/Z?$/, "Z");
+      if (!Number.isNaN(Date.parse(iso))) { m.utc = iso; m.approx = false; }
+    }
+    if (ps.st === "live") liveCount++;
+  }
+  return { matches, liveCount };
+}
+
+function coerce(v: string | number | null | undefined): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "number" ? v : parseInt(v, 10);
+  return Number.isNaN(n) ? null : n;
+}
+
+// ---- serialize Match -> ApiMatch (resolve team refs) ----
+function teamRef(code: string, grp: string | null): TeamRef {
+  const t = TEAMS[code];
+  return {
+    code,
+    name: t ? t.name : code,
+    flag: t ? t.flag : "",
+    color: t ? t.color : "#5b6b60",
+    real: !!t,
+    grp: t ? t.grp : grp,
+  };
+}
+
+export function toApiMatch(m: Match): ApiMatch {
+  const minute = (m as Match & { minute?: string | null }).minute ?? null;
+  return {
+    n: m.n,
+    stage: m.stage,
+    grp: m.grp,
+    home: teamRef(m.h, m.grp),
+    away: teamRef(m.a, m.grp),
+    venue: m.ven,
+    city: m.city,
+    country: m.ctry,
+    utc: m.utc,
+    approx: m.approx,
+    status: m.st,
+    homeScore: m.hs,
+    awayScore: m.as,
+    minute: m.st === "live" ? minute : null,
+  };
+}

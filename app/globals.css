@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #06100b;
+  --bg2: #0a140d;
+  --panel: #0f1a13;
+  --panel2: #142016;
+  --line: #213024;
+  --line2: #2c3d2f;
+  --text: #e9efe9;
+  --muted: #8a9a8e;
+  --dim: #5b6b60;
+  --green: #16c060;
+  --green2: #0fa050;
+  --gold: #f0c64a;
+  --amber: #f0b53a;
+  --red: #ff4444;
+  --live: #ff3b3b;
+}
+
+@theme inline {
+  --font-cond: var(--font-saira-cond), "Saira Condensed", sans-serif;
+  --font-body: var(--font-saira), "Saira", sans-serif;
+  --font-mono: var(--font-jb), "JetBrains Mono", ui-monospace, monospace;
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel2: var(--panel2);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-dim: var(--dim);
+  --color-green: var(--green);
+  --color-gold: var(--gold);
+  --color-live: var(--live);
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background:
+    radial-gradient(900px 500px at 100% -10%, rgba(22, 192, 96, 0.08), transparent 60%),
+    radial-gradient(700px 400px at -5% 0%, rgba(240, 198, 74, 0.05), transparent 55%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 9px),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.4;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ff-cond { font-family: var(--font-cond); }
+.ff-mono { font-family: var(--font-mono); }
+.ff-body { font-family: var(--font-body); }
+
+/* animations */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(22, 192, 96, 0.35); }
+  70% { box-shadow: 0 0 0 4px rgba(22, 192, 96, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 192, 96, 0); }
+}
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes rpulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.4); }
+  70% { box-shadow: 0 0 0 5px rgba(255, 59, 59, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); }
+}
+@keyframes goalflash {
+  0% { background-color: rgba(22, 192, 96, 0.32); }
+  100% { background-color: transparent; }
+}
+
+.anim-pulse { animation: pulse 3s ease-out infinite; }
+.anim-blink { animation: blink 1s steps(2) infinite; }
+.anim-rpulse { animation: rpulse 2.4s ease-out infinite; }
+.goal-flash { animation: goalflash 2.2s ease-out 1; }
+
+/* horizontal scrollbars (group chips etc.) */
+.no-scrollbar::-webkit-scrollbar { height: 6px; }
+.no-scrollbar::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-pulse, .anim-blink, .anim-rpulse, .goal-flash { animation: none !important; }
+  [data-ticker] { animation: none !important; }
+}

@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - claude/fifa-2026-live-board-hbi25s
   workflow_dispatch:
 
 permissions:
