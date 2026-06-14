@@ -1,12 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useMounted } from "@/hooks/useMounted";
 
 export function Countdown({ utc }: { utc: string }) {
   const [now, setNow] = useState(() => Date.now());
+  const mounted = useMounted();
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  // Clock-dependent — render a stable placeholder until mounted to avoid
+  // an SSR/hydration mismatch.
+  if (!mounted) return <span className="text-dim">—</span>;
 
   const diff = new Date(utc).getTime() - now;
   if (diff <= 0) {

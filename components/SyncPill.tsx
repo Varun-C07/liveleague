@@ -1,5 +1,6 @@
 "use client";
 import { RefreshCw } from "lucide-react";
+import { useMounted } from "@/hooks/useMounted";
 
 export function SyncPill({
   source,
@@ -12,9 +13,15 @@ export function SyncPill({
   isFetching: boolean;
   onRefresh: () => void;
 }) {
+  const mounted = useMounted();
   const dot = isFetching ? "bg-amber-400 anim-blink" : source === "live" ? "bg-green anim-pulse" : "bg-dim";
-  const t = new Date(syncedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  const label = isFetching ? "Syncing…" : source === "live" ? `Live · synced ${t}` : "Offline · snapshot";
+  // The synced time is in the viewer's local zone, so only show it after mount.
+  const t = mounted ? new Date(syncedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "";
+  const label = isFetching
+    ? "Syncing…"
+    : source === "live"
+      ? `Live${t ? " · synced " + t : ""}`
+      : "Offline · snapshot";
   return (
     <div className="flex items-center gap-2.5 border border-line2 rounded-full bg-panel2 px-3 py-1.5 ff-mono text-[11px] whitespace-nowrap">
       <span className={`w-2 h-2 rounded-full flex-none ${dot}`} style={{ background: source === "live" && !isFetching ? "var(--green)" : undefined }} />
