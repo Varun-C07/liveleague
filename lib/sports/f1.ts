@@ -116,6 +116,7 @@ export const f1Adapter: SportAdapter = {
       return {
         sport: "f1",
         source: haveLive ? "live" : "snapshot",
+        reason: haveLive ? "live" : "fallback",
         syncedAt: new Date().toISOString(),
         liveCount,
         games,
@@ -131,6 +132,7 @@ export const f1Adapter: SportAdapter = {
     return {
       sport: "f1",
       source: "snapshot",
+      reason: "fallback",
       syncedAt: new Date().toISOString(),
       liveCount,
       games,

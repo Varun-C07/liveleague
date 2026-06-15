@@ -87,6 +87,7 @@ export function F1Board({ initial }: { initial: LiveBundle }) {
         }
         sub="Every round of the 22-race calendar with race day, location and start time. Podiums and the championship pull live from the Jolpica F1 API and refresh after each Grand Prix."
         source={data.source}
+        reason={data.reason}
         syncedAt={data.syncedAt}
         isFetching={q.isFetching}
         onRefresh={() => q.refetch()}

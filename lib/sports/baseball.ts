@@ -30,13 +30,14 @@ export const baseballAdapter: SportAdapter = {
     const revalidate = live ? 15 : 60;
     try {
       const events = await fetchEspnScoreboard("baseball/mlb", revalidate);
+      // An empty-but-OK response means "no games today" — a live state, not an error.
       const games = events
         .map((ev) => mapEspnEvent(ev, "baseball", baseballExtra))
         .filter((g): g is Game => g !== null);
-      if (!games.length) throw new Error("no games");
       return {
         sport: "baseball",
         source: "live",
+        reason: games.length ? "live" : "empty",
         syncedAt: new Date().toISOString(),
         liveCount: games.filter((g) => g.status === "live").length,
         games,
@@ -49,6 +50,7 @@ export const baseballAdapter: SportAdapter = {
     return {
       sport: "baseball",
       source: "snapshot",
+      reason: "fallback",
       syncedAt: new Date().toISOString(),
       liveCount: MLB_SNAPSHOT.filter((g) => g.status === "live").length,
       games: MLB_SNAPSHOT,

@@ -125,7 +125,7 @@ export function Board({
               className="flex items-center border border-line2 rounded-full bg-panel2 p-2 text-muted hover:text-green">
               {sound ? <Volume2 size={13} /> : <VolumeX size={13} />}
             </button>
-            <SyncPill source={data.source} syncedAt={data.syncedAt} isFetching={m.isFetching} onRefresh={() => m.refetch()} />
+            <SyncPill source={data.source} reason={data.source === "live" ? "live" : "fallback"} syncedAt={data.syncedAt} isFetching={m.isFetching} onRefresh={() => m.refetch()} />
           </div>
         </div>
 

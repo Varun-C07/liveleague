@@ -13,7 +13,16 @@ export function HomeBoard({ initial }: { initial: LiveOverview }) {
 
   const allGames = useMemo(() => data.sports.flatMap((s) => s.topGames), [data]);
   const anyLive = data.totalLive > 0;
-  const source = data.sports.some((s) => s.source === "live") ? "live" : "snapshot";
+  const anyLiveFeed = data.sports.some((s) => s.reason === "live");
+  const source = anyLiveFeed ? "live" : "snapshot";
+  // Global reason: prefer live, then surface a real outage, else empty/sample.
+  const reason = anyLiveFeed
+    ? "live"
+    : data.sports.some((s) => s.reason === "fallback")
+      ? "fallback"
+      : data.sports.some((s) => s.reason === "empty")
+        ? "empty"
+        : "sample";
 
   return (
     <div className="max-w-[1180px] mx-auto px-3.5 pt-5 pb-16">
@@ -36,7 +45,7 @@ export function HomeBoard({ initial }: { initial: LiveOverview }) {
               MLB. Scores, standings and start times that refresh themselves.
             </p>
           </div>
-          <SyncPill source={source} syncedAt={data.syncedAt} isFetching={q.isFetching} onRefresh={() => q.refetch()} />
+          <SyncPill source={source} reason={reason} syncedAt={data.syncedAt} isFetching={q.isFetching} onRefresh={() => q.refetch()} />
         </div>
 
         {/* quick stats */}

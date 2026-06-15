@@ -6,6 +6,13 @@ export type SportId = "f1" | "soccer" | "nba" | "cricket" | "baseball";
 export type GameStatus = "sched" | "live" | "final";
 export type DataSource = "live" | "snapshot";
 
+// Why a bundle looks the way it does — drives honest status labels in the UI:
+//   live     = feed reached, has games
+//   empty    = feed reached, but no games scheduled right now (NOT an error)
+//   fallback = feed unreachable, serving the saved snapshot
+//   sample   = snapshot served by design (e.g. cricket, no live feed wired yet)
+export type BundleReason = "live" | "empty" | "fallback" | "sample";
+
 // One side of a game (a team, or a placeholder bracket slot).
 export type Competitor = {
   code: string; // short code: "USA", "LAL", "IND"
@@ -59,6 +66,7 @@ export type StandingRow = {
 export type LiveBundle = {
   sport: SportId;
   source: DataSource;
+  reason?: BundleReason;
   syncedAt: string; // ISO
   liveCount: number;
   games: Game[];
@@ -90,6 +98,7 @@ export interface SportAdapter extends SportMeta {
 
 export type SportSummary = SportMeta & {
   source: DataSource;
+  reason?: BundleReason;
   syncedAt: string;
   liveCount: number;
   total: number;

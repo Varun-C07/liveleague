@@ -11,6 +11,9 @@ export function LiveStatusCard({ s }: { s: SportSummary }) {
   const accent = `var(${s.accentVar})`;
   const live = s.liveCount > 0;
   const games = s.topGames.slice(0, 2);
+  const r = s.reason ?? (s.source === "live" ? "live" : "fallback");
+  const feedLabel = r === "live" ? "Live feed" : r === "empty" ? "No games" : r === "sample" ? "Sample" : "Saved data";
+  const feedDot = r === "live" ? accent : r === "fallback" ? "var(--amber)" : "var(--dim)";
 
   return (
     <Link
@@ -61,11 +64,8 @@ export function LiveStatusCard({ s }: { s: SportSummary }) {
 
       <div className="mt-3 pt-2.5 border-t border-line flex items-center justify-between ff-mono text-[10px] text-dim">
         <span className="inline-flex items-center gap-1.5">
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ background: s.source === "live" ? accent : "var(--dim)" }}
-          />
-          {s.source === "live" ? "Live feed" : "Snapshot"}
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: feedDot }} />
+          {feedLabel}
         </span>
         <span>{s.total} {s.competitionLabel.toLowerCase()}s</span>
       </div>

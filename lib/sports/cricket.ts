@@ -17,6 +17,7 @@ export const cricketAdapter: SportAdapter = {
     return {
       sport: "cricket",
       source: "snapshot",
+      reason: "sample", // snapshot by design — no live feed wired yet, not an outage
       syncedAt: new Date().toISOString(),
       liveCount: CRICKET_SNAPSHOT.filter((g) => g.status === "live").length,
       games: CRICKET_SNAPSHOT,

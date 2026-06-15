@@ -45,6 +45,7 @@ export const soccerAdapter: SportAdapter = {
     return {
       sport: "soccer",
       source: data.source,
+      reason: data.source === "live" ? "live" : "fallback",
       syncedAt: data.syncedAt,
       liveCount: data.liveCount,
       games: data.matches.map(toGame),
@@ -55,6 +56,7 @@ export const soccerAdapter: SportAdapter = {
     return {
       sport: "soccer",
       source: "snapshot",
+      reason: "fallback",
       syncedAt: new Date().toISOString(),
       liveCount: matches.filter((m) => m.st === "live").length,
       games: matches.map(toGame),

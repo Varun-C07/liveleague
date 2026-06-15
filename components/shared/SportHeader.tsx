@@ -3,7 +3,7 @@ import { Globe } from "lucide-react";
 import { SyncPill } from "./SyncPill";
 import { usePrefs } from "@/hooks/usePrefs";
 import { tzLabel, type TzMode } from "@/lib/time";
-import type { DataSource } from "@/lib/sports/types";
+import type { BundleReason, DataSource } from "@/lib/sports/types";
 
 function nextTz(tz: TzMode): TzMode {
   return tz === "ET" ? "local" : tz === "local" ? "UTC" : "ET";
@@ -15,6 +15,7 @@ export function SportHeader({
   title,
   sub,
   source,
+  reason,
   syncedAt,
   isFetching,
   onRefresh,
@@ -24,6 +25,7 @@ export function SportHeader({
   title: React.ReactNode;
   sub?: React.ReactNode;
   source: DataSource;
+  reason?: BundleReason;
   syncedAt: string;
   isFetching: boolean;
   onRefresh: () => void;
@@ -54,7 +56,7 @@ export function SportHeader({
           >
             <Globe size={12} /> {tzLabel(tz)}
           </button>
-          <SyncPill source={source} syncedAt={syncedAt} isFetching={isFetching} onRefresh={onRefresh} />
+          <SyncPill source={source} reason={reason} syncedAt={syncedAt} isFetching={isFetching} onRefresh={onRefresh} />
         </div>
       </div>
       {children}

@@ -16,6 +16,7 @@ function toSummary(s: SportAdapter, b: LiveBundle): SportSummary {
     basePath,
     competitionLabel,
     source: b.source,
+    reason: b.reason,
     syncedAt: b.syncedAt,
     liveCount: b.liveCount,
     total: b.games.length,

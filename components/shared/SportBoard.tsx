@@ -92,6 +92,7 @@ export function SportBoard({
         title={title}
         sub={sub}
         source={data.source}
+        reason={data.reason}
         syncedAt={data.syncedAt}
         isFetching={q.isFetching}
         onRefresh={() => q.refetch()}
