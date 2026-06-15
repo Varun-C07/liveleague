@@ -6,7 +6,7 @@ import { useMatches, useStandings } from "@/hooks/useMatches";
 import { useGoalFlash } from "@/hooks/useGoalFlash";
 import { useFavorites } from "@/hooks/useFavorites";
 import { usePrefs } from "@/hooks/usePrefs";
-import { SyncPill } from "./SyncPill";
+import { SyncPill } from "@/components/shared/SyncPill";
 import { NextMatch } from "./NextMatch";
 import { StatsBar } from "./StatsBar";
 import { GroupStandings } from "./GroupStandings";

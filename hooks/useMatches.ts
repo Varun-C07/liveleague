@@ -11,8 +11,8 @@ async function fetchJSON<T>(url: string): Promise<T> {
 
 export function useMatches(initial: MatchesResponse) {
   return useQuery({
-    queryKey: ["matches"],
-    queryFn: () => fetchJSON<MatchesResponse>("/api/matches"),
+    queryKey: ["soccer", "matches"],
+    queryFn: () => fetchJSON<MatchesResponse>("/api/soccer"),
     initialData: initial,
     refetchInterval: (q) => intervalFor(q.state.data as MatchesResponse | undefined),
   });
@@ -20,8 +20,8 @@ export function useMatches(initial: MatchesResponse) {
 
 export function useStandings(initial: StandingsResponse) {
   return useQuery({
-    queryKey: ["standings"],
-    queryFn: () => fetchJSON<StandingsResponse>("/api/standings"),
+    queryKey: ["soccer", "standings"],
+    queryFn: () => fetchJSON<StandingsResponse>("/api/soccer/standings"),
     initialData: initial,
     refetchInterval: 60_000,
   });

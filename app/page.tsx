@@ -1,8 +1,8 @@
-import { Board } from "@/components/Board";
-import { snapshotMatches, snapshotStandings } from "@/lib/snapshot";
+import { HomeBoard } from "@/components/home/HomeBoard";
+import { snapshotOverview } from "@/lib/sports/overview";
 
-// Seed the client with a verified snapshot so first paint is never blank;
-// React Query then swaps in live data from /api/*.
+// Server-seed the cross-sport overview so first paint is never blank;
+// React Query then swaps in live data from /api/live.
 export default function Home() {
-  return <Board initialMatches={snapshotMatches()} initialStandings={snapshotStandings()} />;
+  return <HomeBoard initial={snapshotOverview()} />;
 }

@@ -1,57 +1,78 @@
-# FIFA World Cup 2026 — Live Board
+# Live League — Multi-Sport Live Tracker
 
-A broadcast-style web app for the **FIFA World Cup 2026** (USA · Canada · Mexico) — the
-first 48-team World Cup, all **104 matches** from the group stage through the final, with
-live scores, group tables, kickoff countdowns and US-Eastern times.
+One broadcast-style board for every live league that matters — **Formula 1**, the **FIFA
+World Cup**, the **NBA**, **cricket** and **MLB** — with a cross-sport home page and a
+dedicated board per sport. Live scores, standings and start times that refresh themselves.
 
-Rebuilt from the original single-file board into a full **Next.js** app with a serverless
-data layer.
+Built as a single **Next.js 15 / React 19** app with a serverless data layer: per-sport
+upstream feeds are proxied and cached server-side (keys hidden), with a verified snapshot
+fallback so a board is never blank.
 
 ## Features
 
-- **Live scores & status** via a serverless proxy over TheSportsDB (cached + key-hidden),
-  with adaptive client polling (~15s while matches are live, backing off when idle).
-- **Goal flash** — rows highlight (and optionally chime) the instant a score changes.
-- **Group standings** for all 12 groups, computed from results, incl. the best-8 third-place race.
-- **Favorite teams** (★) — starred nations pin to the top and highlight across the board.
-- **Today view**, **Live** filter, **auto-pin** live matches, plus Completed / Upcoming /
-  Group Stage / Knockouts filters.
-- **Share** + **Add-to-Calendar (.ics)** per match; deep links (`#today`, `#live`, `#match-9`).
-- **Timezone toggle** (ET / local / UTC) and a goal-sound toggle.
-- Verified offline **snapshot fallback** so the board is never blank.
+- **Cross-sport home page** — one glance at what's live across all five leagues, a global
+  ticker and a per-sport status card that links to each board.
+- **Per-sport boards** — F1 podiums & drivers' championship; the 104-match World Cup with
+  group tables; NBA/MLB live scores with quarter/clock and inning/outs; cricket fixtures.
+- **Adaptive polling** — fast (~15s) while games are live, backing off to 5 min when idle;
+  serverless proxy + CDN caching collapses many clients into a few upstream calls.
+- **Per-sport accent theming** — the whole UI re-themes to each sport's color via a single
+  `[data-sport]` attribute (F1 red, soccer green, NBA orange, cricket teal, MLB blue).
+- **Snapshot fallback** per sport so a board never renders blank if a feed is unreachable.
+- **Timezone toggle** (ET / local / UTC), score-flash highlights, framer-motion transitions.
 
-## Tech
+## How it works
 
-- **Next.js 15** (App Router) + **React 19** + **TypeScript** + **Tailwind v4**
-- **@tanstack/react-query** (adaptive polling), **framer-motion**, **date-fns / date-fns-tz**, **lucide-react**
-- Serverless **Route Handlers** (`/api/matches`, `/api/standings`) normalize, cache and
-  fall back to the snapshot — the upstream key never reaches the browser.
+Every sport implements one small **adapter** (`lib/sports/<sport>.ts`) that normalizes its
+upstream feed into a shared `Game` shape (`lib/sports/types.ts`) and provides a snapshot
+fallback. The home page aggregates every adapter through one cached `/api/live` route; each
+sport page polls its own `/api/<sport>` route adaptively.
 
 ```
-data/      verified dataset (teams, groups, venues, 104-match schedule, results)
-lib/       schedule assembly, standings, normalize/name-matching, tsdb adapter, time, ics
-app/api/   serverless data layer
-components/ board UI (broadcast/stadium dark theme)
-hooks/     React Query data + favorites/prefs/goal-flash
+app/                / (home) + /f1 /soccer /nba /cricket /baseball + /api/* routes
+components/
+  shell/            AppShell — sticky nav, per-sport accent theming via [data-sport]
+  shared/           generic: GameTicker, GameRow, SportBoard, LiveStatusCard, Filters, …
+  soccer/  f1/      sport-specific boards & rows
+  home/             cross-sport overview
+lib/sports/         types.ts (the contract) · registry.ts · meta.ts · one adapter per sport
+data/snapshots/     offline fallbacks per sport
 ```
+
+## Data sources
+
+| Sport   | Source                            | Key? |
+| ------- | --------------------------------- | ---- |
+| F1      | Jolpica F1 API (Ergast successor) | no   |
+| Soccer  | TheSportsDB (Premium v2 optional) | yes¹ |
+| NBA     | ESPN public scoreboard JSON       | no   |
+| MLB     | ESPN public scoreboard JSON       | no   |
+| Cricket | snapshot fixture set (v1)²        | no   |
+
+¹ Free public key `123` works; a Premium key enables the v2 livescore feed.
+² Free live cricket feeds are inconsistent to parse, so cricket ships snapshot-first; a real
+upstream (CricAPI / ESPN cricket) can be slotted into `getLive()` later with no UI change.
 
 ## Develop
 
 ```bash
 npm install
-npm run dev   # http://localhost:3000
+cp .env.local.example .env.local   # optional — sensible defaults are built in
+npm run dev                        # http://localhost:3000
+npm run build && npm start         # production build
 ```
 
-Inspect the data layer directly at `/api/matches` and `/api/standings`.
+Inspect the data layer directly at `/api/live` and `/api/<sport>` (e.g. `/api/f1`).
 
 ## Deploy (Vercel)
 
-1. Import the repo at **vercel.com → Add New Project** (auto-detects Next.js).
-2. Set env vars (Production + Preview):
-   `TSDB_API_KEY=123`, `TSDB_API_BASE=https://www.thesportsdb.com/api`,
-   `TSDB_PREMIUM=false`, `NEXT_PUBLIC_SITE_URL=https://<project>.vercel.app`.
-3. Deploy. Adding a TheSportsDB Premium key later flips on the v2 livescore feed with no
-   client changes.
+Import the repo at **vercel.com → Add New Project** (auto-detects Next.js). Optionally set
+the env vars from `.env.local.example` (TheSportsDB Premium key, site URL). No other config
+needed — the serverless routes and CDN caching work out of the box.
 
-> The original single-file board still lives at `index.html` (served by GitHub Pages from
-> `main`) until the Vercel app becomes the canonical URL.
+## Roadmap / future enhancements
+
+- Per-sport favorites + score-sound across all boards (currently soccer only).
+- A real live cricket feed (CricAPI / ESPN cricket) behind the cricket adapter.
+- Design-tool integration: **Figma Dev Mode MCP** or **v0** to evolve the UI in code.
+- Paid real-time feeds (push / websocket) for true sub-second live updates.

@@ -1,6 +1,6 @@
 "use client";
 import type { ApiMatch } from "@/lib/api-shape";
-import { Countdown } from "./Countdown";
+import { Countdown } from "@/components/shared/Countdown";
 import { etParts, tzLabel } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";
 

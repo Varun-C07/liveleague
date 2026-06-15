@@ -1,7 +1,7 @@
 "use client";
 import type { ApiMatch } from "@/lib/api-shape";
 import { TeamBadge } from "./TeamBadge";
-import { FavoritesStar } from "./FavoritesStar";
+import { FavoritesStar } from "@/components/shared/FavoritesStar";
 import { ShareMenu } from "./ShareMenu";
 import { etParts, tzLabel } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";

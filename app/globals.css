@@ -16,13 +16,31 @@
   --amber: #f0b53a;
   --red: #ff4444;
   --live: #ff3b3b;
+
+  /* per-sport accent tokens; --accent is switched by [data-sport] below */
+  --accent-f1: #ff2a2a;
+  --accent-soccer: #16c060;
+  --accent-nba: #ff7a18;
+  --accent-cricket: #19c7a0;
+  --accent-baseball: #4b8bff;
+  --accent: #2bd58a;
 }
+
+/* AppShell sets data-sport on its wrapper so every board self-themes via
+   var(--accent) — accent bars, glows and live dots follow the active sport. */
+[data-sport="home"] { --accent: #2bd58a; }
+[data-sport="f1"] { --accent: var(--accent-f1); }
+[data-sport="soccer"] { --accent: var(--accent-soccer); }
+[data-sport="nba"] { --accent: var(--accent-nba); }
+[data-sport="cricket"] { --accent: var(--accent-cricket); }
+[data-sport="baseball"] { --accent: var(--accent-baseball); }
 
 @theme inline {
   --font-cond: var(--font-saira-cond), "Saira Condensed", sans-serif;
   --font-body: var(--font-saira), "Saira", sans-serif;
   --font-mono: var(--font-jb), "JetBrains Mono", ui-monospace, monospace;
   --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
   --color-panel: var(--panel);
   --color-panel2: var(--panel2);
   --color-line: var(--line);
@@ -33,6 +51,7 @@
   --color-green: var(--green);
   --color-gold: var(--gold);
   --color-live: var(--live);
+  --color-accent: var(--accent);
 }
 
 * {
@@ -43,10 +62,11 @@ html {
 }
 body {
   background:
-    radial-gradient(900px 500px at 100% -10%, rgba(22, 192, 96, 0.08), transparent 60%),
-    radial-gradient(700px 400px at -5% 0%, rgba(240, 198, 74, 0.05), transparent 55%),
+    radial-gradient(900px 520px at 100% -10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    radial-gradient(700px 420px at -5% 0%, rgba(240, 198, 74, 0.045), transparent 55%),
     repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 9px),
     var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
   line-height: 1.4;
@@ -58,7 +78,15 @@ body {
 .ff-mono { font-family: var(--font-mono); }
 .ff-body { font-family: var(--font-body); }
 
-/* animations */
+/* glassmorphism panel — translucent, blurred, inset highlight */
+.glass {
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ---------- animations ---------- */
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 rgba(22, 192, 96, 0.35); }
   70% { box-shadow: 0 0 0 4px rgba(22, 192, 96, 0); }
@@ -77,17 +105,37 @@ body {
   0% { background-color: rgba(22, 192, 96, 0.32); }
   100% { background-color: transparent; }
 }
+/* accent-driven variants (used across all sports) */
+@keyframes accentpulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); }
+  70% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes scoreflash {
+  0% { background-color: color-mix(in srgb, var(--accent) 28%, transparent); }
+  100% { background-color: transparent; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
 
 .anim-pulse { animation: pulse 3s ease-out infinite; }
 .anim-blink { animation: blink 1s steps(2) infinite; }
 .anim-rpulse { animation: rpulse 2.4s ease-out infinite; }
+.anim-accent-pulse { animation: accentpulse 2.6s ease-out infinite; }
 .goal-flash { animation: goalflash 2.2s ease-out 1; }
+.score-flash { animation: scoreflash 2.2s ease-out 1; }
+.marquee { animation: marquee 38s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
 
 /* horizontal scrollbars (group chips etc.) */
 .no-scrollbar::-webkit-scrollbar { height: 6px; }
 .no-scrollbar::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 3px; }
+.no-scrollbar { scrollbar-width: thin; }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim-pulse, .anim-blink, .anim-rpulse, .goal-flash { animation: none !important; }
+  .anim-pulse, .anim-blink, .anim-rpulse, .anim-accent-pulse,
+  .goal-flash, .score-flash, .marquee { animation: none !important; }
   [data-ticker] { animation: none !important; }
 }
