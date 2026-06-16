@@ -148,7 +148,7 @@ export function F1Board({ initial }: { initial: LiveBundle }) {
           </div>
         </div>
 
-        <StandingsStrip rows={data.standings} title={data.standingsTitle || "Drivers' Championship"} />
+        <StandingsStrip rows={data.standings} title={data.standingsTitle || "Drivers' Championship"} hrefBase="/f1/driver" />
       </SportHeader>
 
       <FilterBar defs={DEFS} value={filter} counts={counts} onChange={setFilter} />
