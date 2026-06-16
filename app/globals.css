@@ -115,6 +115,12 @@ body {
   0% { background-color: color-mix(in srgb, var(--accent) 28%, transparent); }
   100% { background-color: transparent; }
 }
+/* the number itself pops + glows in the accent color when a score changes */
+@keyframes scorepop {
+  0% { transform: scale(1); text-shadow: none; }
+  28% { transform: scale(1.22); text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 75%, transparent); }
+  100% { transform: scale(1); text-shadow: none; }
+}
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -126,6 +132,7 @@ body {
 .anim-accent-pulse { animation: accentpulse 2.6s ease-out infinite; }
 .goal-flash { animation: goalflash 2.2s ease-out 1; }
 .score-flash { animation: scoreflash 2.2s ease-out 1; }
+.score-pop { display: inline-block; animation: scorepop 1.4s ease-out 1; will-change: transform; }
 .marquee { animation: marquee 38s linear infinite; }
 .marquee:hover { animation-play-state: paused; }
 
@@ -136,6 +143,6 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .anim-pulse, .anim-blink, .anim-rpulse, .anim-accent-pulse,
-  .goal-flash, .score-flash, .marquee { animation: none !important; }
+  .goal-flash, .score-flash, .score-pop, .marquee { animation: none !important; }
   [data-ticker] { animation: none !important; }
 }

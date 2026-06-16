@@ -60,7 +60,7 @@ export function Board({
       switch (filter) {
         case "today": return etDateKey(x.utc) === todayKey;
         case "live": return x.status === "live";
-        case "favs": return (x.home.real && fav.has(x.home.code)) || (x.away.real && fav.has(x.away.code));
+        case "favs": return (x.home.real && fav.has("soccer", x.home.code)) || (x.away.real && fav.has("soccer", x.away.code));
         case "done": return x.status === "ft";
         case "up": return x.status === "sched";
         case "group": return x.grp != null;
@@ -158,8 +158,8 @@ export function Board({
   );
 }
 
-function isFav(x: ApiMatch, fav: { has: (c: string) => boolean }): boolean {
-  return (x.home.real && fav.has(x.home.code)) || (x.away.real && fav.has(x.away.code));
+function isFav(x: ApiMatch, fav: { has: (sport: string, code: string) => boolean }): boolean {
+  return (x.home.real && fav.has("soccer", x.home.code)) || (x.away.real && fav.has("soccer", x.away.code));
 }
 function nextMatch(matches: ApiMatch[]): ApiMatch | null {
   const live = matches.find((x) => x.status === "live");

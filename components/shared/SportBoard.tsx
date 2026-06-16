@@ -3,17 +3,19 @@ import { useMemo, useState } from "react";
 import type { Game, LiveBundle, SportId } from "@/lib/sports/types";
 import { useLiveBundle } from "@/hooks/useLive";
 import { useScoreFlash } from "@/hooks/useScoreFlash";
+import { useFavorites } from "@/hooks/useFavorites";
 import { SportHeader } from "./SportHeader";
 import { GameTicker } from "./GameTicker";
 import { GameRow } from "./GameRow";
 import { StandingsStrip } from "./StandingsStrip";
 import { FilterBar, type FilterDef } from "./FilterBar";
 
-type FKey = "all" | "live" | "today" | "done" | "up";
+type FKey = "all" | "live" | "today" | "done" | "up" | "favs";
 const DEFS: FilterDef<FKey>[] = [
   { key: "all", label: "All" },
   { key: "live", label: "● Live", live: true },
   { key: "today", label: "Today" },
+  { key: "favs", label: "★ My Teams" },
   { key: "done", label: "Completed" },
   { key: "up", label: "Upcoming" },
 ];
@@ -53,18 +55,22 @@ export function SportBoard({
   const data = q.data;
   const games = data.games;
   const flashed = useScoreFlash(games);
+  const fav = useFavorites();
   const [filter, setFilter] = useState<FKey>("all");
   const todayKey = etDateKey(new Date().toISOString());
+  const isFavGame = (g: Game) => fav.has(sport, g.home.code) || fav.has(sport, g.away.code);
 
   const counts = useMemo<Record<FKey, number>>(
     () => ({
       all: games.length,
       live: games.filter((g) => g.status === "live").length,
       today: games.filter((g) => etDateKey(g.utc) === todayKey).length,
+      favs: games.filter(isFavGame).length,
       done: games.filter((g) => g.status === "final").length,
       up: games.filter((g) => g.status === "sched").length,
     }),
-    [games, todayKey],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [games, todayKey, fav],
   );
 
   const list = useMemo(() => {
@@ -78,12 +84,15 @@ export function SportBoard({
           return g.status === "final";
         case "up":
           return g.status === "sched";
+        case "favs":
+          return isFavGame(g);
         default:
           return true;
       }
     };
     return games.filter(pred).sort(sortGames);
-  }, [games, filter, todayKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [games, filter, todayKey, fav]);
 
   return (
     <div className="max-w-[1180px] mx-auto px-3.5 pt-5 pb-16">

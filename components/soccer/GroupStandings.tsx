@@ -23,7 +23,7 @@ export function GroupStandings({ data }: { data: StandingsResponse }) {
             {data.groups[g].map((t, i) => {
               const q = i < 2;
               const third = i === 2 && thirds.has(t.code);
-              const isFav = fav.has(t.code);
+              const isFav = fav.has("soccer", t.code);
               return (
                 <div
                   key={t.code}

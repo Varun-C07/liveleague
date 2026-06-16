@@ -64,7 +64,7 @@ export function MatchRow({ m, flashed, isNext }: { m: ApiMatch; flashed: boolean
         <div className="text-center ff-mono min-w-[58px]">
           {live ? (
             <>
-              <div className="ff-cond font-bold text-[20px] tracking-wider">{m.homeScore ?? 0}–{m.awayScore ?? 0}</div>
+              <div className={`ff-cond font-bold text-[20px] tracking-wider ${flashed ? "score-pop" : ""}`}>{m.homeScore ?? 0}–{m.awayScore ?? 0}</div>
               <div className="text-[11px] tracking-wide text-live font-bold uppercase">
                 <span className="anim-blink">●</span> {m.minute || "Live"}
               </div>
@@ -82,7 +82,7 @@ export function MatchRow({ m, flashed, isNext }: { m: ApiMatch; flashed: boolean
           )}
         </div>
         <div className="flex flex-col gap-0.5">
-          <FavoritesStar codes={[m.home.code, m.away.code]} />
+          <FavoritesStar sport="soccer" codes={[m.home.code, m.away.code]} />
           <ShareMenu match={m} />
         </div>
       </div>

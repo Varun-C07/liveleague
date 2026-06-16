@@ -3,6 +3,7 @@ import type { Competitor, Game } from "@/lib/sports/types";
 import { liveLabel } from "@/lib/sports/format";
 import { etParts, tzLabel } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";
+import { FavoritesStar } from "./FavoritesStar";
 
 // Generic row for two-team sports (NBA, MLB, cricket). Soccer & F1 keep bespoke
 // rows; everything else shares this.
@@ -54,25 +55,28 @@ export function GameRow({ g, flashed }: { g: Game; flashed?: boolean }) {
         </div>
       </div>
 
-      {/* score / time */}
-      <div className="text-center ff-mono min-w-[60px] justify-self-end">
-        {live || final ? (
-          <>
-            <div className="ff-cond font-bold text-[20px] tracking-wider">
-              {hs ?? 0}–{as ?? 0}
+      {/* score / time + favorite */}
+      <div className="flex items-center gap-1 justify-self-end">
+        <div className="text-center ff-mono min-w-[60px]">
+          {live || final ? (
+            <>
+              <div className={`ff-cond font-bold text-[20px] tracking-wider ${flashed ? "score-pop" : ""}`}>
+                {hs ?? 0}–{as ?? 0}
+              </div>
+              <div className="text-[10px] uppercase tracking-wide" style={{ color: live ? "var(--accent)" : "var(--dim)" }}>
+                {live ? liveLabel(g) : "Final"}
+              </div>
+            </>
+          ) : (
+            <div className="ff-cond font-semibold text-[15px]">
+              {g.approx ? "TBD" : et.time}
+              <small className="block ff-mono text-[10px] text-muted font-normal">
+                {et.day} {tzLabel(tz)}
+              </small>
             </div>
-            <div className="text-[10px] uppercase tracking-wide" style={{ color: live ? "var(--accent)" : "var(--dim)" }}>
-              {live ? liveLabel(g) : "Final"}
-            </div>
-          </>
-        ) : (
-          <div className="ff-cond font-semibold text-[15px]">
-            {g.approx ? "TBD" : et.time}
-            <small className="block ff-mono text-[10px] text-muted font-normal">
-              {et.day} {tzLabel(tz)}
-            </small>
-          </div>
-        )}
+          )}
+        </div>
+        <FavoritesStar sport={g.sport} codes={[g.home.code, g.away.code]} />
       </div>
     </div>
   );
