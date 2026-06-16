@@ -43,8 +43,34 @@ export type RawEvent = {
   strTimestamp?: string;
 };
 
+// A football match can only plausibly be "live" within this window after
+// kickoff: 90' + halftime + stoppage + (knockout) extra time + penalties + buffer.
+const MAX_LIVE_MS = 3.5 * 60 * 60_000;
+const PRE_LIVE_MS = 10 * 60_000; // small lead-in tolerance before the listed kickoff
+
+// Clamp an upstream "live" status against the clock. The free feed often leaves a
+// stale "live"/minute on a match that finished hours ago (or before kickoff).
+export function clampLive(
+  st: MatchStatus,
+  kickoffMs: number,
+  hasScores: boolean,
+  now: number,
+): MatchStatus {
+  if (st !== "live" || Number.isNaN(kickoffMs)) return st;
+  if (now < kickoffMs - PRE_LIVE_MS) return "sched"; // hasn't kicked off yet
+  if (now > kickoffMs + MAX_LIVE_MS) return hasScores ? "ft" : "sched"; // long over
+  return "live";
+}
+
 // Merge upstream events onto a fresh copy of the schedule, matched by team pair.
-export function applyEvents(matches: Match[], events: RawEvent[]): { matches: Match[]; liveCount: number } {
+// `now` is injectable for testing. The status from the free feed is sanity-checked
+// against the clock — it often leaves a stale "live"/minute on a match that
+// finished hours ago, which is the source of "6pm game shown live at 11pm".
+export function applyEvents(
+  matches: Match[],
+  events: RawEvent[],
+  now: number = Date.now(),
+): { matches: Match[]; liveCount: number } {
   const byPair = new Map<string, Match>();
   for (const m of matches) {
     byPair.set(m.h + ">" + m.a, m);
@@ -60,21 +86,26 @@ export function applyEvents(matches: Match[], events: RawEvent[]): { matches: Ma
     if (!m) continue;
     const flip = m.h !== hc; // upstream listed teams reversed vs our schedule
 
+    // Resolve kickoff FIRST so the live-window guard uses the real start time.
+    if (ev.strTimestamp) {
+      const iso = ev.strTimestamp.replace(" ", "T").replace(/Z?$/, "Z");
+      if (!Number.isNaN(Date.parse(iso))) { m.utc = iso; m.approx = false; }
+    }
+
     const ps = parseStatus(ev.strStatus || ev.strProgress);
     let hs = coerce(ev.intHomeScore);
     let as = coerce(ev.intAwayScore);
     if (flip) { const t = hs; hs = as; as = t; }
 
-    m.st = ps.st;
-    (m as Match & { minute?: string | null }).minute = ps.min;
-    if (ps.st === "sched") { m.hs = null; m.as = null; }
+    // Clamp an implausible "live" to the clock.
+    const st = clampLive(ps.st, new Date(m.utc).getTime(), hs != null && as != null, now);
+
+    m.st = st;
+    (m as Match & { minute?: string | null }).minute = st === "live" ? ps.min : null;
+    if (st === "sched") { m.hs = null; m.as = null; }
     else { m.hs = hs; m.as = as; }
 
-    if (ev.strTimestamp) {
-      const iso = ev.strTimestamp.replace(" ", "T").replace(/Z?$/, "Z");
-      if (!Number.isNaN(Date.parse(iso))) { m.utc = iso; m.approx = false; }
-    }
-    if (ps.st === "live") liveCount++;
+    if (st === "live") liveCount++;
   }
   return { matches, liveCount };
 }
