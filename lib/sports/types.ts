@@ -110,3 +110,9 @@ export type LiveOverview = {
   totalLive: number;
   sports: SportSummary[];
 };
+
+// Cross-sport agenda (My Day / Week / Month).
+export type AgendaResponse = {
+  syncedAt: string;
+  games: Game[];
+};

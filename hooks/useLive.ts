@@ -1,6 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import type { LiveBundle, LiveOverview, SportId } from "@/lib/sports/types";
+import type { AgendaResponse, LiveBundle, LiveOverview, SportId } from "@/lib/sports/types";
 import { POLL, intervalFromLive } from "@/lib/polling";
 
 async function fetchJSON<T>(url: string): Promise<T> {
@@ -22,6 +22,20 @@ export function useOverview(initial: LiveOverview) {
         d.totalLive,
         d.sports.flatMap((s) => s.topGames),
       );
+    },
+  });
+}
+
+// Cross-sport agenda (My Day / Week / Month).
+export function useAgenda(initial: AgendaResponse) {
+  return useQuery({
+    queryKey: ["agenda"],
+    queryFn: () => fetchJSON<AgendaResponse>("/api/agenda"),
+    initialData: initial,
+    refetchInterval: (q) => {
+      const d = q.state.data as AgendaResponse | undefined;
+      if (!d) return POLL.soon;
+      return intervalFromLive(d.games.filter((g) => g.status === "live").length, d.games);
     },
   });
 }
