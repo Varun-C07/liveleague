@@ -77,20 +77,12 @@ async function run(req: Request) {
       .eq("id", s.id);
   }
 
-  // 5. Recompute affected users' cached totals (SUM => idempotent).
+  // 5. Recompute affected users' totals: profile = all scored points; each
+  // league_members row = only predictions made after that membership's join
+  // (per-league scoring). Done in one definer function, idempotent.
   const userIds = [...new Set(preds.map((p) => p.user_id))];
   for (const uid of userIds) {
-    const { data: rows } = await admin
-      .from("predictions")
-      .select("points")
-      .eq("user_id", uid)
-      .not("points", "is", null);
-    const total = (rows ?? []).reduce(
-      (a, r) => a + (r.points ?? 0),
-      0,
-    );
-    await admin.from("profiles").update({ prediction_points: total }).eq("id", uid);
-    await admin.from("league_members").update({ points: total }).eq("user_id", uid);
+    await admin.rpc("recompute_user_points", { p_user: uid });
   }
 
   return Response.json({ scored: batch.length, users: userIds.length });
