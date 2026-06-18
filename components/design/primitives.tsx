@@ -95,6 +95,27 @@ export function Tag({
   );
 }
 
+// Section label (skewed accent bar + condensed heading)
+export function SL({ t, children }: { t: Theme; children: ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+      <span style={{ width: 4, height: 18, background: t.accent, transform: "skewX(-10deg)", borderRadius: 1 }} />
+      <span className="disp" style={{ fontSize: 19, fontWeight: 800, display: "flex", alignItems: "center", gap: 7 }}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
+// Horizontal scroll strip
+export function Strip({ children }: { children: ReactNode }) {
+  return (
+    <div style={{ display: "flex", gap: 11, overflowX: "auto", paddingBottom: 8, marginBottom: 30 }}>
+      {children}
+    </div>
+  );
+}
+
 // primary CTA — skew reserved here
 export function Cta({
   onClick,
