@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrefsProvider } from "@/hooks/usePrefs";
 import { FavoritesProvider } from "@/hooks/useFavorites";
+import { AuthProvider } from "@/hooks/useAuth";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(
@@ -20,9 +21,11 @@ export function Providers({ children }: { children: ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <PrefsProvider>
-        <FavoritesProvider>{children}</FavoritesProvider>
-      </PrefsProvider>
+      <AuthProvider>
+        <PrefsProvider>
+          <FavoritesProvider>{children}</FavoritesProvider>
+        </PrefsProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

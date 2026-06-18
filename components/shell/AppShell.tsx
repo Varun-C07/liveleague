@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SPORT_META } from "@/lib/sports/meta";
+import { AuthControl } from "@/components/shell/AuthControl";
 
 function sportFromPath(path: string): string {
   if (!path || path === "/") return "home";
@@ -43,6 +44,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               />
             ))}
           </div>
+
+          <AuthControl />
         </nav>
       </header>
 
