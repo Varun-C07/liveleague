@@ -7,7 +7,8 @@ import { AuthControl } from "@/components/shell/AuthControl";
 function sportFromPath(path: string): string {
   if (!path || path === "/") return "home";
   const seg = path.split("/")[1];
-  if (seg === "agenda") return "agenda";
+  if (seg === "agenda" || seg === "predictions" || seg === "leagues" || seg === "account")
+    return seg;
   return SPORT_META.some((s) => s.id === seg) ? seg : "home";
 }
 
@@ -33,6 +34,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar justify-end">
             <NavPill href="/" label="Home" emoji="◎" active={active === "home"} />
             <NavPill href="/agenda" label="Agenda" emoji="🗓️" active={active === "agenda"} />
+            <NavPill href="/predictions" label="Predict" emoji="🎯" active={active === "predictions"} />
+            <NavPill href="/leagues" label="Leagues" emoji="🏆" active={active === "leagues"} />
             {SPORT_META.map((s) => (
               <NavPill
                 key={s.id}
