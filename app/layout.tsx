@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Saira, Saira_Condensed, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { AppShell } from "@/components/shell/AppShell";
+import { ThemeProvider } from "@/components/design/theme";
+import { DesignShell } from "@/components/design/DesignShell";
 
 const saira = Saira({ variable: "--font-saira", subsets: ["latin"], weight: ["400", "500", "600"] });
 const sairaCond = Saira_Condensed({ variable: "--font-saira-cond", subsets: ["latin"], weight: ["500", "600", "700"] });
@@ -30,7 +31,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body className={`${saira.variable} ${sairaCond.variable} ${jb.variable}`}>
         <Providers>
-          <AppShell>{children}</AppShell>
+          <ThemeProvider>
+            <DesignShell>{children}</DesignShell>
+          </ThemeProvider>
         </Providers>
       </body>
     </html>
