@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 
 // Header auth control. Renders nothing until Supabase is configured, so the
@@ -51,10 +52,16 @@ export function AuthControl() {
 
   return (
     <div className="flex-none flex items-center gap-2">
-      <Avatar src={avatar} name={name} />
-      <span className="ff-cond text-[12px] text-muted max-w-[120px] truncate hidden sm:block">
-        {name}
-      </span>
+      <Link
+        href="/account"
+        className="flex items-center gap-2 hover:opacity-80 transition"
+        aria-label="Account"
+      >
+        <Avatar src={avatar} name={name} />
+        <span className="ff-cond text-[12px] text-muted max-w-[120px] truncate hidden sm:block">
+          {name}
+        </span>
+      </Link>
       <button
         onClick={signOut}
         className="flex-none rounded-full border border-line2 px-2.5 py-1.5 ff-cond uppercase tracking-wide font-semibold text-[11px] text-dim hover:text-text transition"
