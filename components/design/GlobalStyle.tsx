@@ -45,6 +45,9 @@ export function GlobalStyle() {
       .ll-acc-item[data-open="true"] .ll-acc-body{max-height:180px}
       .ll-acc-chev{transition:transform .25s ease}
       .ll-acc-item[data-open="true"] .ll-acc-chev{transform:rotate(180deg)}
+      .ll-nav-pills{display:flex;gap:4px;flex:1;min-width:0;overflow-x:auto}
+      .ll-nav-menu{display:none;position:relative;flex:1;min-width:0}
+      @media(max-width:640px){.ll-nav-pills{display:none}.ll-nav-menu{display:block}}
       @media(max-width:900px){.mgrid{grid-template-columns:1fr}.rail{position:static;max-height:none;overflow:visible}}
       @media(max-width:860px){.hero{grid-template-columns:1fr;gap:20px;padding:24px 0 16px}}
       @media(max-width:560px){.wrap{padding:0 14px 72px}.ll-leagues-cards{display:none}.ll-leagues-acc{display:flex;flex-direction:column;gap:10px}}

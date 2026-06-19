@@ -14,6 +14,22 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-19 19:16 EDT — Header nav collapses to a single menu on mobile
+- **Top nav (Home / World Cup / Formula 1) is now responsive** — `components/design/DesignShell.tsx`.
+  - Desktop (>640px): unchanged inline pills (`.ll-nav-pills`).
+  - Mobile (≤640px): the three pills collapse into one tap-to-open menu
+    (`.ll-nav-menu`) — a single button showing the current section that expands a
+    vertical dropdown to switch between Home / World Cup / Formula 1. Closes on
+    outside click and on route change.
+  - Extracted the nav into a `Nav` component; chevron rotates when open.
+- **Responsive CSS** — `components/design/GlobalStyle.tsx` (`.ll-nav-pills` /
+  `.ll-nav-menu`, switch at a new 640px breakpoint).
+- **Why:** the three header pills were squeezed next to the logo on mobile; a single
+  collapsible menu replaces them. (Distinct from the 16:37 change, which collapsed the
+  in-page "Leagues" section — that stays as-is.)
+- Verified: `tsc --noEmit` + `eslint` pass; dev server serves both nav layouts (SSR
+  confirmed `.ll-nav-pills`, `.ll-nav-menu`, and the 640px media query in the HTML).
+
 ### 2026-06-19 16:37 EDT — Mobile collapsible league bars + logo→home confirmed
 - **Home "Leagues" section is now responsive** — `components/design/screens/Home.tsx`.
   - Desktop (>560px): unchanged grid of league cards (`.ll-leagues-cards`).

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTheme } from "@/components/design/theme";
 import { GlobalStyle } from "@/components/design/GlobalStyle";
 import { hex, Pulse } from "@/components/design/primitives";
-import { Radio, Trophy, Zap, Bell, Check } from "@/components/design/icons";
+import { Radio, Trophy, Zap, Bell, Check, ChevronDown } from "@/components/design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -43,30 +43,7 @@ export function DesignShell({ children }: { children: ReactNode }) {
       >
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "11px 22px", display: "flex", alignItems: "center", gap: 16 }}>
           <Logo />
-          <div style={{ display: "flex", gap: 4, marginLeft: 6, flex: 1, overflowX: "auto" }}>
-            {PILLS.map((p) => {
-              const on = active === p.id;
-              return (
-                <Link
-                  key={p.id}
-                  href={p.href}
-                  aria-current={on ? "page" : undefined}
-                  className={on ? "" : "navpill"}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6, padding: "8px 15px",
-                    border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13,
-                    fontWeight: 700, whiteSpace: "nowrap", transition: "all .2s", textDecoration: "none",
-                    background: on ? t.accent : "transparent",
-                    boxShadow: on ? `0 4px 16px ${hex(t.accent, 0.38)}` : "none",
-                    color: on ? t.onAccent : t.textDim,
-                  }}
-                >
-                  {p.icon}
-                  {p.label}
-                </Link>
-              );
-            })}
-          </div>
+          <Nav active={active} />
           <ShellBell />
           <ShellAuth />
         </div>
@@ -75,6 +52,106 @@ export function DesignShell({ children }: { children: ReactNode }) {
       <div className="wrap lldesign">{children}</div>
 
       <Footer />
+    </>
+  );
+}
+
+// Top nav: inline pills on desktop; on mobile (≤640px) collapses to a single
+// tap-to-open menu showing the current page, expanding to switch between sections.
+function Nav({ active }: { active: string }) {
+  const { t } = useTheme();
+  const path = usePathname() || "/";
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  // Collapse the menu whenever the route changes.
+  useEffect(() => setOpen(false), [path]);
+
+  const current = PILLS.find((p) => p.id === active) ?? PILLS[0];
+
+  return (
+    <>
+      {/* Desktop: inline pills */}
+      <div className="ll-nav-pills" style={{ marginLeft: 6 }}>
+        {PILLS.map((p) => {
+          const on = active === p.id;
+          return (
+            <Link
+              key={p.id}
+              href={p.href}
+              aria-current={on ? "page" : undefined}
+              className={on ? "" : "navpill"}
+              style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 15px",
+                border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13,
+                fontWeight: 700, whiteSpace: "nowrap", transition: "all .2s", textDecoration: "none",
+                background: on ? t.accent : "transparent",
+                boxShadow: on ? `0 4px 16px ${hex(t.accent, 0.38)}` : "none",
+                color: on ? t.onAccent : t.textDim,
+              }}
+            >
+              {p.icon}
+              {p.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Mobile: collapsible menu */}
+      <div className="ll-nav-menu" ref={ref} style={{ marginLeft: 6 }}>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-label="Switch section"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 7, padding: "8px 13px",
+            border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 700,
+            whiteSpace: "nowrap", background: t.accent, color: t.onAccent,
+            boxShadow: `0 4px 16px ${hex(t.accent, 0.38)}`,
+          }}
+        >
+          {current.icon}
+          {current.label}
+          <ChevronDown size={14} style={{ transition: "transform .2s ease", transform: open ? "rotate(180deg)" : "none" }} />
+        </button>
+
+        {open && (
+          <div
+            className="rise"
+            style={{ position: "absolute", top: 44, left: 0, minWidth: 184, zIndex: 80, borderRadius: 11, border: `1px solid ${hex(t.border, 0.7)}`, background: t.surface, boxShadow: t.shadow, padding: 6 }}
+          >
+            {PILLS.map((p) => {
+              const on = active === p.id;
+              return (
+                <Link
+                  key={p.id}
+                  href={p.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={on ? "page" : undefined}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 9, padding: "10px 12px", borderRadius: 8,
+                    textDecoration: "none", fontSize: 13.5, fontWeight: 700,
+                    background: on ? hex(t.accent, 0.14) : "transparent",
+                    color: on ? t.accent : t.textDim,
+                  }}
+                >
+                  {p.icon}
+                  {p.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </>
   );
 }
