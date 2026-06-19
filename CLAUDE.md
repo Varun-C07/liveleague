@@ -60,6 +60,11 @@ there's a budget; use transparent approximations. See ROADMAP "Phase 7".
 **Unit-test each iteration** and **commit + push to `main` after each checkpoint.** Commit
 messages end with the `Co-Authored-By: Claude` trailer.
 
+**Keep the change logs current.** Any back-end change (data layer, APIs, auth, payments,
+caching, data sources) → add a top entry to **BACKEND.md** (it also holds an architecture map —
+update that when tables/routes/sources change). Any UI/UX change → **FRONTEND.md**. Newest-first,
+short: what changed, where, why.
+
 ## Deploy
 GitHub Actions (`.github/workflows/deploy.yml`), token-based, gated on lint + tests. Needs repo
 secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (still to be added by the owner), and
