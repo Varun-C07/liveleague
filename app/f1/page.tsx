@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { F1Board } from "@/components/f1/F1Board";
+import { F1 } from "@/components/design/screens/F1";
 import { f1Adapter } from "@/lib/sports/f1";
 
 export const metadata: Metadata = {
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function F1Page() {
-  return <F1Board initial={f1Adapter.snapshot()} />;
+  return <F1 initial={f1Adapter.snapshot()} />;
 }
