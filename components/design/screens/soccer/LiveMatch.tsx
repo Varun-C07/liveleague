@@ -5,12 +5,13 @@ import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse } from "@/components/design/primitives";
 import { MapPin } from "@/components/design/icons";
 import { isLightColor, kickoffLabel } from "@/components/design/map";
-import { XgChart, Formation, ShotMap } from "@/components/design/screens/soccer/charts";
+import { Formation } from "@/components/design/screens/soccer/charts";
 import { SAMPLE_MATCH, SAMPLE_H, SAMPLE_A } from "@/components/design/screens/soccer/sample";
 import type { ApiMatch } from "@/lib/api-shape";
 
-// Real featured/live match header; the analytics showcase (xG / formation /
-// shot map / timeline / stats) is sample data, clearly badged, until Phase 7.
+// Real featured/live match header. The remaining detail panels (formation +
+// win-probability) are sample data, clearly badged, until a paid feed lands.
+// The xG-momentum and shot-map panels were removed (no affordable real source).
 export function LiveMatch({ m }: { m: ApiMatch | null }) {
   const { t } = useTheme();
   const [open, setOpen] = useState(false);
@@ -64,7 +65,7 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
         {open ? (
           <div className="rise" style={{ marginTop: 16, borderTop: `1px solid ${hex(t.border, 0.6)}`, paddingTop: 15 }}>
             <div style={{ marginBottom: 12 }}>
-              <Tag color={t.gold} bg={hex(t.gold, 0.16)}>Sample analytics · real xG &amp; lineups arrive with the data upgrade</Tag>
+              <Tag color={t.gold} bg={hex(t.gold, 0.16)}>Sample formation &amp; win-probability · real data arrives with a future data upgrade</Tag>
             </div>
             {/* win probability (sample) */}
             <div style={{ marginBottom: 4 }}>
@@ -77,13 +78,11 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
                 <span style={{ color: t.accent }}>{H.n} {sm.prob.h}%</span><span>Draw {sm.prob.d}%</span><span>{A.n} {sm.prob.a}%</span>
               </div>
             </div>
-            <XgChart t={t} m={sm} A={A} />
             <Formation t={t} H={H} />
-            <ShotMap t={t} m={sm} H={H} A={A} />
             <div style={{ fontSize: 11, color: t.textFaint, marginTop: 12, textAlign: "center" }}>Tap to collapse</div>
           </div>
         ) : (
-          <div style={{ fontSize: 11, color: t.textFaint, marginTop: 12, textAlign: "center" }}>Tap for sample analytics (xG, formation, shot map)</div>
+          <div style={{ fontSize: 11, color: t.textFaint, marginTop: 12, textAlign: "center" }}>Tap for sample formation &amp; win-probability</div>
         )}
       </div>
     </div>

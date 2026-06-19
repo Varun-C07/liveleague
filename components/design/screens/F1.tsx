@@ -10,7 +10,8 @@ import { useLiveBundle } from "@/hooks/useLive";
 
 const TRACK_AUT = "M22,86 C16,64 24,50 44,48 L150,33 C168,30 176,23 173,15 C170,8 158,9 152,16 L120,46 C104,61 92,66 96,80 C99,90 116,92 138,90 L168,87 C182,85 188,95 181,104 C175,112 156,108 138,107 L52,99 C36,97 27,98 22,86 Z";
 
-type Driver = { pos: number; code: string; color: string; pts: number; wins: number; gap: number };
+type Driver = { pos: number; code: string; name: string; color: string; pts: number; wins: number; gap: number };
+type Ctor = { pos: number; code: string; name: string; color: string; pts: number; wins: number; gap: number };
 type Race = { round: number; name: string; loc: string; done: boolean; sprint: boolean; next: boolean; live: boolean; podium: { code: string; color: string }[] };
 
 function metric(row: StandingRow, label: string): number {
@@ -22,7 +23,15 @@ function mapDrivers(standings: StandingRow[]): Driver[] {
   const leader = standings[0] ? metric(standings[0], "PTS") : 0;
   return standings.map((r) => {
     const pts = metric(r, "PTS");
-    return { pos: r.rank, code: r.code, color: r.color, pts, wins: metric(r, "W"), gap: Math.max(0, leader - pts) };
+    return { pos: r.rank, code: r.code, name: r.name, color: r.color, pts, wins: metric(r, "W"), gap: Math.max(0, leader - pts) };
+  });
+}
+
+function mapCtors(standings: StandingRow[]): Ctor[] {
+  const leader = standings[0] ? metric(standings[0], "PTS") : 0;
+  return standings.map((r) => {
+    const pts = metric(r, "PTS");
+    return { pos: r.rank, code: r.code, name: r.name, color: r.color, pts, wins: metric(r, "W"), gap: Math.max(0, leader - pts) };
   });
 }
 
@@ -51,7 +60,9 @@ export function F1({ initial }: { initial: LiveBundle }) {
   const bundle = data ?? initial;
 
   const drivers = useMemo(() => mapDrivers(bundle.standings ?? []), [bundle.standings]);
+  const ctors = useMemo(() => mapCtors(bundle.constructorStandings ?? []), [bundle.constructorStandings]);
   const races = useMemo(() => mapRaces(bundle.games), [bundle.games]);
+  const [tab, setTab] = useState<"drivers" | "ctors">("drivers");
   const nextRace = useMemo(() => {
     const upcoming = bundle.games.find((g) => g.status !== "final");
     return upcoming ?? null;
@@ -67,8 +78,29 @@ export function F1({ initial }: { initial: LiveBundle }) {
       <NextRace t={t} game={nextRace} />
 
       <div style={{ marginTop: 26 }}>
-        <SL t={t}>Drivers&apos; championship</SL>
-        {drivers.length > 0 ? <DriverTable t={t} drivers={drivers} /> : (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          {ctors.length > 0 ? (
+            ([["drivers", "Drivers"], ["ctors", "Constructors"]] as [typeof tab, string][]).map(([id, label]) => {
+              const on = tab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  style={{ padding: "7px 15px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".04em", background: on ? t.crimson : t.chip, color: on ? "#fff" : t.textDim }}
+                >
+                  {label}
+                </button>
+              );
+            })
+          ) : (
+            <SL t={t}>Drivers&apos; championship</SL>
+          )}
+        </div>
+        {tab === "ctors" && ctors.length > 0 ? (
+          <CtorTable t={t} ctors={ctors} />
+        ) : drivers.length > 0 ? (
+          <DriverTable t={t} drivers={drivers} />
+        ) : (
           <div style={{ padding: "18px 20px", ...card(t) }}>
             <span style={{ fontSize: 13, color: t.textDim }}>Standings load once the season feed is reachable.</span>
           </div>
@@ -150,7 +182,7 @@ function DriverTable({ t, drivers }: { t: Theme; drivers: Driver[] }) {
               <div style={{ width: 46, height: 28, background: i === 0 ? t.gold : t.text, color: t.bg, fontWeight: 900, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", transform: "skewX(-13deg)", margin: "0 12px 0 4px", flexShrink: 0, boxShadow: i === 0 ? `0 0 12px ${hex(t.gold, 0.5)}` : "none" }}>
                 <span className="num" style={{ transform: "skewX(13deg)", letterSpacing: ".02em" }}>{d.code}</span>
               </div>
-              <div style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.code}</div>
+              <div style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.name}</div>
               <div style={{ textAlign: "right", marginLeft: 8, minWidth: 62 }}>
                 <span className="num" style={{ fontSize: 19, fontWeight: 900, letterSpacing: ".01em" }}>{d.pts}</span>
                 <div className="num" style={{ fontSize: 9.5, color: d.gap ? t.textFaint : t.gold, fontWeight: 800, letterSpacing: ".04em" }}>{d.gap ? `+${d.gap}` : "LEADER"}</div>
@@ -176,6 +208,24 @@ function DriverTable({ t, drivers }: { t: Theme; drivers: Driver[] }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function CtorTable({ t, ctors }: { t: Theme; ctors: Ctor[] }) {
+  const max = ctors[0]?.pts || 1;
+  return (
+    <div style={{ overflow: "hidden", ...card(t) }}>
+      {ctors.map((c, i) => (
+        <div key={c.code + i} style={{ position: "relative", display: "flex", alignItems: "center", height: 46, paddingRight: 16, borderTop: i ? `1px solid ${hex(t.border, 0.55)}` : "none" }}>
+          <div style={{ width: 5, height: "100%", background: c.color, flexShrink: 0, boxShadow: `0 0 8px ${hex(c.color, 0.6)}` }} />
+          <span className="num" style={{ width: 38, textAlign: "center", fontSize: 15, fontWeight: 900, color: i === 0 ? t.gold : t.text }}>{c.pos}</span>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingLeft: 4 }}>{c.name}</div>
+          <span className="num" style={{ fontSize: 11, color: t.textFaint, fontWeight: 700, marginRight: 14 }}>{c.wins ? `${c.wins} W` : ""}</span>
+          <span className="num" style={{ fontSize: 19, fontWeight: 900, minWidth: 44, textAlign: "right" }}>{c.pts}</span>
+          <div style={{ position: "absolute", left: 0, bottom: 0, height: 2, width: `${(c.pts / max) * 100}%`, background: `linear-gradient(90deg, ${hex(c.color, 0.2)}, ${c.color})` }} />
+        </div>
+      ))}
     </div>
   );
 }

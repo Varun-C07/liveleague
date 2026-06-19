@@ -72,6 +72,10 @@ export type LiveBundle = {
   games: Game[];
   standings?: StandingRow[];
   standingsTitle?: string;
+  // Optional secondary table (F1 constructors' championship). Only sports that
+  // have a second standings dimension populate this; others leave it undefined.
+  constructorStandings?: StandingRow[];
+  constructorTitle?: string;
 };
 
 // Static, client-safe metadata. Lives separately (lib/sports/meta.ts) so client

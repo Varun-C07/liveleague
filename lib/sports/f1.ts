@@ -7,18 +7,30 @@ const BASE = process.env.JOLPICA_BASE || "https://api.jolpi.ca/ergast/f1/2026";
 const RACE_WINDOW_MS = 3 * 60 * 60_000; // treat the ~3h around start as "live"
 
 // ---- Jolpica (Ergast-compatible) response shapes we read ----
-type JResult = { Driver?: { code?: string; familyName?: string }; Constructor?: { constructorId?: string } };
+type JDriver = { code?: string; givenName?: string; familyName?: string };
+type JResult = { Driver?: JDriver; Constructor?: { constructorId?: string } };
 type JRace = { round?: string; Results?: JResult[] };
 type JStanding = {
   position?: string;
   points?: string;
   wins?: string;
-  Driver?: { code?: string; familyName?: string };
+  Driver?: JDriver;
   Constructors?: { constructorId?: string }[];
 };
+type JConstructorStanding = {
+  position?: string;
+  points?: string;
+  wins?: string;
+  Constructor?: { constructorId?: string; name?: string };
+};
 
-function driverCode(dr?: { code?: string; familyName?: string }): string {
+function driverCode(dr?: JDriver): string {
   return dr?.code || (dr?.familyName ? dr.familyName.slice(0, 3).toUpperCase() : "—");
+}
+
+function driverName(dr?: JDriver): string {
+  const full = [dr?.givenName, dr?.familyName].filter(Boolean).join(" ");
+  return full || driverCode(dr);
 }
 
 async function fetchJSON(url: string, revalidate: number): Promise<Record<string, unknown>> {
@@ -52,11 +64,39 @@ async function fetchStandings(revalidate: number): Promise<StandingRow[] | null>
   return ds.map((dr) => ({
     rank: +(dr.position || 0),
     code: driverCode(dr.Driver),
-    name: driverCode(dr.Driver),
+    name: driverName(dr.Driver),
     color: colorForConstructor(dr.Constructors?.[dr.Constructors.length - 1]?.constructorId),
     metrics: [
       { label: "PTS", value: dr.points ?? "0" },
       { label: "W", value: +(dr.wins || 0) },
+    ],
+  }));
+}
+
+// Constructors' championship (Jolpica constructorStandings). Same StandingRow
+// shape so the design reuses its table; `code` is a short tag, `name` the team.
+function ctorCode(name: string | undefined, id: string | undefined): string {
+  const src = (name || id || "").replace(/[^A-Za-z]/g, "");
+  return src ? src.slice(0, 3).toUpperCase() : "—";
+}
+
+async function fetchConstructorStandings(revalidate: number): Promise<StandingRow[] | null> {
+  const j = await fetchJSON(`${BASE}/constructorStandings.json`, revalidate);
+  const lists =
+    (((j.MRData as Record<string, unknown>)?.StandingsTable as Record<string, unknown>)?.StandingsLists as Record<
+      string,
+      unknown
+    >[]) || [];
+  const cs = (lists[0]?.ConstructorStandings as JConstructorStanding[]) || null;
+  if (!cs || !cs.length) return null;
+  return cs.map((c) => ({
+    rank: +(c.position || 0),
+    code: ctorCode(c.Constructor?.name, c.Constructor?.constructorId),
+    name: c.Constructor?.name ?? "—",
+    color: colorForConstructor(c.Constructor?.constructorId),
+    metrics: [
+      { label: "PTS", value: c.points ?? "0" },
+      { label: "W", value: +(c.wins || 0) },
     ],
   }));
 }
@@ -100,11 +140,12 @@ export const f1Adapter: SportAdapter = {
   async getLive(live: boolean): Promise<LiveBundle> {
     const revalidate = live ? 60 : 300;
     try {
-      const [p1, p2, p3, standings] = await Promise.all([
+      const [p1, p2, p3, standings, constructorStandings] = await Promise.all([
         fetchPos(1, revalidate),
         fetchPos(2, revalidate),
         fetchPos(3, revalidate),
         fetchStandings(revalidate).catch(() => null),
+        fetchConstructorStandings(revalidate).catch(() => null),
       ]);
       const merged: Record<number, [F1Driver, F1Driver, F1Driver]> = {};
       for (const rd of Object.keys(p1)) {
@@ -122,6 +163,8 @@ export const f1Adapter: SportAdapter = {
         games,
         standings: standings ?? undefined,
         standingsTitle: "Drivers' Championship",
+        constructorStandings: constructorStandings ?? undefined,
+        constructorTitle: "Constructors' Championship",
       };
     } catch {
       return this.snapshot();

@@ -3,14 +3,21 @@ import type { DataSource } from "@/lib/api-shape";
 import { freshSchedule } from "@/lib/schedule";
 import { applyEvents, type RawEvent } from "@/lib/normalize";
 
-// Upstream adapter. Free v1 `eventsseason` now; a premium v2 `livescore` path
-// can be slotted in behind TSDB_PREMIUM later without any client change.
+// Upstream adapter. The free v1 `eventsseason` endpoint is capped at 15 results,
+// which froze the board after the 15th match (15 Jun). Instead we assemble the
+// full result set from the uncapped free endpoints — `eventsround` per group
+// round (72 group matches) plus a rolling `eventsday` window (live + knockouts
+// as they populate). A premium v2 `livescore` path stays behind TSDB_PREMIUM.
 
 const KEY = process.env.TSDB_API_KEY || "123";
 const BASE = process.env.TSDB_API_BASE || "https://www.thesportsdb.com/api";
 const PREMIUM = process.env.TSDB_PREMIUM === "true";
 const WC_LEAGUE = "4429";
 const SEASON = "2026";
+
+// Group-stage rounds (knockout rounds appear later and are covered by the day
+// window). `eventsround` returns the full round, uncapped.
+const GROUP_ROUNDS = [1, 2, 3];
 
 export type ResolvedData = {
   source: DataSource;
@@ -37,23 +44,46 @@ export async function getMatches(live = true): Promise<ResolvedData> {
 async function fetchUpstream(live: boolean): Promise<RawEvent[]> {
   const revalidate = live ? 20 : 120;
 
-  // Premium v2 livescore (env-gated) merged over the season fixtures.
+  // Premium v2 livescore (env-gated) merged over the full fixture set.
   if (PREMIUM) {
-    const [season, scores] = await Promise.all([
-      fetchSeason(revalidate),
+    const [base, scores] = await Promise.all([
+      fetchAllEvents(revalidate),
       fetchJSON(`${BASE}/v2/json/livescore/soccer`, revalidate, { "X-API-KEY": KEY }).catch(() => null),
     ]);
     const liveEvents = (scores?.livescore as RawEvent[]) || [];
-    return mergeLive(season, liveEvents);
+    return mergeLive(base, liveEvents);
   }
 
-  return fetchSeason(revalidate);
+  return fetchAllEvents(revalidate);
 }
 
-async function fetchSeason(revalidate: number): Promise<RawEvent[]> {
-  const url = `${BASE}/v1/json/${KEY}/eventsseason.php?id=${WC_LEAGUE}&s=${SEASON}`;
-  const j = await fetchJSON(url, revalidate);
-  return (j?.events as RawEvent[]) || [];
+// Assemble the full result set from uncapped free endpoints. `applyEvents`
+// matches by team pair and overwrites per match, so overlapping results across
+// rounds/days are harmless — day results come last so the freshest status wins.
+async function fetchAllEvents(revalidate: number): Promise<RawEvent[]> {
+  const roundUrls = GROUP_ROUNDS.map(
+    (r) => `${BASE}/v1/json/${KEY}/eventsround.php?id=${WC_LEAGUE}&r=${r}&s=${SEASON}`,
+  );
+  const dayUrls = recentDates().map(
+    (d) => `${BASE}/v1/json/${KEY}/eventsday.php?d=${d}&l=${WC_LEAGUE}`,
+  );
+  const lists = await Promise.all(
+    [...roundUrls, ...dayUrls].map((url) =>
+      fetchJSON(url, revalidate)
+        .then((j) => (j?.events as RawEvent[]) || [])
+        .catch(() => [] as RawEvent[]),
+    ),
+  );
+  return lists.flat();
+}
+
+// Rolling UTC date window (yesterday → tomorrow) for the day endpoint: covers
+// in-play matches and, later, knockout fixtures without hard-coding round ids.
+function recentDates(now: Date = new Date()): string[] {
+  const ymd = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const day = 86_400_000;
+  const t = now.getTime();
+  return [ymd(t - day), ymd(t), ymd(t + day)];
 }
 
 function mergeLive(season: RawEvent[], live: RawEvent[]): RawEvent[] {
