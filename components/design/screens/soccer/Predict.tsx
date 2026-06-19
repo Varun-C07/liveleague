@@ -6,7 +6,7 @@ import { useTheme } from "@/components/design/theme";
 import type { Theme } from "@/components/design/theme";
 import { card, hex, carbon, unskew, Crest } from "@/components/design/primitives";
 import { Plus, Minus, Lock, Check } from "@/components/design/icons";
-import { isLightColor, kickoffLabel } from "@/components/design/map";
+import { isLightColor, kickoffDateTimeLabel } from "@/components/design/map";
 import { useSubmitPrediction, type Prediction } from "@/hooks/usePredictions";
 import type { ApiMatch } from "@/lib/api-shape";
 
@@ -47,7 +47,7 @@ export function Predict({
   return (
     <div style={{ padding: "11px 13px", opacity: canPredict ? 1 : 0.5, ...card(t, locked ? { ring: hex(t.gold, 0.45) } : {}) }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: t.textFaint, marginBottom: 2, textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 700 }}>
-        <span>{m.stage}</span><span>{kickoffLabel(m.utc)}</span>
+        <span>{m.stage}</span><span>{kickoffDateTimeLabel(m.utc)}</span>
       </div>
       {loc ? <div style={{ fontSize: 10, color: t.textFaint, marginBottom: 9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{loc}</div> : <div style={{ marginBottom: 9 }} />}
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>

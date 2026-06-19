@@ -29,6 +29,26 @@ export function kickoffLabel(utc: string): string {
   }
 }
 
+// Short date in ET, e.g. "Jun 19".
+export function dateLabel(utc: string): string {
+  try {
+    return new Date(utc).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      timeZone: "America/New_York",
+    });
+  } catch {
+    return "";
+  }
+}
+
+// Date + time in ET, e.g. "Jun 19, 8:00 PM".
+export function kickoffDateTimeLabel(utc: string): string {
+  const d = dateLabel(utc);
+  const t = kickoffLabel(utc);
+  return d && t ? `${d}, ${t}` : d || t;
+}
+
 export type SlateItem = {
   key: string;
   sport: string; // emoji

@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     "Every round of the 2026 Formula 1 calendar — live podiums, drivers' championship and start times.",
 };
 
-export default function F1Page() {
-  return <F1 initial={f1Adapter.snapshot()} />;
+export const dynamic = "force-dynamic";
+
+// Cache-first SSR seed: the latest stored bundle (with standings) renders
+// instantly, so the board never flashes the "feed unreachable" empty state.
+export default async function F1Page() {
+  return <F1 initial={await f1Adapter.getLive(true)} />;
 }

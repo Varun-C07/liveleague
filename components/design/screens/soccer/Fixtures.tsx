@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Pulse } from "@/components/design/primitives";
 import { ChevronDown, MapPin } from "@/components/design/icons";
-import { isLightColor, kickoffLabel } from "@/components/design/map";
+import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
 import type { ApiMatch } from "@/lib/api-shape";
 
 type FilterId = "all" | "today" | "live" | "mine" | "group" | "ko";
@@ -112,7 +112,11 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
   const live = m.status === "live";
   const loc = [m.venue, m.city].filter(Boolean).join(", ");
   const score = m.status === "sched" ? "v" : `${m.homeScore ?? 0}–${m.awayScore ?? 0}`;
-  const statusLabel = live ? (m.minute || "LIVE") : m.status === "ft" ? "FT" : kickoffLabel(m.utc);
+  const statusLabel = live
+    ? (m.minute || "LIVE")
+    : m.status === "ft"
+      ? `FT · ${dateLabel(m.utc)}`
+      : kickoffDateTimeLabel(m.utc);
 
   return (
     <div style={{ padding: "10px 13px", ...card(t, live ? { ring: hex(t.live, 0.4) } : mine ? { ring: hex(t.accent, 0.3) } : {}) }}>

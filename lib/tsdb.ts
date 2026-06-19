@@ -1,8 +1,19 @@
+import { after } from "next/server";
 import type { Match } from "@/lib/types";
 import type { DataSource } from "@/lib/api-shape";
 import { freshSchedule } from "@/lib/schedule";
 import { applyEvents, type RawEvent } from "@/lib/normalize";
 import { readCache, writeCache } from "@/lib/db/cache";
+
+// Run a refresh after the response is sent (request scope only). Outside a
+// request (e.g. cron) `after` throws — we swallow it and skip the background pass.
+function scheduleRefresh(fn: () => Promise<unknown>) {
+  try {
+    after(fn);
+  } catch {
+    /* not in a request scope */
+  }
+}
 
 // Upstream adapter. The free v1 `eventsseason` endpoint is capped at 15 results,
 // which froze the board after the 15th match (15 Jun). Instead we assemble the
@@ -29,14 +40,34 @@ export type ResolvedData = {
 
 type CachedMatches = { matches: Match[]; liveCount: number };
 
-// `live` hints the cache window (shorter when matches may be in play).
+// Cache-first: serve the last stored real data instantly and refresh upstream in
+// the background. Reloads are immediate and never block on the (sometimes slow)
+// free feed — the "few minutes / resets to the snapshot" problem.
 export async function getMatches(live = true): Promise<ResolvedData> {
+  const cached = await readCache<CachedMatches>("soccer");
+  if (cached?.payload?.matches?.length) {
+    scheduleRefresh(() => refreshMatches(live));
+    return {
+      source: "live",
+      syncedAt: cached.syncedAt,
+      liveCount: cached.payload.liveCount,
+      matches: cached.payload.matches,
+    };
+  }
+  // Cold cache (first ever, or DB unavailable): fetch inline, bounded by the
+  // per-request fetch timeout below so it can never hang for minutes.
+  return refreshMatches(live);
+}
+
+// Fetch upstream → normalize → write-through to the cache. Used inline on a cold
+// cache and in the background on every warm request. `live` hints the day-window
+// cache window (shorter when matches may be in play).
+async function refreshMatches(live = true): Promise<ResolvedData> {
   const matches = freshSchedule();
   try {
     const events = await fetchUpstream(live);
     if (!events.length) throw new Error("no events");
     const { liveCount } = applyEvents(matches, events);
-    // Write-through: persist the freshest real data for the outage path below.
     await writeCache("soccer", { matches, liveCount } satisfies CachedMatches);
     return { source: "live", syncedAt: new Date().toISOString(), liveCount, matches };
   } catch {
@@ -117,15 +148,24 @@ function mergeLive(season: RawEvent[], live: RawEvent[]): RawEvent[] {
   return [...map.values()];
 }
 
+const FETCH_TIMEOUT_MS = 7000; // bound a slow upstream so a request can't hang
+
 async function fetchJSON(
   url: string,
   revalidate: number,
   headers?: Record<string, string>,
 ): Promise<Record<string, unknown> | null> {
-  const res = await fetch(url, {
-    headers: { Accept: "application/json", ...(headers || {}) },
-    next: { revalidate, tags: ["wc-data"] },
-  });
-  if (!res.ok) throw new Error("HTTP " + res.status);
-  return (await res.json()) as Record<string, unknown>;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: "application/json", ...(headers || {}) },
+      next: { revalidate, tags: ["wc-data"] },
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return (await res.json()) as Record<string, unknown>;
+  } finally {
+    clearTimeout(timer);
+  }
 }

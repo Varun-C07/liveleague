@@ -1,8 +1,10 @@
 import { Home } from "@/components/design/screens/Home";
-import { snapshotOverview } from "@/lib/sports/overview";
+import { liveOverview } from "@/lib/sports/overview";
 
-// Server-seed the cross-sport overview so first paint is never blank;
-// React Query then swaps in live data from /api/live.
-export default function Page() {
-  return <Home initial={snapshotOverview()} />;
+export const dynamic = "force-dynamic";
+
+// Server-seed the cross-sport overview cache-first (instant, latest stored data)
+// so first paint is current; React Query then keeps polling /api/live.
+export default async function Page() {
+  return <Home initial={await liveOverview()} />;
 }

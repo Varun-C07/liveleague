@@ -34,10 +34,12 @@ export function GlobalStyle() {
       .wrap{max-width:1200px;margin:0 auto;padding:0 22px 90px;position:relative;z-index:2}
       .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:center;padding:34px 0 26px}
       .mgrid{display:grid;grid-template-columns:1fr 326px;gap:22px;align-items:start}
-      .rail{position:sticky;top:76px}
+      .rail{position:sticky;top:76px;max-height:calc(100vh - 92px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding-right:2px;scrollbar-width:thin}
+      .rail::-webkit-scrollbar{width:6px}
+      .rail::-webkit-scrollbar-thumb{background:var(--surfHi);border-radius:3px}
       .h-hero{font-size:clamp(40px,7.4vw,58px)}
       .h-page{font-size:clamp(34px,6.4vw,50px)}
-      @media(max-width:900px){.mgrid{grid-template-columns:1fr}.rail{position:static}}
+      @media(max-width:900px){.mgrid{grid-template-columns:1fr}.rail{position:static;max-height:none;overflow:visible}}
       @media(max-width:860px){.hero{grid-template-columns:1fr;gap:20px;padding:24px 0 16px}}
       @media(max-width:560px){.wrap{padding:0 14px 72px}}
       .lldesign ::-webkit-scrollbar{height:7px;width:7px}

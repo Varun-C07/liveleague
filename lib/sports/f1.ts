@@ -1,7 +1,16 @@
+import { after } from "next/server";
 import type { SportAdapter, LiveBundle, Game, GameStatus, StandingRow } from "./types";
 import { sportMeta } from "./meta";
 import { F1_SCHEDULE, colorForConstructor, type F1Driver, type F1Round } from "@/data/snapshots/f1";
 import { readCache, writeCache } from "@/lib/db/cache";
+
+function scheduleRefresh(fn: () => Promise<unknown>) {
+  try {
+    after(fn);
+  } catch {
+    /* not in a request scope (e.g. cron) */
+  }
+}
 
 const META = sportMeta("f1")!;
 const BASE = process.env.JOLPICA_BASE || "https://api.jolpi.ca/ergast/f1/2026";
@@ -35,9 +44,15 @@ function driverName(dr?: JDriver): string {
 }
 
 async function fetchJSON(url: string, revalidate: number): Promise<Record<string, unknown>> {
-  const res = await fetch(url, { headers: { Accept: "application/json" }, next: { revalidate, tags: ["f1"] } });
-  if (!res.ok) throw new Error("HTTP " + res.status);
-  return (await res.json()) as Record<string, unknown>;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 7000); // bound a slow upstream
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" }, next: { revalidate, tags: ["f1"] }, signal: ctrl.signal });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return (await res.json()) as Record<string, unknown>;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // One finishing position across all rounds: round -> driver.
@@ -136,64 +151,79 @@ function buildGames(live: Record<number, [F1Driver, F1Driver, F1Driver]>) {
   return { games, liveCount };
 }
 
-// Last real bundle from the write-through cache, re-flagged as a fallback (the
-// games/standings are real, just not a fresh live fetch). Null if nothing cached.
+// Last real bundle from the write-through cache (games/standings are real, just
+// not a fresh live fetch). Null if nothing cached yet.
 async function cachedBundle(): Promise<LiveBundle | null> {
   const cached = await readCache<LiveBundle>("f1");
   if (!cached?.payload?.games?.length) return null;
-  return { ...cached.payload, source: "snapshot", reason: "fallback", syncedAt: cached.syncedAt };
+  return { ...cached.payload, syncedAt: cached.syncedAt };
+}
+
+// Fetch Jolpica → build the bundle → write-through. Falls back to the last cache
+// (or the static snapshot) if the season feed isn't reachable.
+async function refreshF1(live: boolean): Promise<LiveBundle> {
+  const revalidate = live ? 60 : 300;
+  try {
+    const [p1, p2, p3, standings, constructorStandings] = await Promise.all([
+      fetchPos(1, revalidate),
+      fetchPos(2, revalidate),
+      fetchPos(3, revalidate),
+      fetchStandings(revalidate).catch(() => null),
+      fetchConstructorStandings(revalidate).catch(() => null),
+    ]);
+    const merged: Record<number, [F1Driver, F1Driver, F1Driver]> = {};
+    for (const rd of Object.keys(p1)) {
+      const n = +rd;
+      if (p2[n] && p3[n]) merged[n] = [p1[n], p2[n], p3[n]];
+    }
+    const haveLive = Object.keys(merged).length > 0 || !!standings;
+    const { games, liveCount } = buildGames(merged);
+    const bundle: LiveBundle = {
+      sport: "f1",
+      source: "live",
+      reason: "live",
+      syncedAt: new Date().toISOString(),
+      liveCount,
+      games,
+      standings: standings ?? undefined,
+      standingsTitle: "Drivers' Championship",
+      constructorStandings: constructorStandings ?? undefined,
+      constructorTitle: "Constructors' Championship",
+    };
+    if (haveLive) {
+      await writeCache("f1", bundle);
+      return bundle;
+    }
+    return (await cachedBundle()) ?? f1Snapshot();
+  } catch {
+    return (await cachedBundle()) ?? f1Snapshot();
+  }
 }
 
 export const f1Adapter: SportAdapter = {
   ...META,
+  // Cache-first: serve the stored bundle instantly, refresh in the background.
   async getLive(live: boolean): Promise<LiveBundle> {
-    const revalidate = live ? 60 : 300;
-    try {
-      const [p1, p2, p3, standings, constructorStandings] = await Promise.all([
-        fetchPos(1, revalidate),
-        fetchPos(2, revalidate),
-        fetchPos(3, revalidate),
-        fetchStandings(revalidate).catch(() => null),
-        fetchConstructorStandings(revalidate).catch(() => null),
-      ]);
-      const merged: Record<number, [F1Driver, F1Driver, F1Driver]> = {};
-      for (const rd of Object.keys(p1)) {
-        const n = +rd;
-        if (p2[n] && p3[n]) merged[n] = [p1[n], p2[n], p3[n]];
-      }
-      const haveLive = Object.keys(merged).length > 0 || !!standings;
-      const { games, liveCount } = buildGames(merged);
-      const bundle: LiveBundle = {
-        sport: "f1",
-        source: haveLive ? "live" : "snapshot",
-        reason: haveLive ? "live" : "fallback",
-        syncedAt: new Date().toISOString(),
-        liveCount,
-        games,
-        standings: standings ?? undefined,
-        standingsTitle: "Drivers' Championship",
-        constructorStandings: constructorStandings ?? undefined,
-        constructorTitle: "Constructors' Championship",
-      };
-      if (haveLive) {
-        // Write-through the freshest real data for the outage path below.
-        await writeCache("f1", bundle);
-        return bundle;
-      }
-      return (await cachedBundle()) ?? bundle;
-    } catch {
-      return (await cachedBundle()) ?? this.snapshot();
+    const cached = await cachedBundle();
+    if (cached) {
+      scheduleRefresh(() => refreshF1(live));
+      return cached;
     }
+    return refreshF1(live);
   },
   snapshot(): LiveBundle {
-    const { games, liveCount } = buildGames({});
-    return {
-      sport: "f1",
-      source: "snapshot",
-      reason: "fallback",
-      syncedAt: new Date().toISOString(),
-      liveCount,
-      games,
-    };
+    return f1Snapshot();
   },
 };
+
+function f1Snapshot(): LiveBundle {
+  const { games, liveCount } = buildGames({});
+  return {
+    sport: "f1",
+    source: "snapshot",
+    reason: "fallback",
+    syncedAt: new Date().toISOString(),
+    liveCount,
+    games,
+  };
+}
