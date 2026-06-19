@@ -1,147 +1,94 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "@/components/design/theme";
+import { card, hex, carbon, unskew, Tag } from "@/components/design/primitives";
+import { Check, Lock } from "@/components/design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import type { Sku } from "@/lib/gating";
 
-const PLANS: { sku: Sku; name: string; price: string; blurb: string }[] = [
-  {
-    sku: "personal",
-    name: "Personal",
-    price: "$5/mo",
-    blurb:
-      "Follow your teams, match predictor, friend leagues, group tracker, kickoff & full-time alerts.",
-  },
-  {
-    sku: "pro",
-    name: "Pro",
-    price: "$20/mo",
-    blurb:
-      "Team profiles, head-to-head history, full stats dashboard, all-group qualification tracker, ad-free.",
-  },
-  {
-    sku: "combo",
-    name: "Combo",
-    price: "$22/mo",
-    blurb: "Everything in Personal + Pro — the full Live League experience.",
-  },
+const INK = "#14110A";
+
+const PLANS: { sku: Sku; name: string; price: string; blurb: string; combo?: boolean }[] = [
+  { sku: "personal", name: "Personal", price: "$5/mo", blurb: "Follow your teams, match predictor, friend leagues, group tracker, alerts." },
+  { sku: "pro", name: "Pro", price: "$20/mo", blurb: "Team profiles, head-to-head, full stats dashboard, all-group tracker, ad-free." },
+  { sku: "combo", name: "Combo", price: "$22/mo", blurb: "Everything in Personal + Pro — the whole experience.", combo: true },
 ];
 
 export default function AccountPage() {
-  const { user, loading: authLoading, configured, signInWithGoogle } = useAuth();
+  const { t } = useTheme();
+  const { user, loading: authLoading, configured, signInWithGoogle, signOut } = useAuth();
   const { hasPersonal, hasPro, points, refresh } = useEntitlements();
   const [busy, setBusy] = useState<Sku | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search).get("checkout");
-    if (p === "success") {
-      setBanner("Subscription active — thanks! Unlocking your plan…");
-      refresh();
-    } else if (p === "cancel") {
-      setBanner("Checkout canceled — no charge was made.");
-    }
+    if (p === "success") { setBanner("Subscription active — unlocking your plan…"); refresh(); }
+    else if (p === "cancel") setBanner("Checkout canceled — no charge was made.");
   }, [refresh]);
 
   async function subscribe(sku: Sku) {
     setBusy(sku);
     try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sku }),
-      });
+      const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku }) });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-        return;
-      }
+      if (data.url) { window.location.href = data.url; return; }
       setBanner(`Could not start checkout: ${data.error ?? "unknown error"}`);
-    } catch {
-      setBanner("Could not start checkout. Please try again.");
-    }
+    } catch { setBanner("Could not start checkout. Please try again."); }
     setBusy(null);
   }
 
-  const owns = (sku: Sku) =>
-    (sku === "personal" && hasPersonal) ||
-    (sku === "pro" && hasPro) ||
-    (sku === "combo" && hasPersonal && hasPro);
+  const owns = (sku: Sku) => (sku === "personal" && hasPersonal) || (sku === "pro" && hasPro) || (sku === "combo" && hasPersonal && hasPro);
 
   return (
-    <div className="max-w-[760px] mx-auto px-4 py-8">
-      <h1 className="ff-cond font-bold uppercase tracking-[0.12em] text-2xl">
-        Your account
-      </h1>
+    <div className="rise" style={{ maxWidth: 820, margin: "0 auto", padding: "32px 0 40px" }}>
+      <h1 className="disp h-page" style={{ fontWeight: 800, margin: "0 0 8px" }}>Your account</h1>
 
       {banner ? (
-        <div className="mt-4 rounded-lg border border-line2 px-4 py-3 text-sm text-muted">
-          {banner}
-        </div>
+        <div style={{ margin: "14px 0", padding: "12px 16px", fontSize: 13, color: t.textDim, ...card(t) }}>{banner}</div>
       ) : null}
 
       {!configured ? (
-        <p className="mt-6 text-muted">Backend is not configured yet.</p>
+        <p style={{ marginTop: 18, color: t.textDim }}>Backend not configured.</p>
       ) : authLoading ? (
-        <p className="mt-6 text-dim">…</p>
+        <p style={{ marginTop: 18, color: t.textFaint }}>…</p>
       ) : !user ? (
-        <div className="mt-6">
-          <p className="text-muted">Sign in to manage your plan.</p>
-          <button
-            onClick={signInWithGoogle}
-            className="mt-3 rounded-full border px-4 py-2 ff-cond uppercase tracking-wide font-semibold text-sm"
-            style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
-          >
-            Sign in with Google
+        <div style={{ marginTop: 18 }}>
+          <p style={{ color: t.textDim, marginBottom: 14 }}>Sign in to manage your plan.</p>
+          <button onClick={signInWithGoogle} style={{ padding: "12px 22px", border: "none", background: t.accent, color: t.onAccent, fontWeight: 800, fontSize: 14, cursor: "pointer", transform: "skewX(-9deg)" }}>
+            <span style={unskew}>Sign in with Google</span>
           </button>
         </div>
       ) : (
         <>
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
-            <Status label="Personal" on={hasPersonal} />
-            <Status label="Pro" on={hasPro} />
-            <span className="text-muted">
-              Prediction points: <b className="text-text">{points}</b>
-            </span>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, margin: "18px 0 6px" }}>
+            <StatusChip t={t} label="Personal" on={hasPersonal} />
+            <StatusChip t={t} label="Pro" on={hasPro} />
+            <span style={{ fontSize: 13, color: t.textDim }}>Prediction points: <b className="num" style={{ color: t.text }}>{points}</b></span>
+            <button onClick={signOut} style={{ marginLeft: "auto", padding: "7px 14px", borderRadius: 8, border: `1px solid ${t.border}`, background: "transparent", color: t.textDim, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Sign out</button>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div style={{ marginTop: 22, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 14 }}>
             {PLANS.map((plan) => {
               const have = owns(plan.sku);
+              const onCombo = plan.combo;
               return (
-                <div
-                  key={plan.sku}
-                  className="rounded-xl border border-line2 p-4 flex flex-col"
-                >
-                  <div className="flex items-baseline justify-between">
-                    <span className="ff-cond font-bold uppercase tracking-wide">
-                      {plan.name}
-                    </span>
-                    <span className="ff-mono text-sm text-muted">
-                      {plan.price}
-                    </span>
+                <div key={plan.sku} style={{ padding: 18, display: "flex", flexDirection: "column", color: onCombo ? INK : t.text, ...(onCombo ? { background: carbon(t.gold), borderRadius: 14, boxShadow: `inset 0 2px 12px ${hex("#000", 0.16)}, ${t.shadow}` } : card(t)) }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                    <span className="disp" style={{ fontSize: 22, fontWeight: 800 }}>{plan.name}</span>
+                    <span className="num" style={{ fontSize: 14, fontWeight: 700, opacity: 0.85 }}>{plan.price}</span>
                   </div>
-                  <p className="mt-2 text-[13px] text-muted flex-1">
-                    {plan.blurb}
-                  </p>
+                  <p style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.55, flex: 1, opacity: onCombo ? 0.82 : 1, color: onCombo ? INK : t.textDim }}>{plan.blurb}</p>
                   <button
                     disabled={have || busy !== null}
                     onClick={() => subscribe(plan.sku)}
-                    className="mt-4 rounded-full border px-3 py-2 ff-cond uppercase tracking-wide font-semibold text-[12px] transition disabled:opacity-50"
-                    style={{
-                      borderColor: have ? "var(--line2)" : "var(--accent)",
-                      color: have ? "var(--dim)" : "var(--accent)",
-                      background: have
-                        ? "transparent"
-                        : "color-mix(in srgb, var(--accent) 14%, transparent)",
-                    }}
+                    style={{ marginTop: 14, padding: "10px 14px", border: "none", cursor: have ? "default" : "pointer", fontWeight: 800, fontSize: 13, transform: have ? "none" : "skewX(-9deg)", background: have ? (onCombo ? hex("#000", 0.12) : t.chip) : onCombo ? INK : t.accent, color: have ? (onCombo ? INK : t.textDim) : onCombo ? t.gold : t.onAccent, opacity: busy && busy !== plan.sku ? 0.5 : 1 }}
                   >
-                    {have
-                      ? "Active"
-                      : busy === plan.sku
-                        ? "Redirecting…"
-                        : "Subscribe"}
+                    {have ? (<><Check size={13} style={{ verticalAlign: -2 }} /> Active</>) : (
+                      <span style={unskew}><Lock size={13} />{busy === plan.sku ? "Redirecting…" : "Subscribe"}</span>
+                    )}
                   </button>
                 </div>
               );
@@ -153,16 +100,10 @@ export default function AccountPage() {
   );
 }
 
-function Status({ label, on }: { label: string; on: boolean }) {
+function StatusChip({ t, label, on }: { t: ReturnType<typeof useTheme>["t"]; label: string; on: boolean }) {
   return (
-    <span
-      className="rounded-full border px-2.5 py-1 ff-cond uppercase tracking-wide text-[11px] font-semibold"
-      style={{
-        borderColor: on ? "var(--accent)" : "var(--line2)",
-        color: on ? "var(--accent)" : "var(--dim)",
-      }}
-    >
+    <Tag color={on ? t.onAccent : t.textDim} bg={on ? t.accent : t.chip}>
       {label}: {on ? "on" : "off"}
-    </span>
+    </Tag>
   );
 }
