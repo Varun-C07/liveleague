@@ -1,19 +1,9 @@
-import { after } from "next/server";
 import type { Match } from "@/lib/types";
 import type { DataSource } from "@/lib/api-shape";
 import { freshSchedule } from "@/lib/schedule";
 import { applyEvents, type RawEvent } from "@/lib/normalize";
 import { readCache, writeCache } from "@/lib/db/cache";
-
-// Run a refresh after the response is sent (request scope only). Outside a
-// request (e.g. cron) `after` throws — we swallow it and skip the background pass.
-function scheduleRefresh(fn: () => Promise<unknown>) {
-  try {
-    after(fn);
-  } catch {
-    /* not in a request scope */
-  }
-}
+import { fetchEspnSoccer } from "@/lib/espn-soccer";
 
 // Upstream adapter. The free v1 `eventsseason` endpoint is capped at 15 results,
 // which froze the board after the 15th match (15 Jun). Instead we assemble the
@@ -40,47 +30,81 @@ export type ResolvedData = {
 
 type CachedMatches = { matches: Match[]; liveCount: number };
 
-// Cache-first: serve the last stored real data instantly and refresh upstream in
-// the background. Reloads are immediate and never block on the (sometimes slow)
-// free feed — the "few minutes / resets to the snapshot" problem.
+// Live-window bounds (mirror clampLive): a match can be in play from ~10 min
+// before kickoff to ~3.5 h after.
+const PRE_LIVE_MS = 10 * 60_000;
+const MAX_LIVE_MS = 3.5 * 60 * 60_000;
+const DAY_MS = 86_400_000;
+
+// Is the live feed worth hitting right now? True only if a match is in its play
+// window, or just ended and we don't yet have its final result. When this is
+// false we never touch the upstream — page refreshes are free.
+function liveWindowActive(matches: Match[], now: number): boolean {
+  return matches.some((m) => {
+    const ko = Date.parse(m.utc);
+    if (Number.isNaN(ko)) return false;
+    const inPlay = now >= ko - PRE_LIVE_MS && now <= ko + MAX_LIVE_MS;
+    const recentUnresolved = ko < now && now - ko < DAY_MS && m.st !== "ft";
+    return inPlay || recentUnresolved;
+  });
+}
+
+// Cache-first + live-gated. The schedule (dates, venues, teams) and finished
+// results are STATIC — served straight from the stored cache with no API call.
+// The live feed (ESPN, real-time) is hit ONLY while a match is in its window, so
+// page reloads when nothing is live cost zero upstream requests.
 export async function getMatches(live = true): Promise<ResolvedData> {
   const cached = await readCache<CachedMatches>("soccer");
   if (cached?.payload?.matches?.length) {
-    scheduleRefresh(() => refreshMatches(live));
-    return {
-      source: "live",
-      syncedAt: cached.syncedAt,
-      liveCount: cached.payload.liveCount,
-      matches: cached.payload.matches,
-    };
+    const base = cached.payload.matches;
+    if (liveWindowActive(base, Date.now())) {
+      // A match is in play → overlay fresh live scores inline (bounded, deduped).
+      return refreshLive(base);
+    }
+    // Nothing live → serve stored data, no upstream hit.
+    return { source: "live", syncedAt: cached.syncedAt, liveCount: cached.payload.liveCount, matches: base };
   }
-  // Cold cache (first ever, or DB unavailable): fetch inline, bounded by the
-  // per-request fetch timeout below so it can never hang for minutes.
-  return refreshMatches(live);
+  // Cold cache (first ever / DB down): one-time full backfill from TheSportsDB.
+  return refreshFull(live);
 }
 
-// Fetch upstream → normalize → write-through to the cache. Used inline on a cold
-// cache and in the background on every warm request. `live` hints the day-window
-// cache window (shorter when matches may be in play).
-async function refreshMatches(live = true): Promise<ResolvedData> {
-  const matches = freshSchedule();
+// Overlay just the live scores from ESPN onto the stored base, when a match is
+// in play. Only the live day-window is fetched — nothing else is re-pulled.
+async function refreshLive(base: Match[]): Promise<ResolvedData> {
+  const matches = base.map((m) => ({ ...m })); // clone — applyEvents mutates
+  const now = Date.now();
   try {
-    const events = await fetchUpstream(live);
-    if (!events.length) throw new Error("no events");
-    const { liveCount } = applyEvents(matches, events);
+    const events = await fetchEspnSoccer(recentDates(new Date(now)), 15);
+    if (events.length) applyEvents(matches, events, now);
+    const liveCount = matches.filter((m) => m.st === "live").length;
     await writeCache("soccer", { matches, liveCount } satisfies CachedMatches);
     return { source: "live", syncedAt: new Date().toISOString(), liveCount, matches };
   } catch {
-    // Upstream unreachable: serve the last *real* scraped data if we have it,
-    // falling back to the static snapshot only when the cache is empty.
+    const liveCount = base.filter((m) => m.st === "live").length;
+    return { source: "live", syncedAt: new Date().toISOString(), liveCount, matches: base };
+  }
+}
+
+// Full backfill on a cold cache: TheSportsDB rounds/day for historical results,
+// plus ESPN for anything live, merged (ESPN last so live scores win). Runs ~once
+// (the cache persists across deploys in Supabase), not on every request.
+async function refreshFull(live = true): Promise<ResolvedData> {
+  const matches = freshSchedule();
+  const now = Date.now();
+  try {
+    const [tsdb, espn] = await Promise.all([
+      fetchUpstream(live).catch(() => [] as RawEvent[]),
+      fetchEspnSoccer(recentDates(new Date(now)), 15).catch(() => [] as RawEvent[]),
+    ]);
+    const events = [...tsdb, ...espn];
+    if (!events.length) throw new Error("no events");
+    const { liveCount } = applyEvents(matches, events, now);
+    await writeCache("soccer", { matches, liveCount } satisfies CachedMatches);
+    return { source: "live", syncedAt: new Date().toISOString(), liveCount, matches };
+  } catch {
     const cached = await readCache<CachedMatches>("soccer");
     if (cached?.payload?.matches?.length) {
-      return {
-        source: "snapshot",
-        syncedAt: cached.syncedAt,
-        liveCount: cached.payload.liveCount,
-        matches: cached.payload.matches,
-      };
+      return { source: "snapshot", syncedAt: cached.syncedAt, liveCount: cached.payload.liveCount, matches: cached.payload.matches };
     }
     const liveCount = matches.filter((m) => m.st === "live").length;
     return { source: "snapshot", syncedAt: new Date().toISOString(), liveCount, matches };

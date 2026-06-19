@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { LiveOverview } from "@/lib/sports/types";
 import { useTheme } from "@/components/design/theme";
 import {
   card, hex, carbon, Crest, Tag, Pulse, SL, Strip, unskew,
 } from "@/components/design/primitives";
-import { Calendar, ChevronRight, IconF1, IconSoccer } from "@/components/design/icons";
+import { Calendar, ChevronDown, ChevronRight, IconF1, IconSoccer } from "@/components/design/icons";
 import { mapSlate, mapFeatured, mapLeagues, isLightColor } from "@/components/design/map";
 import { useOverview } from "@/hooks/useLive";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -16,11 +16,20 @@ import { TEAMS } from "@/data/teams";
 
 const INK = "#14110A";
 
+// League glyph: bespoke marks for F1/soccer, emoji fallback for the rest.
+function leagueIcon(id: string, accent: string, emoji: string) {
+  if (id === "f1") return <IconF1 size={24} color={accent} />;
+  if (id === "soccer") return <IconSoccer size={24} color={accent} />;
+  return <span style={{ fontSize: 25 }}>{emoji}</span>;
+}
+
 export function Home({ initial }: { initial: LiveOverview }) {
   const { t } = useTheme();
   const { data } = useOverview(initial);
   const ov = data ?? initial;
   const { keys } = useFavorites();
+  // Mobile-only accordion: which league bar is expanded (desktop shows cards).
+  const [openLeague, setOpenLeague] = useState<string | null>(null);
 
   const slate = useMemo(() => mapSlate(ov), [ov]);
   const featured = useMemo(() => mapFeatured(ov), [ov]);
@@ -152,15 +161,16 @@ export function Home({ initial }: { initial: LiveOverview }) {
         </>
       ) : null}
 
-      {/* ALL LEAGUES (WC + F1) */}
+      {/* ALL LEAGUES (WC + F1) — cards on desktop, collapsible bars on mobile */}
       <SL t={t}><Calendar size={15} /> Leagues</SL>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(216px,1fr))", gap: 12 }}>
+      {/* Desktop: grid of cards */}
+      <div className="ll-leagues-cards">
         {leagues.map((l) => (
           <Link key={l.id} href={l.href} className="lift" style={{ textDecoration: "none", color: t.text, cursor: "pointer", padding: 16, position: "relative", overflow: "hidden", display: "block", ...card(t) }}>
             <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 3, background: l.accent }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <span style={{ display: "flex", alignItems: "center", height: 30 }}>
-                {l.id === "f1" ? <IconF1 size={24} color={l.accent} /> : l.id === "soccer" ? <IconSoccer size={24} color={l.accent} /> : <span style={{ fontSize: 25 }}>{l.emoji}</span>}
+                {leagueIcon(l.id, l.accent, l.emoji)}
               </span>
               {l.liveCount > 0 ? <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={5} />Live</Tag> : null}
             </div>
@@ -170,6 +180,38 @@ export function Home({ initial }: { initial: LiveOverview }) {
           </Link>
         ))}
       </div>
+      {/* Mobile: collapsible vertical bars (tap to choose a league) */}
+      <div className="ll-leagues-acc">
+        {leagues.map((l) => {
+          const open = openLeague === l.id;
+          return (
+            <div key={l.id} className="ll-acc-item" data-open={open} style={{ position: "relative", overflow: "hidden", ...card(t) }}>
+              <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 3, background: l.accent }} />
+              <button
+                onClick={() => setOpenLeague(open ? null : l.id)}
+                aria-expanded={open}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "transparent", border: "none", cursor: "pointer", color: t.text, textAlign: "left" }}
+              >
+                <span style={{ display: "flex", alignItems: "center" }}>{leagueIcon(l.id, l.accent, l.emoji)}</span>
+                <span className="disp" style={{ fontSize: 22, fontWeight: 800, flex: 1 }}>{l.name}</span>
+                {l.liveCount > 0 ? <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={5} />Live</Tag> : null}
+                <ChevronDown size={18} color={t.textDim} className="ll-acc-chev" />
+              </button>
+              <div className="ll-acc-body">
+                <div style={{ padding: "0 16px 16px" }}>
+                  <div style={{ fontSize: 12, color: t.textDim, marginBottom: 5 }}>{l.total} {l.id === "f1" ? "rounds" : "matches"}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 13 }}>{l.sub}</div>
+                  <Link href={l.href} style={{ textDecoration: "none" }}>
+                    <span style={{ display: "inline-flex", padding: "11px 20px", background: t.accent, color: t.onAccent, fontWeight: 800, fontSize: 13, transform: "skewX(-9deg)" }}>
+                      <span style={unskew}>Open {l.name} <ChevronRight size={15} /></span>
+                    </span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* BUNDLE CTA */}
       <div style={{ marginTop: 34, background: carbon(t.gold), color: INK, borderRadius: 16, padding: "28px", boxShadow: `inset 0 2px 14px ${hex("#000", 0.18)}, ${t.shadow}`, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
@@ -177,7 +219,7 @@ export function Home({ initial }: { initial: LiveOverview }) {
           <div className="disp" style={{ fontSize: 32, fontWeight: 800, marginBottom: 6 }}>World Cup Bundle — $5</div>
           <div style={{ fontSize: 13.5, maxWidth: 540, lineHeight: 1.6, opacity: 0.82, fontWeight: 500 }}>
             Predict every match, run a private friend league, follow your teams, track who qualifies
-            live — one price, the whole tournament.
+            live; one price, the whole tournament.
           </div>
         </div>
         <Link href="/account" style={{ textDecoration: "none" }}>
