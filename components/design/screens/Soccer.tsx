@@ -8,6 +8,7 @@ import { isLightColor, mapGroupOutlooks } from "@/components/design/map";
 import { LiveMatch } from "@/components/design/screens/soccer/LiveMatch";
 import { GroupCard } from "@/components/design/screens/soccer/GroupCard";
 import { Predict, Paywall } from "@/components/design/screens/soccer/Predict";
+import { Fixtures } from "@/components/design/screens/soccer/Fixtures";
 import { FriendLeague } from "@/components/design/screens/soccer/FriendLeague";
 import { useMatches, useStandings } from "@/hooks/useMatches";
 import { useEntitlements } from "@/hooks/useEntitlements";
@@ -50,7 +51,7 @@ export function Soccer({
   const ft = matches.filter((m) => m.status === "ft");
   const featured = live[0] ?? sched[0] ?? null;
   const goals = ft.reduce((acc, m) => acc + (m.homeScore ?? 0) + (m.awayScore ?? 0), 0);
-  const upcoming = sched.slice(0, 8);
+  const upcoming = sched.slice(0, 4);
   const myResults = ft.filter((m) => predByMatch.has(`soccer-${m.n}`)).slice(0, 10);
 
   const stats: [string, string, boolean][] = [
@@ -83,13 +84,7 @@ export function Soccer({
           <LiveMatch m={featured} />
 
           <div style={{ marginTop: 26 }}>
-            <SL t={t}><TrendingUp size={15} /> Predict — upcoming {!hasPersonal && <Lock size={13} />}</SL>
-            {!hasPersonal && <Paywall />}
-            <div style={{ display: "grid", gap: 10, marginTop: hasPersonal ? 2 : 10 }}>
-              {upcoming.map((m) => (
-                <Predict key={m.n} m={m} existing={predByMatch.get(`soccer-${m.n}`)} canPredict={hasPersonal} />
-              ))}
-            </div>
+            <Fixtures matches={matches} favSet={favSet} />
           </div>
 
           {myResults.length > 0 && (
@@ -130,6 +125,23 @@ export function Soccer({
 
         <div className="rail">
           <FriendLeague />
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+              <TrendingUp size={16} color={t.accent} />
+              <span className="cond" style={{ fontWeight: 700, fontSize: 16, flex: 1 }}>Predict · next 4</span>
+              {!hasPersonal && <Lock size={13} color={t.textFaint} />}
+            </div>
+            {!hasPersonal && <Paywall />}
+            {upcoming.length === 0 ? (
+              <div style={{ padding: "12px 14px", fontSize: 12.5, color: t.textDim, ...card(t) }}>No upcoming matches to predict right now.</div>
+            ) : (
+              <div style={{ display: "grid", gap: 8, marginTop: hasPersonal ? 0 : 10 }}>
+                {upcoming.map((m) => (
+                  <Predict key={m.n} m={m} existing={predByMatch.get(`soccer-${m.n}`)} canPredict={hasPersonal} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

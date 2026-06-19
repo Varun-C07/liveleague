@@ -1,6 +1,7 @@
 import type { SportAdapter, LiveBundle, Game, GameStatus, StandingRow } from "./types";
 import { sportMeta } from "./meta";
 import { F1_SCHEDULE, colorForConstructor, type F1Driver, type F1Round } from "@/data/snapshots/f1";
+import { readCache, writeCache } from "@/lib/db/cache";
 
 const META = sportMeta("f1")!;
 const BASE = process.env.JOLPICA_BASE || "https://api.jolpi.ca/ergast/f1/2026";
@@ -135,6 +136,14 @@ function buildGames(live: Record<number, [F1Driver, F1Driver, F1Driver]>) {
   return { games, liveCount };
 }
 
+// Last real bundle from the write-through cache, re-flagged as a fallback (the
+// games/standings are real, just not a fresh live fetch). Null if nothing cached.
+async function cachedBundle(): Promise<LiveBundle | null> {
+  const cached = await readCache<LiveBundle>("f1");
+  if (!cached?.payload?.games?.length) return null;
+  return { ...cached.payload, source: "snapshot", reason: "fallback", syncedAt: cached.syncedAt };
+}
+
 export const f1Adapter: SportAdapter = {
   ...META,
   async getLive(live: boolean): Promise<LiveBundle> {
@@ -154,7 +163,7 @@ export const f1Adapter: SportAdapter = {
       }
       const haveLive = Object.keys(merged).length > 0 || !!standings;
       const { games, liveCount } = buildGames(merged);
-      return {
+      const bundle: LiveBundle = {
         sport: "f1",
         source: haveLive ? "live" : "snapshot",
         reason: haveLive ? "live" : "fallback",
@@ -166,8 +175,14 @@ export const f1Adapter: SportAdapter = {
         constructorStandings: constructorStandings ?? undefined,
         constructorTitle: "Constructors' Championship",
       };
+      if (haveLive) {
+        // Write-through the freshest real data for the outage path below.
+        await writeCache("f1", bundle);
+        return bundle;
+      }
+      return (await cachedBundle()) ?? bundle;
     } catch {
-      return this.snapshot();
+      return (await cachedBundle()) ?? this.snapshot();
     }
   },
   snapshot(): LiveBundle {

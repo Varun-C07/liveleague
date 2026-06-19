@@ -42,19 +42,21 @@ export function Predict({
 
   const H = m.home, A = m.away;
   const showSteppers = canPredict && !locked;
+  const loc = [m.venue, m.city].filter(Boolean).join(" · ");
 
   return (
-    <div style={{ padding: "13px 15px", opacity: canPredict ? 1 : 0.5, ...card(t, locked ? { ring: hex(t.gold, 0.45) } : {}) }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: t.textFaint, marginBottom: 10, textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 600 }}>
-        <span>{m.stage} · {m.venue}</span><span>{kickoffLabel(m.utc)}</span>
+    <div style={{ padding: "11px 13px", opacity: canPredict ? 1 : 0.5, ...card(t, locked ? { ring: hex(t.gold, 0.45) } : {}) }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: t.textFaint, marginBottom: 2, textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 700 }}>
+        <span>{m.stage}</span><span>{kickoffLabel(m.utc)}</span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Crest code={H.code} color={H.color} dark={isLightColor(H.color)} size={28} />
-          <span className="cond" style={{ fontSize: 14, fontWeight: 700 }}>{H.name}</span>
+      {loc ? <div style={{ fontSize: 10, color: t.textFaint, marginBottom: 9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{loc}</div> : <div style={{ marginBottom: 9 }} />}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+          <Crest code={H.code} color={H.color} dark={isLightColor(H.color)} size={24} />
+          <span className="cond" style={{ fontSize: 13.5, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{H.code}</span>
         </div>
         {showSteppers ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Step t={t} v={h} up={() => step(setH, h, 1)} dn={() => step(setH, h, -1)} />
             <span style={{ color: t.textFaint }}>:</span>
             <Step t={t} v={a} up={() => step(setA, a, 1)} dn={() => step(setA, a, -1)} />
@@ -64,9 +66,9 @@ export function Predict({
             {canPredict ? `${h}:${a}` : "?:?"}
           </span>
         )}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
-          <span className="cond" style={{ fontSize: 14, fontWeight: 700 }}>{A.name}</span>
-          <Crest code={A.code} color={A.color} dark={isLightColor(A.color)} size={28} />
+        <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end", minWidth: 0 }}>
+          <span className="cond" style={{ fontSize: 13.5, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{A.code}</span>
+          <Crest code={A.code} color={A.color} dark={isLightColor(A.color)} size={24} />
         </div>
       </div>
       {canPredict && (
