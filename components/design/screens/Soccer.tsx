@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse, SL } from "@/components/design/primitives";
 import { Trophy, TrendingUp, Check, Lock } from "@/components/design/icons";
-import { isLightColor } from "@/components/design/map";
+import { isLightColor, mapGroupOutlooks } from "@/components/design/map";
 import { LiveMatch } from "@/components/design/screens/soccer/LiveMatch";
 import { GroupCard } from "@/components/design/screens/soccer/GroupCard";
 import { Predict, Paywall } from "@/components/design/screens/soccer/Predict";
@@ -32,8 +32,9 @@ export function Soccer({
   const { data: predictions } = useMyPredictions();
   const { keys } = useFavorites();
 
-  const matches = mr?.matches ?? [];
-  const groups = sr?.groups ?? {};
+  const matches = useMemo(() => mr?.matches ?? [], [mr]);
+  const groups = useMemo(() => sr?.groups ?? {}, [sr]);
+  const outlooks = useMemo(() => mapGroupOutlooks(groups, matches), [groups, matches]);
 
   const favSet = useMemo(
     () => new Set(keys.map(splitFavKey).filter((k): k is { sport: string; code: string } => !!k && k.sport === "soccer").map((k) => k.code)),
@@ -121,7 +122,7 @@ export function Soccer({
             <SL t={t}><Trophy size={15} /> Group standings</SL>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12 }}>
               {Object.entries(groups).map(([g, rows]) => (
-                <GroupCard key={g} g={g} rows={rows} favSet={favSet} />
+                <GroupCard key={g} g={g} rows={rows} favSet={favSet} outlook={outlooks[g]} />
               ))}
             </div>
           </div>

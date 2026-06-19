@@ -26,7 +26,17 @@ select cron.schedule('ll-score', '*/5 * * * *', $job$
   );
 $job$);
 
+-- Generate kickoff / full-time notifications for followed teams — every minute.
+-- Idempotent (unique user_id+match_id+type), so frequent runs never duplicate.
+select cron.schedule('ll-notify', '* * * * *', $job$
+  select net.http_post(
+    url     := '<SITE_URL>/api/cron/notify',
+    headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>')
+  );
+$job$);
+
 -- Inspect / remove:
 --   select * from cron.job;
 --   select cron.unschedule('ll-lock');
 --   select cron.unschedule('ll-score');
+--   select cron.unschedule('ll-notify');

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTheme } from "@/components/design/theme";
 import { GlobalStyle } from "@/components/design/GlobalStyle";
 import { hex, Pulse } from "@/components/design/primitives";
-import { Radio, Trophy, Zap } from "@/components/design/icons";
+import { Radio, Trophy, Zap, Bell, Check } from "@/components/design/icons";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const PILLS = [
   { id: "home", href: "/", label: "Home", icon: <Radio size={14} /> },
@@ -66,6 +67,7 @@ export function DesignShell({ children }: { children: ReactNode }) {
               );
             })}
           </div>
+          <ShellBell />
           <ShellAuth />
         </div>
       </div>
@@ -93,6 +95,93 @@ function Logo() {
         LIVE<span style={{ color: t.accent }}>LEAGUE</span>
       </span>
     </Link>
+  );
+}
+
+function timeAgo(iso: string): string {
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function ShellBell() {
+  const { t } = useTheme();
+  const { user, configured } = useAuth();
+  const { notifications, unread, markRead } = useNotifications();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  if (!configured || !user) return null;
+
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && unread > 0) markRead(); // mark all read on open
+  }
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={toggle}
+        aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}
+        style={{ position: "relative", display: "grid", placeItems: "center", width: 36, height: 36, borderRadius: 9, border: `1px solid ${hex(t.border, 0.7)}`, background: open ? t.chip : "transparent", color: t.textDim, cursor: "pointer" }}
+      >
+        <Bell size={16} />
+        {unread > 0 && (
+          <span style={{ position: "absolute", top: 4, right: 4, minWidth: 15, height: 15, padding: "0 3px", borderRadius: 8, background: t.live, color: "#fff", fontSize: 9.5, fontWeight: 800, display: "grid", placeItems: "center", lineHeight: 1 }}>
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="rise" style={{ position: "absolute", top: 44, right: 0, width: 320, maxHeight: 420, overflowY: "auto", zIndex: 80, borderRadius: 12, border: `1px solid ${hex(t.border, 0.7)}`, background: t.surface, boxShadow: t.shadow, padding: 6 }}>
+          <div style={{ padding: "8px 10px 6px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: t.textDim }}>Alerts</div>
+          {notifications.length === 0 ? (
+            <div style={{ padding: "18px 12px", fontSize: 12.5, color: t.textFaint, lineHeight: 1.5 }}>
+              No alerts yet. Follow teams to get kick-off and full-time notifications for their matches.
+            </div>
+          ) : (
+            notifications.map((n) => (
+              <Link
+                key={n.id}
+                href={(n.payload?.href as string) ?? "/soccer"}
+                onClick={() => setOpen(false)}
+                style={{ display: "block", padding: "9px 10px", borderRadius: 8, textDecoration: "none", color: t.text }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: n.type === "kickoff" ? t.live : t.win, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.title}</span>
+                  <span style={{ fontSize: 10.5, color: t.textFaint, flexShrink: 0 }}>{timeAgo(n.created_at)}</span>
+                </div>
+                <div style={{ fontSize: 11.5, color: t.textDim, paddingLeft: 13 }}>{n.body}</div>
+              </Link>
+            ))
+          )}
+          {notifications.length > 0 && (
+            <button
+              onClick={() => markRead()}
+              style={{ width: "100%", marginTop: 4, padding: "8px", border: "none", background: "transparent", color: t.textDim, fontSize: 11.5, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+            >
+              <Check size={12} /> Mark all read
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

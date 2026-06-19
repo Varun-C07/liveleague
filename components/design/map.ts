@@ -2,6 +2,8 @@
 // expect. No React, no I/O — unit-tested in tests/design-map.test.ts.
 import type { Game } from "@/lib/sports/types";
 import type { LiveOverview } from "@/lib/sports/types";
+import type { ApiMatch, StandingRowDto } from "@/lib/api-shape";
+import { groupOutlook, type TeamOutlook } from "@/lib/group-scenarios";
 
 // Light-color test so a Crest with a pale team colour gets dark text.
 export function isLightColor(hexColor: string): boolean {
@@ -115,6 +117,27 @@ export function mapFeatured(ov: LiveOverview): FeaturedMatch {
     status: g.status,
     href: soccer.basePath,
   };
+}
+
+// Qualification outlook per group, keyed by group letter then team code.
+// Remaining fixtures = group matches not yet final (live counts as undecided).
+export function mapGroupOutlooks(
+  groups: Record<string, StandingRowDto[]>,
+  matches: ApiMatch[],
+): Record<string, Record<string, TeamOutlook>> {
+  const remainingByGroup: Record<string, { home: string; away: string }[]> = {};
+  for (const m of matches) {
+    if (!m.grp || m.status === "ft") continue;
+    (remainingByGroup[m.grp] ??= []).push({ home: m.home.code, away: m.away.code });
+  }
+  const out: Record<string, Record<string, TeamOutlook>> = {};
+  for (const [g, rows] of Object.entries(groups)) {
+    out[g] = groupOutlook(
+      rows.map((r) => ({ code: r.code, Pts: r.Pts, GD: r.GD, GF: r.GF })),
+      remainingByGroup[g] ?? [],
+    );
+  }
+  return out;
 }
 
 export type LeagueCard = {
