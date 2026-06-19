@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Board } from "@/components/soccer/Board";
+import { Soccer } from "@/components/design/screens/Soccer";
 import { snapshotMatches, snapshotStandings } from "@/lib/snapshot";
 
 export const metadata: Metadata = {
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 // Seed the client with a verified snapshot so first paint is never blank;
 // React Query then swaps in live data from /api/soccer.
 export default function SoccerPage() {
-  return <Board initialMatches={snapshotMatches()} initialStandings={snapshotStandings()} />;
+  return <Soccer initialMatches={snapshotMatches()} initialStandings={snapshotStandings()} />;
 }
