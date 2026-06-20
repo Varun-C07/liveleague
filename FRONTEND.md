@@ -14,6 +14,18 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-19 20:29 EDT — Fix: nav pills overlapping the sign-in button
+- **Header layout hardened** — `components/design/DesignShell.tsx` + `GlobalStyle.tsx`.
+  - `Nav` now renders as a single bounded flex child (`flex:1; min-width:0`) instead of
+    two sibling flex items; the desktop pills row clips + scrolls internally
+    (`.ll-nav-pills` `overflow-x:auto`, scrollbar hidden) rather than growing into the
+    right-side controls.
+  - Pinned the bell and the sign-in / account control with `flexShrink:0` so they keep
+    their size and can never be overlapped by the nav.
+- **Why:** after the 19:16 nav change, on tight desktop widths the World Cup / Formula 1
+  pills competed for space with the Sign in button and visually collided.
+- Verified: `tsc` + `eslint` pass; dev server recompiles and serves 200.
+
 ### 2026-06-19 19:16 EDT — Header nav collapses to a single menu on mobile
 - **Top nav (Home / World Cup / Formula 1) is now responsive** — `components/design/DesignShell.tsx`.
   - Desktop (>640px): unchanged inline pills (`.ll-nav-pills`).

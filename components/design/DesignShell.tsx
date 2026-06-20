@@ -79,9 +79,9 @@ function Nav({ active }: { active: string }) {
   const current = PILLS.find((p) => p.id === active) ?? PILLS[0];
 
   return (
-    <>
+    <div style={{ flex: 1, minWidth: 0, marginLeft: 6 }}>
       {/* Desktop: inline pills */}
-      <div className="ll-nav-pills" style={{ marginLeft: 6 }}>
+      <div className="ll-nav-pills">
         {PILLS.map((p) => {
           const on = active === p.id;
           return (
@@ -107,7 +107,7 @@ function Nav({ active }: { active: string }) {
       </div>
 
       {/* Mobile: collapsible menu */}
-      <div className="ll-nav-menu" ref={ref} style={{ marginLeft: 6 }}>
+      <div className="ll-nav-menu" ref={ref}>
         <button
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
@@ -152,7 +152,7 @@ function Nav({ active }: { active: string }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -210,7 +210,7 @@ function ShellBell() {
   }
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} style={{ position: "relative", flexShrink: 0 }}>
       <button
         onClick={toggle}
         aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}
@@ -274,7 +274,7 @@ function ShellAuth() {
       "Account";
     const avatar = user.user_metadata?.avatar_url as string | undefined;
     return (
-      <Link href="/account" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: t.text }}>
+      <Link href="/account" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: t.text, flexShrink: 0 }}>
         {avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={avatar} alt="" referrerPolicy="no-referrer" style={{ width: 28, height: 28, borderRadius: "50%", border: `1px solid ${t.border}` }} />
@@ -291,7 +291,7 @@ function ShellAuth() {
   return (
     <button
       onClick={() => configured && signInWithGoogle()}
-      style={{ padding: "8px 16px", borderRadius: 9, border: `1.5px solid ${hex(t.accent, 0.6)}`, background: "transparent", color: t.accent, cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}
+      style={{ padding: "8px 16px", borderRadius: 9, border: `1.5px solid ${hex(t.accent, 0.6)}`, background: "transparent", color: t.accent, cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}
     >
       Sign in
     </button>
