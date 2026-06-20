@@ -14,6 +14,22 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — Live score ticker under the nav (every page)
+- **New `components/design/ScoreTicker.tsx`** — slim (42px) strip under the nav in
+  `DesignShell.tsx`, on every route. Dark `t.surface` + bottom border, items separated by thin
+  dividers; each shows flag(s) + codes + score (soccer) or `R{round}` + GP name (F1), with a
+  `t.live` dot + minute for live items vs a muted time for upcoming. Items are `<Link>`s to the
+  sport page (`/soccer` `/f1`) with a `var(--surfHi)` hover.
+- **Data** — new `useLiveTicker()` in `hooks/useLive.ts` reuses the home page's `["overview"]`
+  query (shared cache on Home, same `/api/live` aggregate elsewhere — no new fetch). New
+  `mapTicker(ov)` in `map.ts`: live + scheduled (skip final), live-first then soonest; falls back
+  to upcoming so it's never empty.
+- **Motion** — CSS marquee (`@keyframes lltick`, duplicated track, `translateX(-50%)`), but only
+  when items overflow (JS measures set width vs container; static & centered if they fit). Slow
+  (~6s/item, linear), pauses on hover, and `prefers-reduced-motion` disables auto-scroll (manual
+  overflow-scroll instead).
+- Tests: +3 `mapTicker` cases (grouping, live-first, score/round) — 76 pass.
+
 ### 2026-06-21 — Home copy rewrite + accent (lime) discipline
 - **Copy (`screens/Home.tsx`)** — sells the verb + the live WC moment:
   - Eyebrow "Your sports day" → **"The tournament is live"** (uppercase eyebrow).

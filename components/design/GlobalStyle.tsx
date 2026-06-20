@@ -21,6 +21,12 @@ export function GlobalStyle() {
       @keyframes lldash{to{stroke-dashoffset:-1000}}
       @keyframes llspin{to{transform:rotate(360deg)}}
       @keyframes llfade{from{opacity:0}to{opacity:1}}
+      @keyframes lltick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+      .lltick-track{display:flex;align-items:center}
+      .lltick-anim{animation-name:lltick;animation-timing-function:linear;animation-iteration-count:infinite}
+      .lltick-wrap:hover .lltick-anim{animation-play-state:paused}
+      .lltick-item:hover{background:var(--surfHi)}
+      @media(prefers-reduced-motion:reduce){.lltick-anim{animation:none}}
       .disp{font-family:'Saira Condensed',sans-serif;font-style:italic;text-transform:uppercase;letter-spacing:.01em}
       .cond{font-family:'Saira Condensed',sans-serif;letter-spacing:.01em}
       .num{font-variant-numeric:tabular-nums}

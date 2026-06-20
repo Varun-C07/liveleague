@@ -8,6 +8,7 @@ import { GlobalStyle } from "@/components/design/GlobalStyle";
 import { hex } from "@/components/design/primitives";
 import { Radio, Trophy, Zap, Bell, Check, ChevronDown } from "@/components/design/icons";
 import { Logo } from "@/components/design/Logo";
+import { ScoreTicker } from "@/components/design/ScoreTicker";
 import { AuthModalProvider, useAuthModal } from "@/components/design/auth/AuthModalProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -50,6 +51,9 @@ export function DesignShell({ children }: { children: ReactNode }) {
           <ShellAuth />
         </div>
       </div>
+
+      {/* Live score ticker — directly under the nav, on every route. */}
+      <ScoreTicker />
 
       <div className="wrap lldesign">{children}</div>
 

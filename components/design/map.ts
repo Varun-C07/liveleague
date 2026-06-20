@@ -190,6 +190,54 @@ export function mapUpcoming(ov: LiveOverview, excludeKey?: string): Upcoming {
   return { soccer, f1 };
 }
 
+// ── Score ticker: cross-sport live + upcoming strip ─────────────────────────
+export type TickerItem = {
+  key: string;
+  sportId: "soccer" | "f1";
+  href: string;
+  status: Game["status"];
+  detail: string; // live minute / "LIVE", or kickoff time for scheduled
+  accent: string; // sport accent (used for the F1 round)
+  utc: string;
+  a?: { code: string; color: string; dark: boolean };
+  b?: { code: string; color: string; dark: boolean };
+  score?: string;
+  round?: number | null;
+  label?: string;
+};
+
+// Flat ticker list from the overview's top games: live + scheduled (skip final),
+// live items first then soonest. Same data the home page polls — no new fetch.
+export function mapTicker(ov: LiveOverview): TickerItem[] {
+  const items: TickerItem[] = [];
+  for (const s of ov.sports) {
+    if (s.id !== "soccer" && s.id !== "f1") continue;
+    for (const g of s.topGames) {
+      if (g.status === "final") continue;
+      const base = {
+        key: g.id, sportId: s.id as "soccer" | "f1", href: s.basePath,
+        status: g.status, detail: statusMin(g), accent: s.accent, utc: g.utc,
+      };
+      if (s.id === "soccer") {
+        items.push({
+          ...base, a: teamSide(g.home), b: teamSide(g.away),
+          score: g.status === "sched" ? "vs" : `${g.home.score ?? 0}–${g.away.score ?? 0}`,
+        });
+      } else {
+        items.push({
+          ...base, round: g.extra.sport === "f1" ? g.extra.round : null,
+          label: g.venue || g.label,
+        });
+      }
+    }
+  }
+  return items.sort(
+    (a, b) =>
+      Number(b.status === "live") - Number(a.status === "live") ||
+      new Date(a.utc).getTime() - new Date(b.utc).getTime(),
+  );
+}
+
 // Qualification outlook per group, keyed by group letter then team code.
 // Remaining fixtures = group matches not yet final (live counts as undecided).
 export function mapGroupOutlooks(

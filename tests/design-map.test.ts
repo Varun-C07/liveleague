@@ -5,6 +5,7 @@ import {
   mapFeatured,
   mapLeagues,
   mapUpcoming,
+  mapTicker,
 } from "../components/design/map";
 import type { Game, LiveOverview } from "../lib/sports/types";
 
@@ -95,6 +96,27 @@ describe("mapUpcoming", () => {
       soccerGame({ id: "early", status: "sched", utc: "2026-06-20T00:00:00Z" }),
     ];
     expect(mapUpcoming(ov).soccer.map((u) => u.key)).toEqual(["early", "late"]);
+  });
+});
+
+describe("mapTicker", () => {
+  const ticker = mapTicker(overview());
+
+  it("includes live + scheduled across soccer and f1, excludes nba", () => {
+    expect(ticker.some((i) => i.sportId === "soccer")).toBe(true);
+    expect(ticker.some((i) => i.sportId === "f1")).toBe(true);
+    expect(ticker.every((i) => i.href === "/soccer" || i.href === "/f1")).toBe(true);
+  });
+
+  it("puts live items first", () => {
+    expect(ticker[0].status).toBe("live");
+  });
+
+  it("carries soccer score / f1 round", () => {
+    const soc = ticker.find((i) => i.key === "soccer-1")!;
+    expect(soc.score).toBe("2–0");
+    const f1 = ticker.find((i) => i.key === "f1-8")!;
+    expect(f1.round).toBe(8);
   });
 });
 
