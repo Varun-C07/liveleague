@@ -14,6 +14,22 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — Motion (motion/react): data-driven live signals
+- **Added `motion` (12.x) dependency** — first use of Framer Motion. New
+  `components/design/motion.tsx` with restrained, reduced-motion-aware primitives: `LiveDot`
+  (soft 1.5s breathing dot), `TickingMinute` (fade-flash on each minute change), `FlashScore`
+  (sport-accent flash ~600ms on score change, then settles), `LiveCardGlow` (faint 3.2s breathing
+  edge-ring). All short, ease-out, event-driven; every one degrades to static under
+  `prefers-reduced-motion`.
+- **Data-driven** — hero (`screens/Home.tsx`) and ticker (`ScoreTicker.tsx`) read live state from
+  the existing `["overview"]` data via the demo seam (`withDemoLive` + `useDemoNow`, see
+  BACKEND.md). Motion fires ONLY for `status==="live"` items; upcoming/static items are untouched.
+  Hero gets the breathing glow + ticking minute + score flash only when the featured match is live.
+- **Load ease-in** — the ticker fades/slides in once (~300ms ease-out); hero keeps its existing
+  `.rise`. No staggered cascades, no count-ups.
+- Flag OFF → no injected live item, no loops, no flashes; page is byte-for-byte as before (only the
+  one-time ticker entrance differs, and it's disabled under reduced motion).
+
 ### 2026-06-21 — Live score ticker under the nav (every page)
 - **New `components/design/ScoreTicker.tsx`** — slim (42px) strip under the nav in
   `DesignShell.tsx`, on every route. Dark `t.surface` + bottom border, items separated by thin

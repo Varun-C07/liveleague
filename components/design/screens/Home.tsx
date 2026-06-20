@@ -13,11 +13,14 @@ import { useOverview } from "@/hooks/useLive";
 import { useFavorites } from "@/hooks/useFavorites";
 import { splitFavKey } from "@/lib/favorites";
 import { TEAMS } from "@/data/teams";
+import { useDemoNow, withDemoLive } from "@/components/design/demoLive";
+import { LiveDot, TickingMinute, FlashScore, LiveCardGlow } from "@/components/design/motion";
 
 export function Home({ initial }: { initial: LiveOverview }) {
   const { t } = useTheme();
   const { data } = useOverview(initial);
-  const ov = data ?? initial;
+  const now = useDemoNow(); // ticks only when the dev demo flag is on
+  const ov = withDemoLive(data ?? initial, now)!;
   const { keys } = useFavorites();
   // Mobile-only accordion: which league bar is expanded (desktop shows cards).
   const [openLeague, setOpenLeague] = useState<string | null>(null);
@@ -28,6 +31,7 @@ export function Home({ initial }: { initial: LiveOverview }) {
   // F1 red kept as a sport identity accent; World Cup uses a muted tone so lime
   // (t.accent) stays reserved for actions + live signals.
   const f1Accent = ov.sports.find((s) => s.id === "f1")?.accent ?? t.crimson;
+  const soccerAccent = ov.sports.find((s) => s.id === "soccer")?.accent ?? t.accent;
   const myTeams = useMemo(
     () =>
       keys
@@ -47,7 +51,7 @@ export function Home({ initial }: { initial: LiveOverview }) {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14, flexWrap: "wrap" }}>
             {ov.totalLive > 0 ? (
-              <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={6} />On now</Tag>
+              <Tag sk color={t.onAccent} bg={t.live}><LiveDot color={t.onAccent} size={6} />On now</Tag>
             ) : null}
             <span style={{ fontSize: 12, color: t.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em" }}>The tournament is live</span>
           </div>
@@ -76,16 +80,22 @@ export function Home({ initial }: { initial: LiveOverview }) {
         {featured ? (
           <Link href={featured.href} className="lift" style={{ textDecoration: "none", color: t.text, cursor: "pointer", position: "relative", overflow: "hidden", display: "block", ...card(t, featured.status === "live" ? { ring: hex(t.live, 0.45) } : {}) }}>
             {featured.status === "live" ? (
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, overflow: "hidden" }}>
-                <div style={{ width: "30%", height: "100%", background: t.live, animation: "llscan 2.6s linear infinite" }} />
-              </div>
+              <>
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, overflow: "hidden" }}>
+                  <div style={{ width: "30%", height: "100%", background: t.live, animation: "llscan 2.6s linear infinite" }} />
+                </div>
+                {/* breathing edge-glow — only for a genuinely live match */}
+                <LiveCardGlow color={hex(t.live, 0.6)} radius={14} />
+              </>
             ) : null}
             <div style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg,${hex(featured.home.color, 0.4)},transparent 42%,transparent 58%,${hex(featured.away.color, 0.4)})` }} />
             <div style={{ position: "relative", padding: "22px 24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 18 }}>
                 <span style={{ fontSize: 11, color: t.textDim, fontWeight: 700, letterSpacing: ".05em", whiteSpace: "nowrap", textTransform: "uppercase" }}>{featured.label}</span>
                 {featured.status === "live" ? (
-                  <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={5} />Live {featured.min}</Tag>
+                  <Tag sk color={t.onAccent} bg={t.live}>
+                    <LiveDot color={t.onAccent} size={5} />Live <TickingMinute value={featured.min} />
+                  </Tag>
                 ) : (
                   <span style={{ fontSize: 12, color: t.textDim, fontWeight: 600 }}>{featured.min}</span>
                 )}
@@ -95,7 +105,11 @@ export function Home({ initial }: { initial: LiveOverview }) {
                   <div style={{ display: "inline-block" }}><Crest code={featured.home.code} color={featured.home.color} dark={featured.home.dark} size={50} /></div>
                   <div className="cond" style={{ fontSize: 15, fontWeight: 700, marginTop: 9 }}>{featured.home.name.toUpperCase()}</div>
                 </div>
-                <div className="disp num" style={{ fontSize: "clamp(34px,8vw,50px)", fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap" }}>{featured.score}</div>
+                <div className="disp num" style={{ fontSize: "clamp(34px,8vw,50px)", fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap" }}>
+                  {featured.status === "live"
+                    ? <FlashScore score={featured.score} accent={soccerAccent} settle={t.text} />
+                    : featured.score}
+                </div>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ display: "inline-block" }}><Crest code={featured.away.code} color={featured.away.color} dark={featured.away.dark} size={50} /></div>
                   <div className="cond" style={{ fontSize: 15, fontWeight: 700, marginTop: 9 }}>{featured.away.name.toUpperCase()}</div>

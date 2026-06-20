@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { useTheme, type Theme } from "@/components/design/theme";
 import { hex, Crest } from "@/components/design/primitives";
 import { useLiveTicker } from "@/hooks/useLive";
 import { mapTicker, type TickerItem } from "@/components/design/map";
+import { useDemoNow, withDemoLive } from "@/components/design/demoLive";
+import { LiveDot, TickingMinute, FlashScore } from "@/components/design/motion";
 
 // Thin live-score strip under the nav (every page). Auto-scrolls only when the
 // items overflow; pauses on hover; respects prefers-reduced-motion (manual
@@ -13,7 +16,10 @@ import { mapTicker, type TickerItem } from "@/components/design/map";
 export function ScoreTicker() {
   const { t } = useTheme();
   const { data } = useLiveTicker();
-  const items = data ? mapTicker(data) : [];
+  const now = useDemoNow(); // ticks only when the dev demo flag is on
+  const ov = withDemoLive(data, now);
+  const items = ov ? mapTicker(ov) : [];
+  const reduceMotion = useReducedMotion();
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const setRef = useRef<HTMLDivElement>(null);
@@ -43,9 +49,13 @@ export function ScoreTicker() {
   const dur = Math.max(24, items.length * 6); // slow, premium; constant-ish speed
 
   return (
-    <div
+    <motion.div
       ref={wrapRef}
       className="lltick-wrap"
+      // ONE subtle load ease-in (~300ms). Disabled under reduced motion.
+      initial={reduceMotion ? false : { opacity: 0, y: -6 }}
+      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       style={{
         background: t.surface,
         borderBottom: `1px solid ${hex(t.border, 0.6)}`,
@@ -71,7 +81,7 @@ export function ScoreTicker() {
           </div>
         ) : null}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -87,13 +97,17 @@ function TickItem({ it, t }: { it: TickerItem; t: Theme }) {
         borderRight: `1px solid ${hex(t.border, 0.5)}`, transition: "background .16s ease",
       }}
     >
-      {live ? <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.live, flexShrink: 0 }} /> : null}
+      {live ? <LiveDot color={t.live} size={6} /> : null}
 
       {it.sportId === "soccer" && it.a && it.b ? (
         <>
           <Crest code={it.a.code} color={it.a.color} dark={it.a.dark} size={18} />
           <span className="cond" style={{ fontSize: 12.5, fontWeight: 700 }}>{it.a.code}</span>
-          <span className="num" style={{ fontSize: 13, fontWeight: 800, color: live ? t.live : t.text }}>{it.score}</span>
+          {live ? (
+            <FlashScore score={it.score ?? ""} accent={it.accent} settle={t.live} style={{ fontSize: 13, fontWeight: 800 }} />
+          ) : (
+            <span className="num" style={{ fontSize: 13, fontWeight: 800, color: t.text }}>{it.score}</span>
+          )}
           <span className="cond" style={{ fontSize: 12.5, fontWeight: 700 }}>{it.b.code}</span>
           <Crest code={it.b.code} color={it.b.color} dark={it.b.dark} size={18} />
         </>
@@ -106,7 +120,11 @@ function TickItem({ it, t }: { it: TickerItem; t: Theme }) {
         </>
       )}
 
-      <span style={{ fontSize: 11, fontWeight: 700, color: live ? t.live : t.textDim }}>{it.detail}</span>
+      {live ? (
+        <TickingMinute value={it.detail} style={{ fontSize: 11, fontWeight: 700, color: t.live }} />
+      ) : (
+        <span style={{ fontSize: 11, fontWeight: 700, color: t.textDim }}>{it.detail}</span>
+      )}
     </Link>
   );
 }
