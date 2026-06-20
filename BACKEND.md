@@ -65,6 +65,15 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 
 ## Log
 
+### 2026-06-19 22:10 EDT — Tighten auto-refresh cadence (no manual refresh)
+- **Adaptive client poll intervals** sped up — `lib/polling.ts`: live `15s→12s`,
+  soon `60s→30s` (and the "soon" window widened 30m→60m before kickoff), idle
+  `5m→2m`. Standings poll `60s→30s` (`hooks/useMatches.ts`).
+- **ESPN live revalidate** `15s→10s` in `refreshLive`/`refreshFull` (`lib/tsdb.ts`)
+  so each poll returns fresher live scores.
+- **Why:** users had to refresh manually; the 5-min idle interval made the board
+  feel static. Now it self-updates within ~12s live / ~2m idle.
+
 ### 2026-06-19 17:31 EDT — Real-time soccer scores via ESPN + live-gated fetching
 - **ESPN is now the live soccer source** — `lib/espn-soccer.ts`. TheSportsDB's
   free feed lagged badly (reported 1-0/"1H" when a match was really 2-0/66'); ESPN's

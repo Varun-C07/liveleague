@@ -2,8 +2,11 @@ import type { MatchesResponse } from "@/lib/api-shape";
 import type { GameStatus } from "@/lib/sports/types";
 
 // Adaptive refetch interval: fast while something is live, medium when one is
-// about to start, slow when idle. Returned in milliseconds.
-export const POLL = { live: 15_000, soon: 60_000, idle: 300_000 } as const;
+// about to start, slow when truly idle. Returned in milliseconds.
+//   live  — a match is in play (score can change any second)
+//   soon  — a match kicks off within the next hour (catch the start quickly)
+//   idle  — nothing imminent (still re-checks so a new live match wakes the UI)
+export const POLL = { live: 12_000, soon: 30_000, idle: 120_000 } as const;
 
 // Generic core: decide an interval from a live count + a list of scheduled
 // start times. Shared by soccer (matches) and the generic Game/overview hooks.
@@ -16,7 +19,7 @@ export function intervalFromLive(
   const soon = scheduled.some((g) => {
     if (g.status !== "sched") return false;
     const t = new Date(g.utc).getTime() - now;
-    return t > 0 && t <= 30 * 60_000;
+    return t > 0 && t <= 60 * 60_000; // within the next hour
   });
   return soon ? POLL.soon : POLL.idle;
 }

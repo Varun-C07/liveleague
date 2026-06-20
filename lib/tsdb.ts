@@ -74,7 +74,7 @@ async function refreshLive(base: Match[]): Promise<ResolvedData> {
   const matches = base.map((m) => ({ ...m })); // clone — applyEvents mutates
   const now = Date.now();
   try {
-    const events = await fetchEspnSoccer(recentDates(new Date(now)), 15);
+    const events = await fetchEspnSoccer(recentDates(new Date(now)), 10);
     if (events.length) applyEvents(matches, events, now);
     const liveCount = matches.filter((m) => m.st === "live").length;
     await writeCache("soccer", { matches, liveCount } satisfies CachedMatches);
@@ -94,7 +94,7 @@ async function refreshFull(live = true): Promise<ResolvedData> {
   try {
     const [tsdb, espn] = await Promise.all([
       fetchUpstream(live).catch(() => [] as RawEvent[]),
-      fetchEspnSoccer(recentDates(new Date(now)), 15).catch(() => [] as RawEvent[]),
+      fetchEspnSoccer(recentDates(new Date(now)), 10).catch(() => [] as RawEvent[]),
     ]);
     const events = [...tsdb, ...espn];
     if (!events.length) throw new Error("no events");

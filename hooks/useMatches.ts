@@ -23,6 +23,6 @@ export function useStandings(initial: StandingsResponse) {
     queryKey: ["soccer", "standings"],
     queryFn: () => fetchJSON<StandingsResponse>("/api/soccer/standings"),
     initialData: initial,
-    refetchInterval: 60_000,
+    refetchInterval: 30_000,
   });
 }
