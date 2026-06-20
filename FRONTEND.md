@@ -14,6 +14,20 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-19 22:31 EDT — Fix (real): mobile menu button overlapping Sign in
+- **Mobile header now reclaims width** — `components/design/DesignShell.tsx` + `GlobalStyle.tsx`.
+  - Root cause (verified via Playwright screenshots at 360–414px): on `/soccer` & `/f1`
+    the collapsed menu button ("World Cup ⌄" / "Formula 1 ⌄") is wide, the "LIVELEAGUE"
+    wordmark ate the rest of the row, so the nav wrapper shrank below the button and the
+    button — which can't be clipped (its dropdown must overflow) — spilled over Sign in.
+  - Fix: at ≤640px hide the logo wordmark (`.ll-logo-word`, bars mark still links home),
+    hide the account name (`.ll-acct-name`, avatar only), and tighten header gap/padding
+    (`.ll-head` 16→9 gap, 22→14 px). Verified no overlap at 360/375/390/414 on Home,
+    soccer, and F1; desktop keeps the full wordmark + inline pills.
+  - Note: the 20:29 entry below fixed the *desktop* overlap; this fixes the *mobile* one
+    the user actually hit (screenshot).
+- Verified: `tsc` + `eslint` + `npm test` (69) pass; visual checks via headless Chromium.
+
 ### 2026-06-19 20:29 EDT — Fix: nav pills overlapping the sign-in button
 - **Header layout hardened** — `components/design/DesignShell.tsx` + `GlobalStyle.tsx`.
   - `Nav` now renders as a single bounded flex child (`flex:1; min-width:0`) instead of

@@ -41,7 +41,7 @@ export function DesignShell({ children }: { children: ReactNode }) {
           borderBottom: `1px solid ${hex(t.border, 0.6)}`,
         }}
       >
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "11px 22px", display: "flex", alignItems: "center", gap: 16 }}>
+        <div className="ll-head">
           <Logo />
           <Nav active={active} />
           <ShellBell />
@@ -168,7 +168,7 @@ function Logo() {
           <Pulse color={t.live} size={6} />
         </span>
       </div>
-      <span className="disp" style={{ fontSize: 23, fontWeight: 800, color: t.text }}>
+      <span className="disp ll-logo-word" style={{ fontSize: 23, fontWeight: 800, color: t.text }}>
         LIVE<span style={{ color: t.accent }}>LEAGUE</span>
       </span>
     </Link>
@@ -283,7 +283,7 @@ function ShellAuth() {
             {name.trim().charAt(0).toUpperCase()}
           </span>
         )}
-        <span style={{ fontSize: 13, fontWeight: 700, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+        <span className="ll-acct-name" style={{ fontSize: 13, fontWeight: 700, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
       </Link>
     );
   }
