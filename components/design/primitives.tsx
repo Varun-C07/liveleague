@@ -111,11 +111,12 @@ export function Tag({
   );
 }
 
-// Section label (skewed accent bar + condensed heading)
+// Section label (skewed bar + condensed heading). The bar is a muted tone, not
+// the lime accent — lime is reserved for actions and live signals.
 export function SL({ t, children }: { t: Theme; children: ReactNode }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-      <span style={{ width: 4, height: 18, background: t.accent, transform: "skewX(-10deg)", borderRadius: 1 }} />
+      <span style={{ width: 4, height: 18, background: t.textDim, transform: "skewX(-10deg)", borderRadius: 1 }} />
       <span className="disp" style={{ fontSize: 19, fontWeight: 800, display: "flex", alignItems: "center", gap: 7 }}>
         {children}
       </span>

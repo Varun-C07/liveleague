@@ -25,8 +25,8 @@ export function Home({ initial }: { initial: LiveOverview }) {
   const featured = useMemo(() => mapFeatured(ov), [ov]);
   const upcoming = useMemo(() => mapUpcoming(ov, featured?.key), [ov, featured]);
   const leagues = useMemo(() => mapLeagues(ov), [ov]);
-  // Sport accents (World Cup green / F1 red) — same source as the league bars.
-  const soccerAccent = ov.sports.find((s) => s.id === "soccer")?.accent ?? t.accent;
+  // F1 red kept as a sport identity accent; World Cup uses a muted tone so lime
+  // (t.accent) stays reserved for actions + live signals.
   const f1Accent = ov.sports.find((s) => s.id === "f1")?.accent ?? t.crimson;
   const myTeams = useMemo(
     () =>
@@ -49,14 +49,14 @@ export function Home({ initial }: { initial: LiveOverview }) {
             {ov.totalLive > 0 ? (
               <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={6} />On now</Tag>
             ) : null}
-            <span style={{ fontSize: 12.5, color: t.textDim, fontWeight: 600 }}>Your sports day</span>
+            <span style={{ fontSize: 12, color: t.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em" }}>The tournament is live</span>
           </div>
           <h1 className="disp h-hero" style={{ fontWeight: 800, lineHeight: 0.92, margin: "0 0 16px" }}>
-            Every league<br />that <span style={{ color: t.accent }}>matters.</span><br />One board.
+            Predict the<br />World Cup.<br />Beat your friends.
           </h1>
           <p style={{ fontSize: 15.5, color: t.textDim, maxWidth: 430, margin: "0 0 22px", lineHeight: 1.6 }}>
-            World Cup and Formula 1 — live scores, predictions and your private leagues, all in one
-            place that knows who you follow.
+            Make your picks, run a private league with friends, and follow your teams live —
+            World Cup and Formula 1.
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Link href="/soccer" style={{ textDecoration: "none" }}>
@@ -131,7 +131,7 @@ export function Home({ initial }: { initial: LiveOverview }) {
         <>
           <SL t={t}>Upcoming</SL>
 
-          <SubLabel t={t} color={soccerAccent}>World Cup</SubLabel>
+          <SubLabel t={t} color={t.textDim}>World Cup</SubLabel>
           {upcoming.soccer.length > 0 ? (
             <div className="ll-fill">
               {upcoming.soccer.map((u) => <SoccerUpCard key={u.key} u={u} t={t} />)}
@@ -157,8 +157,9 @@ export function Home({ initial }: { initial: LiveOverview }) {
       <div className="ll-leagues-cards">
         {leagues.map((l) => (
           <Link key={l.id} href={l.href} className="lift" style={{ textDecoration: "none", color: t.text, cursor: "pointer", padding: 16, position: "relative", overflow: "hidden", display: "block", ...card(t) }}>
-            {/* sport identity = left accent bar (echoes the F1 standings color bars), no corner glyph */}
-            <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 4, background: l.accent }} />
+            {/* left accent bar carries identity (no corner glyph). F1 keeps its red;
+                World Cup uses a muted tone so lime stays reserved for action/live. */}
+            <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 4, background: l.id === "f1" ? l.accent : t.textDim }} />
             {l.liveCount > 0 ? (
               <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
                 <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={5} />Live</Tag>
@@ -176,7 +177,7 @@ export function Home({ initial }: { initial: LiveOverview }) {
           const open = openLeague === l.id;
           return (
             <div key={l.id} className="ll-acc-item" data-open={open} style={{ position: "relative", overflow: "hidden", ...card(t) }}>
-              <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 4, background: l.accent }} />
+              <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 4, background: l.id === "f1" ? l.accent : t.textDim }} />
               <button
                 onClick={() => setOpenLeague(open ? null : l.id)}
                 aria-expanded={open}

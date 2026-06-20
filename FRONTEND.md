@@ -14,6 +14,23 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — Home copy rewrite + accent (lime) discipline
+- **Copy (`screens/Home.tsx`)** — sells the verb + the live WC moment:
+  - Eyebrow "Your sports day" → **"The tournament is live"** (uppercase eyebrow).
+  - Headline "Every league that matters. One board." → **"Predict the World Cup. Beat your
+    friends."** (leads with the action + the social hook, the actual viral loop).
+  - Subcopy → **"Make your picks, run a private league with friends, and follow your teams live —
+    World Cup and Formula 1."** (verb-led, not a feature list). Bundle value line unchanged.
+- **Accent discipline** — lime (`t.accent`) was on nav pill, ON NOW, section bars/dots, CTAs,
+  league bars, headline word. Reserved it for **actions + live signals** only:
+  - Headline highlight word: lime → white (rewritten, no colored word).
+  - `SL` section-header bar (`primitives.tsx`, shared): lime → `t.textDim` (calms section labels
+    on Home/Soccer/F1 consistently).
+  - "World Cup" `SubLabel` dot + the World Cup league accent bar (desktop + mobile): → `t.textDim`.
+    **F1 red kept** (sport identity); removed the now-unused `soccerAccent`.
+  - Kept lime on: hero "Open World Cup" CTA, mobile "Open {league}" CTA, active nav pill, and the
+    live signals (ON NOW tag, live rings/pulses via `t.live`). Shell otherwise untouched.
+
 ### 2026-06-21 — Restyle the $5 Bundle as a premium dark card
 - **Dropped the yellow cross-hatch** (`carbon(t.gold)` fill / caution-tape look) — `screens/Home.tsx`.
   The bundle now sits on the Obsidian dark surface (`t.surfaceHi → t.surface` gradient) with gold
