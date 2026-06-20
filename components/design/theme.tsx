@@ -124,6 +124,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           ...vars,
         } as CSSProperties}
       >
+        {/* depth: barely-there accent glow anchored to the top corners (reskins
+            with the palette) so the near-black canvas reads as lit, not a void */}
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            inset: 0,
+            pointerEvents: "none",
+            zIndex: 0,
+            background: `radial-gradient(58% 38% at 84% -8%, ${hex(t.accent, t.scheme === "light" ? 0.05 : 0.08)}, transparent 60%), radial-gradient(50% 34% at 6% 2%, ${hex(t.gold, t.scheme === "light" ? 0.035 : 0.05)}, transparent 62%)`,
+          }}
+        />
         {/* film grain */}
         <div
           style={{

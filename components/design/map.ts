@@ -51,7 +51,8 @@ export function kickoffDateTimeLabel(utc: string): string {
 
 export type SlateItem = {
   key: string;
-  sport: string; // emoji
+  sportId: string; // "soccer" | "f1" — picks the rail icon
+  sport: string; // emoji (fallback icon)
   label: string;
   status: "live" | "sched" | "final";
   min: string;
@@ -87,6 +88,7 @@ export function mapSlate(
       const isTeam = g.sport === "soccer";
       items.push({
         key: g.id,
+        sportId: s.id,
         sport: s.emoji,
         label: g.label,
         status: g.status,
@@ -112,6 +114,7 @@ export function mapSlate(
 }
 
 export type FeaturedMatch = {
+  key: string;
   label: string;
   home: { code: string; name: string; color: string; dark: boolean };
   away: { code: string; name: string; color: string; dark: boolean };
@@ -128,6 +131,7 @@ export function mapFeatured(ov: LiveOverview): FeaturedMatch {
   const g =
     soccer.topGames.find((x) => x.status === "live") ?? soccer.topGames[0];
   return {
+    key: g.id,
     label: g.label,
     home: { ...teamSide(g.home), name: g.home.name },
     away: { ...teamSide(g.away), name: g.away.name },
@@ -137,6 +141,53 @@ export function mapFeatured(ov: LiveOverview): FeaturedMatch {
     status: g.status,
     href: soccer.basePath,
   };
+}
+
+// ── Upcoming section: per-sport, soonest-first, never interleaved ────────────
+type UpTeam = { code: string; color: string; dark: boolean };
+export type UpcomingSoccer = {
+  key: string; status: Game["status"]; when: string; href: string; utc: string;
+  label: string; a: UpTeam; b: UpTeam; score: string;
+};
+export type UpcomingF1 = {
+  key: string; status: Game["status"]; when: string; href: string; utc: string;
+  round: number | null; name: string; loc: string;
+};
+export type Upcoming = { soccer: UpcomingSoccer[]; f1: UpcomingF1[] };
+
+// Group the overview's top games into soccer / F1 upcoming lists. Excludes the
+// hero-featured game (by key) so it's never duplicated, and finished games.
+// Stray live items (not the hero) are kept, flagged live. `when` = the kickoff
+// date for scheduled games, the live minute for live ones.
+export function mapUpcoming(ov: LiveOverview, excludeKey?: string): Upcoming {
+  const soccer: UpcomingSoccer[] = [];
+  const f1: UpcomingF1[] = [];
+  for (const s of ov.sports) {
+    if (s.id !== "soccer" && s.id !== "f1") continue;
+    for (const g of s.topGames) {
+      if (g.id === excludeKey || g.status === "final") continue;
+      const when = g.status === "live" ? statusMin(g) : dateLabel(g.utc);
+      if (s.id === "soccer") {
+        soccer.push({
+          key: g.id, status: g.status, when, href: s.basePath, utc: g.utc,
+          label: g.label, a: teamSide(g.home), b: teamSide(g.away),
+          score: g.status === "sched" ? "vs" : `${g.home.score ?? 0}–${g.away.score ?? 0}`,
+        });
+      } else {
+        f1.push({
+          key: g.id, status: g.status, when, href: s.basePath, utc: g.utc,
+          round: g.extra.sport === "f1" ? g.extra.round : null,
+          name: g.venue || g.label,
+          loc: [g.city, g.country].filter(Boolean).join(", "),
+        });
+      }
+    }
+  }
+  const byUtc = (a: { utc: string }, b: { utc: string }) =>
+    new Date(a.utc).getTime() - new Date(b.utc).getTime();
+  soccer.sort(byUtc);
+  f1.sort(byUtc);
+  return { soccer, f1 };
 }
 
 // Qualification outlook per group, keyed by group letter then team code.

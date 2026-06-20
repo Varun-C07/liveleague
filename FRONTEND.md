@@ -14,6 +14,107 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — Restyle the $5 Bundle as a premium dark card
+- **Dropped the yellow cross-hatch** (`carbon(t.gold)` fill / caution-tape look) — `screens/Home.tsx`.
+  The bundle now sits on the Obsidian dark surface (`t.surfaceHi → t.surface` gradient) with gold
+  used only as a **restrained accent**: a thin `hex(t.gold,0.45)` hairline border, a faint gold
+  top-corner glow, the `$5` price, and the CTA fill — never a background wash.
+- **Contained, composed card** — max-width 760, centered (not full-bleed). Hierarchy: title +
+  value line (copy unchanged) on the left; the gold **`$5`** as the focal element with a single
+  gold primary CTA ("Get the bundle", dark text on gold) directly beneath it on the right.
+- Removed the now-dead `carbon` import and the `INK` constant (and the last `hex("#000")`); all
+  colors are theme tokens now, so it reskins with the palette and reads as the most premium
+  surface on the page, consistent with the F1 board.
+
+### 2026-06-21 — Rebuild Home "Upcoming" (sport subsections, de-noised cards)
+- **Renamed "Live & upcoming" → "Upcoming"** — `screens/Home.tsx` (kept the `SL` accent-bar
+  header). Live matches dropped from this section (already spotlighted in the hero featured card),
+  so no duplication.
+- **Split into two sport subsections** — "World Cup" then "Formula 1", each with a new `SubLabel`
+  (sport-colored dot + name, smaller than `SL`); each is its own `.ll-fill` grid so soccer and F1
+  never interleave. Sorted soonest-first by `utc`. Driven by new `mapUpcoming(ov, excludeKey)` in
+  `map.ts` (groups by `s.id`, drops finals + the hero match by key, keeps stray live flagged).
+- **De-noised cards (no sport glyphs):** soccer cards lost the crosshair icon — flags + codes +
+  group label carry them; F1 cards lost the checkered flag and now lead with the **round number**
+  ("R8", `.disp`, in the F1 red accent) as the hero element. Time/round label stays top-right.
+- **Empty states** — `EmptyRow` (dashed, themed) shows "No upcoming World Cup / Formula 1 right
+  now." instead of a blank gap when a subsection has zero items.
+- Removed the now-dead `slateIcon` + `IconSoccer`/`CheckeredFlag` imports from Home (icons remain
+  exported). Tests: added 4 `mapUpcoming` cases (grouping, hero-exclusion, round/`vs`, sort) — 73 pass.
+
+### 2026-06-21 — Unify match/league cards (flags, accent bars, F1 rail icon)
+- **Country flags in team badges** — `components/design/primitives.tsx` (`Crest`) now renders
+  the country flag in a circular crop (Apple Sports look) via the circle-flags SVG set, keyed by
+  FIFA code through a new `components/design/flags.ts` map (incl. home nations: ENG→gb-eng,
+  SCO→gb-sct, +WAL/NIR). Falls back to the colored disc + 3-letter code when a flag isn't
+  mapped or the image fails (`onError`), so a badge is never blank. One change covers every
+  soccer badge (Home featured/slate/your-teams, LiveMatch, Fixtures, GroupCard, Predict, Soccer).
+  Flags are `<img>` from jsDelivr (no new dependency; mirrors the ESPN-logo `<img>` pattern).
+- **Killed the league-card corner glyphs** — `screens/Home.tsx`: removed the clip-art sport
+  icons from the Formula 1 / World Cup cards (desktop + mobile accordion); identity now carried
+  by the wordmark + a wider (4px) left accent bar in the sport color, echoing the F1 standings
+  color bars. (`leagueIcon` + `IconF1` import removed.)
+- **Upgraded the F1 rail icon** — chose option (a): the race-car lozenge → a crisp `CheckeredFlag`
+  icon (new in `icons.tsx`), and the soccer cards now lead with a matched `IconSoccer` at the same
+  size/weight, so both card types in "Live & upcoming" share one anatomy. Added `sportId` to
+  `SlateItem` (`map.ts`) to pick the icon. (Chose (a) over leading F1 with "R8" because (b) would
+  diverge F1 from the crest-led soccer cards, undercutting the one-system goal.)
+
+### 2026-06-20 — Polish: page width, background depth, Home hero/rows
+- **Wider shared frame** — `GlobalStyle.tsx`: `.wrap` and `.ll-head` `max-width` 1200→1280
+  (still `margin:0 auto`, equal 22px gutters). One constant, shared by all three screens
+  (Home/Soccer/F1 already render inside `.wrap`), so the whole app keeps one centered frame.
+- **Home no longer reads narrow** — `screens/Home.tsx`: the hero now collapses to one
+  full-width column when there's no featured match (was a 2-col grid leaving the right ~45%
+  blank); "Live & upcoming" changed from a left-aligned `Strip` to a width-filling grid
+  (`.ll-fill`, new in `GlobalStyle.tsx`) so the day's games span the frame. ("Your teams"
+  stays a scrollable rail by design.)
+- **Background depth** — `theme.tsx`: added a barely-perceptible accent glow anchored to the
+  top corners (radial `t.accent` + `t.gold`, ~5–8% opacity, behind the grain) so the canvas
+  reads as lit, not a flat void. Reskins with the palette.
+- **Verified already in place (no change):** all three screens share `.wrap` (consistent
+  frame); every Home section label uses the shared `SL` primitive (accent bar + uppercase
+  condensed); Home cards already use `.lift` (hover lift + accent `var(--glow)` ring, ~220ms,
+  cursor:pointer).
+
+### 2026-06-20 — Polish: auth modal brand panel + single nav button + shared logo
+- **Reverted the nav to a single "Sign in" button** — `components/design/DesignShell.tsx`
+  (`ShellAuth`): removed the duplicate primary "Sign up" CTA; the modal keeps both tabs.
+  Dropped the now-dead `.ll-auth-secondary` mobile rule (`GlobalStyle.tsx`).
+- **Shared logo** — new `components/design/Logo.tsx` (`BrandMark` + `Logo`). The header and the
+  modal (brand panel + mobile compact logo) now render the *same* bar-chart + LIVELEAGUE
+  wordmark instead of divergent markup / a plain diamond.
+- **Redesigned the modal brand panel** — `components/design/auth/AuthModal.tsx`: dropped the
+  all-over green wash for an Obsidian gradient (`t.surface → t.bg`) with contained corner energy
+  (warm `t.gold` top-right, cool `t.accent` bottom-left), one track-ribbon motif (tarmac +
+  dashed accent racing line) bleeding off the edges, and a grounded content block (eyebrow rule
+  → headline → subcopy → feature chips). All theme-driven.
+- **Fixed Create-account toggle crowding the close button** — form column top padding 34→52px so
+  the segmented toggle clears the absolute X on both tabs.
+
+### 2026-06-20 — Feature: auth modal (Sign in / Create account) + backend seam
+- **New auth modal**, opened from the nav — `components/design/auth/` (new folder).
+  - `authClient.ts` — typed mock backend **seam** (`signInWithEmail`, `signUpWithEmail`,
+    `signInWithOAuth`, `checkUsernameAvailability`, `getSession`, `signOut`); every function
+    marked `// BACKEND SEAM: replace with Supabase`. ~700ms mock delays; username taken if
+    `<3` chars or in `{admin, messi, ronaldo, liveleague}`. UI calls only these functions.
+  - `AuthModalProvider.tsx` — context exposing `openAuth(mode)` / `closeAuth()`; renders the
+    modal. Other CTAs (Unlock $5, Get the bundle, Join a league) can call `openAuth()` later
+    with one line (not wired yet).
+  - `AuthModal.tsx` — two-column themed card (brand panel + form), stacking to a full-screen
+    sheet ≤720px. Segmented Sign in / Create account toggle; Google + Apple buttons; email +
+    password, plus a username field with debounced live availability on the signup tab.
+    States: idle / validating / submitting (lime ring spinner) / error / success
+    (closes + `console.log`s the mock user — real session is the seam). Focus trap, Esc +
+    backdrop close, body scroll-lock, autofocus, aria roles.
+- **Nav** — `components/design/DesignShell.tsx`: existing **Sign in** kept (outline) now opens
+  the modal; new primary **Sign up** (hero's skewed lime CTA) next to it. Shell wrapped in
+  `AuthModalProvider`. Secondary button collapses at ≤640px (only Sign up shows).
+- **Styling** — `GlobalStyle.tsx`: added `llspin`/`llfade` keyframes, `.ll-auth-*` layout +
+  input-focus classes, and the ≤720px sheet breakpoint. All colors via the theme object `t.*`
+  (Google's mark keeps its brand colors; everything else reskins with the palette).
+- Additive only; dormant system (`components/shell/`, `app/globals.css` tokens) untouched.
+
 ### 2026-06-19 22:31 EDT — Fix (real): mobile menu button overlapping Sign in
 - **Mobile header now reclaims width** — `components/design/DesignShell.tsx` + `GlobalStyle.tsx`.
   - Root cause (verified via Playwright screenshots at 360–414px): on `/soccer` & `/f1`

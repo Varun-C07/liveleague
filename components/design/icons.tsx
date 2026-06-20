@@ -62,6 +62,18 @@ export function IconF1({ size = 24, color = "currentColor" }: { size?: number; c
   );
 }
 
+// Crisp checkered flag — motorsport identity at small sizes (the race-car
+// lozenge smudged). Filled alternating cells read as "checkered" on transparent.
+export function CheckeredFlag({ size = 24, color = "currentColor", sw = 2 }: { size?: number; color?: string; sw?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 3v18" />
+      <rect x="5" y="4" width="15" height="8" />
+      <path fill={color} stroke="none" d="M5 4h3.75v4H5z M12.5 4h3.75v4H12.5z M8.75 8h3.75v4H8.75z M16.25 8h3.75v4h-3.75z" />
+    </svg>
+  );
+}
+
 export function IconSoccer({ size = 24, color = "currentColor" }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

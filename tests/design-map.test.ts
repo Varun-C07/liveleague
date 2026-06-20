@@ -4,6 +4,7 @@ import {
   mapSlate,
   mapFeatured,
   mapLeagues,
+  mapUpcoming,
 } from "../components/design/map";
 import type { Game, LiveOverview } from "../lib/sports/types";
 
@@ -64,6 +65,36 @@ describe("mapSlate", () => {
     expect(soc.score).toBe("2–0");
     const f1 = slate.find((s) => s.key === "f1-8")!;
     expect(f1.name).toContain("Austrian");
+  });
+});
+
+describe("mapUpcoming", () => {
+  const featured = mapFeatured(overview());
+  const up = mapUpcoming(overview(), featured?.key);
+
+  it("groups by sport, never interleaved (only /soccer and /f1)", () => {
+    expect(up.soccer.every((u) => u.href === "/soccer")).toBe(true);
+    expect(up.f1.every((u) => u.href === "/f1")).toBe(true);
+    expect(up.f1.length).toBe(1); // nba excluded entirely
+  });
+
+  it("excludes the hero-featured (live) match, keeps the next scheduled", () => {
+    expect(up.soccer.some((u) => u.key === "soccer-1")).toBe(false);
+    expect(up.soccer.some((u) => u.key === "soccer-2")).toBe(true);
+  });
+
+  it("carries the round number for f1 and 'vs' for scheduled soccer", () => {
+    expect(up.f1[0].round).toBe(8);
+    expect(up.soccer[0].score).toBe("vs");
+  });
+
+  it("sorts soonest-first within a sport", () => {
+    const ov = overview();
+    ov.sports.find((s) => s.id === "soccer")!.topGames = [
+      soccerGame({ id: "late", status: "sched", utc: "2026-06-30T00:00:00Z" }),
+      soccerGame({ id: "early", status: "sched", utc: "2026-06-20T00:00:00Z" }),
+    ];
+    expect(mapUpcoming(ov).soccer.map((u) => u.key)).toEqual(["early", "late"]);
   });
 });
 
