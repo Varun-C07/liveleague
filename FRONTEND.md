@@ -14,6 +14,22 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — Player-profile page (real route, deep-linkable)
+- **New route** `app/soccer/player/[id]/page.tsx` (loader) → `components/design/screens/Player.tsx`.
+  `id` = `${teamCode}-${number}` (e.g. `/soccer/player/BRA-7`); loader validates team + player and
+  `notFound()`s otherwise. Native back/forward/share + in-page "← Back to {team}".
+- **Squad rows now navigate** — `Team.tsx` `SquadRow` is a `<Link>` to `/soccer/player/{id}` (same
+  look; kept `id="player-{id}"` + `.ll-fixture-row` hover).
+- **Free content** (tight, complete): header (initials avatar with team-color tint — no broken
+  image — name, #number, position, age, club, clickable nationality → team page) and a clean 6-stat
+  tournament row (Apps · Mins · Goals · Assists · Yellow · Red; position-realistic, no empty slots).
+- **Paid tease**: "Analysis" (form rating, influence, projected impact, note) behind the shared
+  premium dark+gold `LockedPanel` (lock + "Unlock with the bundle" → /account). Not yellow.
+- **Seam** `components/design/screens/player/playerData.ts` (`// BACKEND SEAM`): `getPlayer(id)`
+  (bio + stats, built on `teamSquad` so name/pos/age match the squad row; a GK shows 0 goals) and
+  `playerAnalysis(player)`. Page reads only from the seam. Team page, match-detail, fixtures,
+  standings, home, ticker all intact.
+
 ### 2026-06-21 — Team-profile page + shared premium lock (yellow swept)
 - **New route** `app/soccer/team/[id]/page.tsx` (loader) → `components/design/screens/Team.tsx`.
   `id` = the FIFA team code (e.g. `/soccer/team/BRA`); loader `notFound()`s unknown codes, seeds

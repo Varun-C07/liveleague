@@ -167,12 +167,12 @@ function HistoryRow({ t, m, code }: { t: Theme; m: ApiMatch; code: string }) {
 
 function SquadRow({ t, p }: { t: Theme; p: Player }) {
   return (
-    <div id={`player-${p.id}`} className="ll-fixture-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 13px", ...card(t) }}>
+    <Link href={`/soccer/player/${p.id}`} id={`player-${p.id}`} className="ll-fixture-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 13px", textDecoration: "none", color: t.text, ...card(t) }}>
       <span className="num" style={{ width: 22, fontSize: 13, fontWeight: 800, color: t.textFaint, textAlign: "center" }}>{p.number}</span>
       <span className="cond" style={{ flex: 1, fontSize: 13.5, fontWeight: 700 }}>{p.name}</span>
       <span style={{ fontSize: 11, color: t.textDim, fontWeight: 700, width: 28 }}>{p.pos}</span>
       <span className="num" style={{ fontSize: 11.5, color: t.textFaint, fontWeight: 700 }}>{p.age}y</span>
-    </div>
+    </Link>
   );
 }
 
