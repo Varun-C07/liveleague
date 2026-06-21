@@ -74,7 +74,7 @@ describe("mapUpcoming", () => {
   const up = mapUpcoming(overview(), featured?.key);
 
   it("groups by sport, never interleaved (only /soccer and /f1)", () => {
-    expect(up.soccer.every((u) => u.href === "/soccer")).toBe(true);
+    expect(up.soccer.every((u) => u.href.startsWith("/soccer/match/"))).toBe(true);
     expect(up.f1.every((u) => u.href === "/f1")).toBe(true);
     expect(up.f1.length).toBe(1); // nba excluded entirely
   });
@@ -105,7 +105,7 @@ describe("mapTicker", () => {
   it("includes live + scheduled across soccer and f1, excludes nba", () => {
     expect(ticker.some((i) => i.sportId === "soccer")).toBe(true);
     expect(ticker.some((i) => i.sportId === "f1")).toBe(true);
-    expect(ticker.every((i) => i.href === "/soccer" || i.href === "/f1")).toBe(true);
+    expect(ticker.every((i) => i.href.startsWith("/soccer/match/") || i.href === "/f1")).toBe(true);
   });
 
   it("puts live items first", () => {

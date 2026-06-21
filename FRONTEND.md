@@ -14,6 +14,26 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — Match-detail page (real route, deep-linkable)
+- **New route** `app/soccer/match/[id]/page.tsx` (loader) → `components/design/screens/Match.tsx`.
+  `id` = the match number (`ApiMatch.n`); loader finds it in `liveMatchesResponse()`, `notFound()`s
+  on miss, seeds the screen which keeps it live by polling `/api/soccer` (`useMatches`). Native
+  back/forward/share/deep-link; plus an in-page "← Back to fixtures" link.
+- **Free content** (themed `t.*`): header (flags/names, stage, venue, kickoff; live → live score +
+  ticking minute + pulsing dot via the existing motion primitives; FT → final + FT), last-5 form
+  W/D/L chips per team, head-to-head, and a "what's at stake" line.
+- **Paid tease**: real win-probability bar + predicted scoreline rendered then **frosted/blurred**
+  with a premium dark+gold lock overlay ("Unlock with the bundle", `/account` CTA) — predictor is
+  visibly there, just locked. Not the yellow box.
+- **Data seam** `components/design/screens/match/matchData.ts` — ONE module
+  (`// BACKEND SEAM: replace with Supabase/real data`) for form / H2H / predictor / stakes;
+  deterministic placeholders derived from the real team codes (no wrong-team names). Component
+  reads only from the seam.
+- **Navigation wired**: fixture rows are now `<Link>`s to `/soccer/match/{n}` (same look, hover-ready
+  already); home featured/upcoming + ticker soccer items deep-link too via new `soccerMatchHref()`
+  in `map.ts` (F1 unchanged; dev demo match falls back to `/soccer`). Updated 3 map tests for the
+  new hrefs. Soccer board, fixtures, standings, sidebar, ticker, live behavior all intact.
+
 ### 2026-06-21 — World Cup fixtures: filterable, date-collapsed system
 - **Rebuilt `components/design/screens/soccer/Fixtures.tsx`** from a flat 104-match scroll into a
   control bar + collapsible date/group sections. All filtering is data-driven off `ApiMatch`

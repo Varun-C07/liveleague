@@ -76,6 +76,12 @@ function teamSide(c: { code: string; color: string }) {
   return { code: c.code, color: c.color, dark: isLightColor(c.color) };
 }
 
+// Soccer games carry id `soccer-${n}` → deep-link to /soccer/match/${n}. Anything
+// without that shape (e.g. the dev demo match) falls back to the board.
+function soccerMatchHref(id: string): string {
+  return id.startsWith("soccer-") ? `/soccer/match/${id.slice("soccer-".length)}` : "/soccer";
+}
+
 // Flatten top games across the chosen sports into a "today" slate.
 export function mapSlate(
   ov: LiveOverview,
@@ -139,7 +145,7 @@ export function mapFeatured(ov: LiveOverview): FeaturedMatch {
       g.status === "sched" ? "vs" : `${g.home.score ?? 0}–${g.away.score ?? 0}`,
     min: statusMin(g),
     status: g.status,
-    href: soccer.basePath,
+    href: soccerMatchHref(g.id),
   };
 }
 
@@ -169,7 +175,7 @@ export function mapUpcoming(ov: LiveOverview, excludeKey?: string): Upcoming {
       const when = g.status === "live" ? statusMin(g) : dateLabel(g.utc);
       if (s.id === "soccer") {
         soccer.push({
-          key: g.id, status: g.status, when, href: s.basePath, utc: g.utc,
+          key: g.id, status: g.status, when, href: soccerMatchHref(g.id), utc: g.utc,
           label: g.label, a: teamSide(g.home), b: teamSide(g.away),
           score: g.status === "sched" ? "vs" : `${g.home.score ?? 0}–${g.away.score ?? 0}`,
         });
@@ -220,7 +226,7 @@ export function mapTicker(ov: LiveOverview): TickerItem[] {
       };
       if (s.id === "soccer") {
         items.push({
-          ...base, a: teamSide(g.home), b: teamSide(g.away),
+          ...base, href: soccerMatchHref(g.id), a: teamSide(g.home), b: teamSide(g.away),
           score: g.status === "sched" ? "vs" : `${g.home.score ?? 0}–${g.away.score ?? 0}`,
         });
       } else {

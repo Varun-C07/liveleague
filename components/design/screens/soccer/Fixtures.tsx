@@ -363,7 +363,7 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
       : kickoffDateTimeLabel(m.utc);
 
   return (
-    <div id={`match-${m.n}`} className="ll-fixture-row" style={{ padding: "10px 13px", ...card(t, live ? { ring: hex(t.live, 0.4) } : mine ? { ring: hex(t.accent, 0.3) } : {}) }}>
+    <Link href={`/soccer/match/${m.n}`} id={`match-${m.n}`} className="ll-fixture-row" style={{ display: "block", textDecoration: "none", color: t.text, padding: "10px 13px", ...card(t, live ? { ring: hex(t.live, 0.4) } : mine ? { ring: hex(t.accent, 0.3) } : {}) }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
         <span style={{ fontSize: 10, color: t.textFaint, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.stage}</span>
         {live ? (
@@ -388,6 +388,6 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
           <MapPin size={11} /><span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{loc}</span>
         </div>
       ) : null}
-    </div>
+    </Link>
   );
 }
