@@ -14,6 +14,30 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — Team-profile page + shared premium lock (yellow swept)
+- **New route** `app/soccer/team/[id]/page.tsx` (loader) → `components/design/screens/Team.tsx`.
+  `id` = the FIFA team code (e.g. `/soccer/team/BRA`); loader `notFound()`s unknown codes, seeds
+  matches + standings, screen polls (`useMatches`/`useStandings`). Native back/forward/share +
+  in-page "← Back to fixtures".
+- **Free content** (themed `t.*`): header (flag/name/group/standing + points + last-5 form),
+  full match history (each row → match-detail, with H/A + result-colored score or kickoff), and a
+  **squad list** whose rows are click-ready (`id="player-{id}"`, `.ll-fixture-row` cursor+hover) for
+  a future player route — not built now.
+- **Paid tease**: "Prediction & analysis" (qualify %, projected finish, title odds) behind the
+  premium dark+gold glass.
+- **Shared lock** — new `components/design/LockedPanel.tsx`: the one frosted dark+gold lock
+  (real content blurred behind, lock copy + CTA in-flow so it never clips). Match-detail's predictor
+  now uses it too (removed its inline copy).
+- **Team links wired**: group-standings rows (`GroupCard`) and the match-detail header (`Side`,
+  real teams only) link to `/soccer/team/{code}` via new `.ll-team-link`. Team-history rows link to
+  match-detail. (Fixture rows stay single match links — no nested anchors.)
+- **Yellow swept**: `Predict.tsx` `Paywall` restyled from `carbon(t.gold)` cross-hatch to the
+  premium dark+gold treatment (same CTA/behavior); removed unused `carbon`/`INK`. No caution-tape
+  lock surfaces remain.
+- **Seam** `components/design/screens/team/teamData.ts` (`// BACKEND SEAM`): squad + analysis,
+  deterministic from the real code (generic placeholder names, no wrong-team values). History +
+  standing come from real data. Match-detail, fixtures, standings, sidebar, home, ticker intact.
+
 ### 2026-06-21 — Match-detail page (real route, deep-linkable)
 - **New route** `app/soccer/match/[id]/page.tsx` (loader) → `components/design/screens/Match.tsx`.
   `id` = the match number (`ApiMatch.n`); loader finds it in `liveMatchesResponse()`, `notFound()`s

@@ -37,6 +37,8 @@ export function GlobalStyle() {
       .navpill:hover{background:var(--surfHi)!important;color:var(--accent)!important}
       .ll-fixture-row{cursor:pointer;transition:transform .15s ease,box-shadow .2s ease}
       .ll-fixture-row:hover{transform:translateY(-1px);box-shadow:0 0 0 1px var(--glow), var(--hovsh)!important}
+      .ll-team-link{cursor:pointer;transition:opacity .15s ease}
+      .ll-team-link:hover{opacity:.82}
       .stepbtn:hover{background:var(--surfHi)!important;color:var(--accent)!important}
       .chip-btn{transition:background .16s ease,color .16s ease,box-shadow .2s ease}
       .f1row{transition:background .16s ease}

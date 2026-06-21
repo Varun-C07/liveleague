@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useTheme, type Theme } from "@/components/design/theme";
-import { card, hex, unskew, Crest, SL } from "@/components/design/primitives";
-import { ChevronRight, MapPin, Lock, Calendar } from "@/components/design/icons";
+import { card, hex, Crest, SL } from "@/components/design/primitives";
+import { MapPin, Lock, Calendar } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
 import { LiveDot, TickingMinute, FlashScore } from "@/components/design/motion";
+import { LockedPanel } from "@/components/design/LockedPanel";
 import { useMatches } from "@/hooks/useMatches";
 import {
   recentForm, headToHead, matchPredictor, stakesLine, type FormResult,
@@ -139,13 +140,20 @@ function BackLink({ t }: { t: Theme }) {
 }
 
 function Side({ t, team }: { t: Theme; team: Team }) {
-  return (
-    <div style={{ textAlign: "center" }}>
+  const inner = (
+    <>
       <div style={{ display: "inline-block" }}>
         <Crest code={team.code} color={team.color} dark={isLightColor(team.color)} size={46} />
       </div>
       <div className="cond" style={{ fontSize: 14, fontWeight: 700, marginTop: 8, color: t.text }}>{team.name.toUpperCase()}</div>
-    </div>
+    </>
+  );
+  // Placeholder teams (e.g. "2A" / "W74") have no profile page.
+  if (!team.real) return <div style={{ textAlign: "center" }}>{inner}</div>;
+  return (
+    <Link href={`/soccer/team/${team.code}`} className="ll-team-link" style={{ display: "block", textAlign: "center", textDecoration: "none", color: t.text }}>
+      {inner}
+    </Link>
   );
 }
 
@@ -177,36 +185,20 @@ function LockedPredictor({ t, m }: { t: Theme; m: ApiMatch }) {
     { w: p.away, c: m.away.color, label: m.away.code },
   ];
   return (
-    <div style={{ position: "relative", overflow: "hidden", ...card(t) }}>
-      {/* Blurred predictor = absolute background; it does NOT set the card height. */}
-      <div aria-hidden style={{ position: "absolute", inset: 0, filter: "blur(7px)", opacity: 0.5, pointerEvents: "none", userSelect: "none", padding: "18px 20px" }}>
-        <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden" }}>
-          {segs.map((s, i) => <div key={i} style={{ width: `${s.w}%`, background: s.c }} />)}
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 9 }}>
-          {segs.map((s, i) => (
-            <span key={i} className="num" style={{ fontSize: 12, fontWeight: 800, color: t.textDim }}>{s.label} {s.w}%</span>
-          ))}
-        </div>
-        <div style={{ marginTop: 14, fontSize: 12.5, color: t.textDim }}>{p.pick} · predicted {p.scoreline}</div>
+    <LockedPanel
+      t={t}
+      title="Win probability & predictor"
+      copy="Live win probability and the match predictor are part of the $5 World Cup Bundle."
+    >
+      <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden" }}>
+        {segs.map((s, i) => <div key={i} style={{ width: `${s.w}%`, background: s.c }} />)}
       </div>
-
-      {/* Frosted glass + lock content is IN FLOW, so the card sizes to all of it
-          (lock → heading → copy → CTA) and nothing gets clipped. */}
-      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "30px 22px", background: `linear-gradient(160deg, ${hex(t.surfaceHi, 0.5)}, ${hex(t.bg, 0.62)})`, backdropFilter: "blur(3px)" }}>
-        <div style={{ display: "inline-grid", placeItems: "center", width: 40, height: 40, borderRadius: "50%", background: hex(t.gold, 0.16), border: `1px solid ${hex(t.gold, 0.4)}`, marginBottom: 11 }}>
-          <Lock size={18} color={t.gold} />
-        </div>
-        <div className="disp" style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>Win probability &amp; predictor</div>
-        <div style={{ fontSize: 12.5, color: t.textDim, maxWidth: 300, margin: "0 0 16px", lineHeight: 1.5 }}>
-          Live win probability and the match predictor are part of the $5 World Cup Bundle.
-        </div>
-        <Link href="/account" style={{ textDecoration: "none" }}>
-          <span style={{ display: "inline-flex", padding: "11px 22px", border: "none", background: t.gold, color: t.bg, fontWeight: 800, fontSize: 13.5, cursor: "pointer", whiteSpace: "nowrap", transform: "skewX(-9deg)" }}>
-            <span style={unskew}>Unlock with the bundle <ChevronRight size={14} /></span>
-          </span>
-        </Link>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 9 }}>
+        {segs.map((s, i) => (
+          <span key={i} className="num" style={{ fontSize: 12, fontWeight: 800, color: t.textDim }}>{s.label} {s.w}%</span>
+        ))}
       </div>
-    </div>
+      <div style={{ marginTop: 14, fontSize: 12.5, color: t.textDim }}>{p.pick} · predicted {p.scoreline}</div>
+    </LockedPanel>
   );
 }
