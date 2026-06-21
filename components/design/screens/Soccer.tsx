@@ -84,7 +84,7 @@ export function Soccer({
           <LiveMatch m={featured} />
 
           <div style={{ marginTop: 26 }}>
-            <Fixtures matches={matches} favSet={favSet} />
+            <Fixtures matches={matches} />
           </div>
 
           {myResults.length > 0 && (

@@ -14,6 +14,26 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-21 — World Cup fixtures: filterable, date-collapsed system
+- **Rebuilt `components/design/screens/soccer/Fixtures.tsx`** from a flat 104-match scroll into a
+  control bar + collapsible date/group sections. All filtering is data-driven off `ApiMatch`
+  (`utc`→ET day, `grp` A–L, `stage` codes R32/R16/QF/SF/Final, team `code`/`name`).
+  - **Default view = Today** (was All); empty today → next matchday with a
+    "No matches today — showing [date]" note. All-104 is one tap (`All` chip).
+  - **Control bar:** primary chips `Today · All · Live · My teams` (live-count badges) + three
+    styled native selects — **Stage** (All/Group stage/R32/R16/QF/SF/Final, with counts), **Group**
+    (A–L jump, with counts), **Sort** (Date/Group/Team). Folded the old Group stage/Knockout chips
+    into the richer Stage select (superset) to stay elite, not a button pile.
+  - **Collapse by date** (or group, per sort): section headers use the design-system bar + uppercase
+    `.disp` treatment; today's section open, others collapsible (XOR toggle state).
+  - **My teams** reads a new seam `components/design/soccer/followedTeams.ts`
+    (`// BACKEND SEAM: replace with real followed-teams from Supabase`, returns empty). Empty →
+    premium dark+gold **bundle tease** ("Follow up to 4 teams", `/account` CTA) — not the old yellow box.
+  - Rows unchanged in design but now carry `id="match-{n}"` + `.ll-fixture-row` hover lift
+    (`GlobalStyle.tsx`), ready for match-detail routing next session (no routing built here).
+- `Soccer.tsx`: dropped the now-unused `favSet` prop on `<Fixtures>` (favorites still feed
+  GroupCard/results). Featured card, standings, sidebar, live behavior, ticker all untouched.
+
 ### 2026-06-21 — Motion (motion/react): data-driven live signals
 - **Added `motion` (12.x) dependency** — first use of Framer Motion. New
   `components/design/motion.tsx` with restrained, reduced-motion-aware primitives: `LiveDot`
