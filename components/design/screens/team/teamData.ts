@@ -1,13 +1,23 @@
-// Team-profile data the app doesn't already have: squad/players and the paid
-// prediction/analysis. (Match history comes from the real fixture list, and
-// standing/points from real standings — those are NOT faked here.)
+// Team-profile data: squad/players and the paid prediction/analysis. (Match
+// history comes from the real fixture list, and standing/points from real
+// standings — those are NOT faked here.)
 //
 // BACKEND SEAM: replace every function here with real data (Supabase / a stats
-// provider). The Team page reads ONLY from this module. Placeholders are derived
-// deterministically from the real team code, so they're stable and never show
-// another team's values. Names are generic placeholders (no real-player claims).
+// provider). The Team page reads ONLY from this module. Real rosters for the
+// start set live in ./squads.ts; teams without one fall back to a clearly-generic
+// placeholder squad (so it's obviously not real until wired).
+import { REAL_SQUADS, type Pos } from "./squads";
 
-export type Player = { id: string; name: string; pos: "GK" | "DF" | "MF" | "FW"; number: number; age: number };
+export type { Pos };
+export type Player = {
+  id: string;
+  name: string;
+  pos: Pos;
+  number: number;
+  age: number;
+  isCaptain: boolean;
+  isGoalkeeper: boolean;
+};
 export type TeamAnalysis = { qualifyPct: number; finish: string; titlePct: number; note: string };
 
 function seed(s: string): number {
@@ -16,26 +26,44 @@ function seed(s: string): number {
   return h;
 }
 
+// Ages aren't in the real roster data → derived placeholder (stable per player).
+const ageOf = (code: string, number: number) => 19 + (seed(`${code}#${number}`) % 17); // 19..35
+
+// ── generic placeholder squad (teams without a real roster yet) ──────────────
 const SURNAMES = [
   "Andersen", "Bauer", "Costa", "Diallo", "Eriksson", "Ferreira", "Garcia", "Horvat",
   "Ibrahim", "Jansen", "Kovac", "Lopez", "Moreau", "Novak", "Okafor", "Perez",
   "Quintero", "Rossi", "Schneider", "Tanaka", "Ueda", "Vargas", "Weber", "Yilmaz",
 ];
 const INITIALS = ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T"];
-const SHAPE: Player["pos"][] = [
-  "GK", "GK", "GK", "DF", "DF", "DF", "DF", "DF", "DF", "DF", "DF",
-  "MF", "MF", "MF", "MF", "MF", "MF", "FW", "FW", "FW", "FW", "FW",
+const GENERIC_SHAPE: Pos[] = [
+  "GK", "GK", "GK", "DEF", "DEF", "DEF", "DEF", "DEF", "DEF", "DEF", "DEF",
+  "MID", "MID", "MID", "MID", "MID", "MID", "FWD", "FWD", "FWD", "FWD", "FWD",
 ];
 
-// BACKEND SEAM: real squad list.
+// BACKEND SEAM: real squad list (real rosters from ./squads.ts; generic fallback).
 export function teamSquad(code: string): Player[] {
+  const real = REAL_SQUADS[code];
+  if (real) {
+    return real.map((p) => ({
+      id: `${code}-${p.number}`,
+      name: p.name,
+      pos: p.pos,
+      number: p.number,
+      age: ageOf(code, p.number),
+      isCaptain: !!p.isCaptain,
+      isGoalkeeper: !!p.isGoalkeeper || p.pos === "GK",
+    }));
+  }
   const r = seed(code);
-  return SHAPE.map((pos, i) => ({
+  return GENERIC_SHAPE.map((pos, i) => ({
     id: `${code}-${i + 1}`,
     name: `${INITIALS[(r + i * 13) % INITIALS.length]}. ${SURNAMES[(r + i * 7) % SURNAMES.length]}`,
     pos,
     number: i + 1,
-    age: 19 + ((r + i * 5) % 17), // 19..35
+    age: ageOf(code, i + 1),
+    isCaptain: false,
+    isGoalkeeper: pos === "GK",
   }));
 }
 

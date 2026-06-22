@@ -14,6 +14,24 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-22 — Real squads + captain/GK markers + number-chip faces
+- **Real static squads** — new `components/design/screens/team/squads.ts`: ~16 real players each
+  for ARG, BRA, FRA, ENG, ESP, POR, GER, NED, USA (real name, position GK/DEF/MID/FWD, shirt
+  number, `isCaptain`, `isGoalkeeper`). Wired behind the existing seam: `teamData.ts` `teamSquad()`
+  maps real rosters when present, else a clearly-generic placeholder squad. Still one swappable
+  `// BACKEND SEAM` module (squads.ts is its dataset).
+- **Player type** gained `isCaptain`/`isGoalkeeper` and positions moved to `GK/DEF/MID/FWD`.
+- **Captain / GK markers** — new shared `components/design/PlayerTags.tsx`: subtle `(C)` (gold) /
+  `(GK)` (muted) chips, shown next to the name in the squad list (`Team.tsx`) and the player header
+  (`Player.tsx`). Both can show.
+- **Position-realistic stats** (`playerData.ts`): goalkeepers now show Saves + Clean sheets (never
+  goals); outfielders show Goals + Assists. `Player.tsx` picks the stat blocks by position.
+- **Face fallback** (`Player.tsx` `Avatar`): the header avatar is now the shirt number on the team
+  colour with a subtle border (initials fallback) — no broken-image icon, no empty box. No real
+  photos are loaded.
+- Team page, match-detail, fixtures, standings, home, ticker intact; squad rows still navigate to
+  the player page, now with real names + (C)/(GK).
+
 ### 2026-06-21 — Player-profile page (real route, deep-linkable)
 - **New route** `app/soccer/player/[id]/page.tsx` (loader) → `components/design/screens/Player.tsx`.
   `id` = `${teamCode}-${number}` (e.g. `/soccer/player/BRA-7`); loader validates team + player and

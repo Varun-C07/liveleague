@@ -6,10 +6,11 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
+import { PlayerTags } from "@/components/design/PlayerTags";
 import { getPlayer, playerAnalysis } from "@/components/design/screens/player/playerData";
 import { TEAMS } from "@/data/teams";
 
-const POS: Record<string, string> = { GK: "Goalkeeper", DF: "Defender", MF: "Midfielder", FW: "Forward" };
+const POS: Record<string, string> = { GK: "Goalkeeper", DEF: "Defender", MID: "Midfielder", FWD: "Forward" };
 
 export function Player({ id, code }: { id: string; code: string }) {
   const { t } = useTheme();
@@ -29,15 +30,25 @@ export function Player({ id, code }: { id: string; code: string }) {
 
   const { player, club, stats } = profile;
   const analysis = playerAnalysis(player);
+  const gk = player.isGoalkeeper || player.pos === "GK";
 
-  const statBlocks: { label: string; value: number; color?: string }[] = [
-    { label: "Apps", value: stats.apps },
-    { label: "Mins", value: stats.minutes },
-    { label: "Goals", value: stats.goals },
-    { label: "Assists", value: stats.assists },
-    { label: "Yellow", value: stats.yellow, color: t.gold },
-    { label: "Red", value: stats.red, color: t.lose },
-  ];
+  const statBlocks: { label: string; value: number; color?: string }[] = gk
+    ? [
+        { label: "Apps", value: stats.apps },
+        { label: "Mins", value: stats.minutes },
+        { label: "Saves", value: stats.saves },
+        { label: "Clean sheets", value: stats.cleanSheets },
+        { label: "Yellow", value: stats.yellow, color: t.gold },
+        { label: "Red", value: stats.red, color: t.lose },
+      ]
+    : [
+        { label: "Apps", value: stats.apps },
+        { label: "Mins", value: stats.minutes },
+        { label: "Goals", value: stats.goals },
+        { label: "Assists", value: stats.assists },
+        { label: "Yellow", value: stats.yellow, color: t.gold },
+        { label: "Red", value: stats.red, color: t.lose },
+      ];
 
   return (
     <div className="rise" style={{ maxWidth: 720, margin: "0 auto", paddingTop: 18 }}>
@@ -47,11 +58,12 @@ export function Player({ id, code }: { id: string; code: string }) {
       <div style={{ position: "relative", overflow: "hidden", marginTop: 14, ...card(t) }}>
         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(120deg, ${hex(team.color, 0.4)}, transparent 60%)` }} />
         <div style={{ position: "relative", padding: "22px 22px", display: "flex", alignItems: "center", gap: 18 }}>
-          <Avatar t={t} name={player.name} color={team.color} />
+          <Avatar t={t} number={player.number} name={player.name} color={team.color} />
           <div style={{ minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
               <span className="disp" style={{ fontSize: "clamp(24px,5.5vw,32px)", fontWeight: 800, lineHeight: 1 }}>{player.name}</span>
               <span className="disp num" style={{ fontSize: 18, fontWeight: 800, color: t.textDim }}>#{player.number}</span>
+              <PlayerTags t={t} captain={player.isCaptain} goalkeeper={player.isGoalkeeper} size={10.5} />
             </div>
             <div style={{ fontSize: 12.5, color: t.textDim, fontWeight: 600, marginTop: 7 }}>
               {POS[player.pos] ?? player.pos} · {player.age} yrs · {club}
@@ -106,7 +118,9 @@ function BackLink({ t, code, name }: { t: Theme; code: string; name: string }) {
   );
 }
 
-function Avatar({ t, name, color }: { t: Theme; name: string; color: string }) {
+// Default face: the shirt number on the team colour (initials if no number).
+// No photo load, no broken-image icon.
+function Avatar({ t, number, name, color }: { t: Theme; number: number; name: string; color: string }) {
   const initials = name
     .split(/\s+/)
     .map((s) => s.replace(/[^A-Za-z]/g, "")[0])
@@ -114,9 +128,10 @@ function Avatar({ t, name, color }: { t: Theme; name: string; color: string }) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  const label = Number.isFinite(number) && number > 0 ? String(number) : initials || "?";
   return (
-    <div style={{ width: 72, height: 72, borderRadius: "50%", display: "grid", placeItems: "center", flexShrink: 0, background: `linear-gradient(150deg, ${hex(color, 0.5)}, ${t.surfaceHi})`, border: `1px solid ${hex(t.border, 0.8)}` }}>
-      <span className="disp" style={{ fontSize: 26, fontWeight: 800, color: t.text }}>{initials || "?"}</span>
+    <div style={{ width: 72, height: 72, borderRadius: "50%", display: "grid", placeItems: "center", flexShrink: 0, background: `linear-gradient(150deg, ${hex(color, 0.55)}, ${t.surfaceHi})`, border: `1px solid ${hex(t.border, 0.8)}` }}>
+      <span className="disp num" style={{ fontSize: 28, fontWeight: 800, color: t.text }}>{label}</span>
     </div>
   );
 }

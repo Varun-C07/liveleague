@@ -7,7 +7,11 @@
 // deterministic from the player id and position-realistic (a GK shows 0 goals).
 import { teamSquad, type Player } from "@/components/design/screens/team/teamData";
 
-export type PlayerStats = { apps: number; minutes: number; goals: number; assists: number; yellow: number; red: number };
+export type PlayerStats = {
+  apps: number; minutes: number; yellow: number; red: number;
+  goals: number; assists: number; // outfield
+  saves: number; cleanSheets: number; // goalkeepers
+};
 export type PlayerProfile = { player: Player; club: string; stats: PlayerStats };
 export type PlayerAnalysis = { rating: number; influence: number; impact: string; note: string };
 
@@ -30,17 +34,25 @@ export function getPlayer(id: string): PlayerProfile | null {
   const r = seed(id + "|s");
   const apps = 3 + (r % 5); // 3..7
   const minutes = apps * 70 + (r % 25);
-  const goalCap = player.pos === "FW" ? 6 : player.pos === "MF" ? 3 : player.pos === "DF" ? 2 : 0;
-  const goals = goalCap === 0 ? 0 : (r >> 3) % (goalCap + 1);
-  const assistCap = player.pos === "GK" ? 0 : player.pos === "FW" || player.pos === "MF" ? 3 : 1;
-  const assists = assistCap === 0 ? 0 : (r >> 6) % (assistCap + 1);
   const yellow = (r >> 9) % 3; // 0..2
   const red = (r >> 12) % 12 === 0 ? 1 : 0; // rare
+
+  // Position-realistic: keepers get saves/clean sheets (never 12 goals).
+  let goals = 0, assists = 0, saves = 0, cleanSheets = 0;
+  if (player.isGoalkeeper || player.pos === "GK") {
+    saves = apps * 2 + (r % 5); // ~6..19
+    cleanSheets = (r >> 3) % (apps + 1); // 0..apps
+  } else {
+    const goalCap = player.pos === "FWD" ? 6 : player.pos === "MID" ? 3 : 2; // DEF 2
+    goals = (r >> 3) % (goalCap + 1);
+    const assistCap = player.pos === "FWD" || player.pos === "MID" ? 3 : 1;
+    assists = (r >> 6) % (assistCap + 1);
+  }
 
   return {
     player,
     club: CLUBS[seed(id + "|c") % CLUBS.length],
-    stats: { apps, minutes, goals, assists, yellow, red },
+    stats: { apps, minutes, yellow, red, goals, assists, saves, cleanSheets },
   };
 }
 

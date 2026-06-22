@@ -7,6 +7,7 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffLabel } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
+import { PlayerTags } from "@/components/design/PlayerTags";
 import { recentForm, type FormResult } from "@/components/design/screens/match/matchData";
 import { teamSquad, teamAnalysis, type Player } from "@/components/design/screens/team/teamData";
 import { useMatches, useStandings } from "@/hooks/useMatches";
@@ -169,8 +170,11 @@ function SquadRow({ t, p }: { t: Theme; p: Player }) {
   return (
     <Link href={`/soccer/player/${p.id}`} id={`player-${p.id}`} className="ll-fixture-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 13px", textDecoration: "none", color: t.text, ...card(t) }}>
       <span className="num" style={{ width: 22, fontSize: 13, fontWeight: 800, color: t.textFaint, textAlign: "center" }}>{p.number}</span>
-      <span className="cond" style={{ flex: 1, fontSize: 13.5, fontWeight: 700 }}>{p.name}</span>
-      <span style={{ fontSize: 11, color: t.textDim, fontWeight: 700, width: 28 }}>{p.pos}</span>
+      <span style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 7 }}>
+        <span className="cond" style={{ fontSize: 13.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+        <PlayerTags t={t} captain={p.isCaptain} goalkeeper={p.isGoalkeeper} />
+      </span>
+      <span style={{ fontSize: 11, color: t.textDim, fontWeight: 700, width: 30, textAlign: "right" }}>{p.pos}</span>
       <span className="num" style={{ fontSize: 11.5, color: t.textFaint, fontWeight: 700 }}>{p.age}y</span>
     </Link>
   );
