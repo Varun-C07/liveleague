@@ -22,8 +22,10 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
 
 **Data sources**
 - **Soccer:** ESPN free scoreboard = **live** source (real-time scores/minute/
-  status, `lib/espn-soccer.ts`); TheSportsDB free = one-time historical backfill
-  only (`lib/tsdb.ts`); static schedule/venues from the snapshot (`data/`).
+  status, `lib/espn-soccer.ts`); ESPN free `summary` = **per-match detail**
+  (goals/cards/subs, team stats, lineups, venue/att/ref — `lib/espn-summary.ts`);
+  TheSportsDB free = one-time historical backfill only (`lib/tsdb.ts`); static
+  schedule/venues from the snapshot (`data/`).
 - **F1:** Jolpica/Ergast (`lib/sports/f1.ts`) — driver + constructor standings,
   podiums, full names. Free.
 - **Fallbacks:** per-sport snapshots; never labelled "Offline" (bundle `reason`).
@@ -31,11 +33,11 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
 **Supabase migrations** (`supabase/migrations/`, applied via Management API)
 - `0001_core` tables · `0002_triggers` · `0003_rls` · `0004_realtime` ·
   `0005_views` · `0006_subscriptions` · `0007_league_scoring` ·
-  `0008_notifications` · `0009_data_cache`.
+  `0008_notifications` · `0009_data_cache` · `0010_match_details`.
 
 **Tables:** `profiles`, `entitlements`, `purchases`, `followed_teams`,
 `predictions`, `leagues`, `league_members`, `notification_targets`,
-`notifications`, `data_cache`.
+`notifications`, `data_cache`, `match_details`.
 
 **Key libs** (`lib/`)
 - DB clients: `db/supabase-{browser,server,admin}.ts`, write-through cache
@@ -44,11 +46,13 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
 - Pure logic (unit-tested in `tests/`): `scoring.ts`, `joincode.ts`,
   `group-scenarios.ts`, `standings.ts`, `favorites.ts`.
 - Stripe: `stripe/{client,skus}.ts`. Data: `tsdb.ts`, `espn-soccer.ts`,
+  `espn-summary.ts` (pure `normalizeSummary` + `fetchMatchDetail`),
   `normalize.ts` (`applyEvents`/`clampLive`), `snapshot.ts`, `sports/*`.
 
 **API routes** (`app/api/`)
-- Data: `soccer`, `soccer/standings`, `f1`, `live`, `agenda` (cache-first,
-  `force-dynamic`, `s-maxage`).
+- Data: `soccer`, `soccer/standings`, `soccer/match/[id]` (rich match detail,
+  DB-first + on-demand), `f1`, `live`, `agenda` (cache-first, `force-dynamic`,
+  `s-maxage`).
 - $5 tier: `me`, `me/follows`, `predictions`, `leagues`, `leagues/[id]`,
   `leagues/join`, `notifications`.
 - Payments/auth: `checkout`, `webhooks/stripe`, `app/auth/callback`.
@@ -64,6 +68,22 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 ---
 
 ## Log
+
+### 2026-06-25 17:51 EDT — Match Center: rich per-match detail (ESPN summary)
+- **New source** — `lib/espn-summary.ts`: ESPN free `summary` endpoint →
+  `normalizeSummary` (pure, unit-tested) builds a `MatchDetail` (goals/cards/subs
+  with scorer names + descriptions, 9 curated team stats, real lineups +
+  formation, venue/attendance/referee).
+- **Storage** — `0010_match_details.sql` (`match_details` table, service-role
+  only). `app/api/soccer/match/[id]`: DB-first; resolves the ESPN event id from
+  the soccer cache (with a scoreboard-by-date fallback for pre-feature matches),
+  fetches the detail on demand, and upserts it. Finished matches are stored once
+  (immutable) so past games are browsable straight from the DB; live matches
+  refresh on a short cache.
+- **Threading** — `Match.espnId` / `RawEvent.espnId`; `applyEvents` copies it, the
+  ESPN scoreboard parser sets it (`lib/espn-soccer.ts`).
+- **Why:** a real, descriptive match center for live + historical games (replaces
+  the disabled sample formation/win-prob).
 
 ### 2026-06-19 22:10 EDT — Tighten auto-refresh cadence (no manual refresh)
 - **Adaptive client poll intervals** sped up — `lib/polling.ts`: live `15s→12s`,

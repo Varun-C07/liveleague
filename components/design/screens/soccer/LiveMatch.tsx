@@ -5,17 +5,14 @@ import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse } from "@/components/design/primitives";
 import { MapPin } from "@/components/design/icons";
 import { isLightColor, kickoffLabel } from "@/components/design/map";
-import { Formation } from "@/components/design/screens/soccer/charts";
-import { SAMPLE_MATCH, SAMPLE_H, SAMPLE_A } from "@/components/design/screens/soccer/sample";
+import { MatchDetailPanel } from "@/components/design/screens/soccer/MatchDetailPanel";
 import type { ApiMatch } from "@/lib/api-shape";
 
-// Real featured/live match header. The remaining detail panels (formation +
-// win-probability) are sample data, clearly badged, until a paid feed lands.
-// The xG-momentum and shot-map panels were removed (no affordable real source).
+// Real featured/live match header; tap to expand the rich match center (timeline,
+// stats, lineups) sourced from ESPN and stored per-match.
 export function LiveMatch({ m }: { m: ApiMatch | null }) {
   const { t } = useTheme();
   const [open, setOpen] = useState(false);
-  const sm = SAMPLE_MATCH, H = SAMPLE_H, A = SAMPLE_A;
 
   if (!m) {
     return (
@@ -63,26 +60,12 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
         </div>
 
         {open ? (
-          <div className="rise" style={{ marginTop: 16, borderTop: `1px solid ${hex(t.border, 0.6)}`, paddingTop: 15 }}>
-            <div style={{ marginBottom: 12 }}>
-              <Tag color={t.gold} bg={hex(t.gold, 0.16)}>Sample formation &amp; win-probability · real data arrives with a future data upgrade</Tag>
-            </div>
-            {/* win probability (sample) */}
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ display: "flex", height: 8, overflow: "hidden", borderRadius: 4 }}>
-                <div style={{ width: `${sm.prob.h}%`, background: t.accent }} />
-                <div style={{ width: `${sm.prob.d}%`, background: t.neutral }} />
-                <div style={{ width: `${sm.prob.a}%`, background: A.c }} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, marginTop: 7, color: t.textDim, fontWeight: 600 }}>
-                <span style={{ color: t.accent }}>{H.n} {sm.prob.h}%</span><span>Draw {sm.prob.d}%</span><span>{A.n} {sm.prob.a}%</span>
-              </div>
-            </div>
-            <Formation t={t} H={H} />
-            <div style={{ fontSize: 11, color: t.textFaint, marginTop: 12, textAlign: "center" }}>Tap to collapse</div>
+          <div className="rise" onClick={(e) => e.stopPropagation()} style={{ marginTop: 16, borderTop: `1px solid ${hex(t.border, 0.6)}`, paddingTop: 15, cursor: "default" }}>
+            <MatchDetailPanel matchId={`soccer-${m.n}`} live={live} homeColor={m.home.color} awayColor={m.away.color} />
+            <div onClick={() => setOpen(false)} style={{ fontSize: 11, color: t.textFaint, marginTop: 14, textAlign: "center", cursor: "pointer" }}>Tap to collapse</div>
           </div>
         ) : (
-          <div style={{ fontSize: 11, color: t.textFaint, marginTop: 12, textAlign: "center" }}>Tap for sample formation &amp; win-probability</div>
+          <div style={{ fontSize: 11, color: t.textFaint, marginTop: 12, textAlign: "center" }}>Tap for timeline, stats &amp; lineups</div>
         )}
       </div>
     </div>

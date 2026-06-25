@@ -41,6 +41,7 @@ export type RawEvent = {
   strStatus?: string;
   strProgress?: string;
   strTimestamp?: string;
+  espnId?: string; // ESPN event id (only set by the ESPN parser)
 };
 
 // A football match can only plausibly be "live" within this window after
@@ -91,6 +92,9 @@ export function applyEvents(
       const iso = ev.strTimestamp.replace(" ", "T").replace(/Z?$/, "Z");
       if (!Number.isNaN(Date.parse(iso))) { m.utc = iso; m.approx = false; }
     }
+
+    // Remember the ESPN event id so we can pull rich match detail later.
+    if (ev.espnId) m.espnId = ev.espnId;
 
     const ps = parseStatus(ev.strStatus || ev.strProgress);
     let hs = coerce(ev.intHomeScore);

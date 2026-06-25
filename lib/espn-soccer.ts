@@ -17,6 +17,7 @@ type EspnStatus = {
   type?: { state?: string; shortDetail?: string; completed?: boolean };
 };
 type EspnEvent = {
+  id?: string | number;
   date?: string;
   competitions?: { competitors?: EspnCompetitor[] }[];
   status?: EspnStatus;
@@ -61,6 +62,7 @@ function parse(j: Record<string, unknown> | null): RawEvent[] {
       strStatus: status ?? undefined,
       strProgress: progress ?? undefined,
       strTimestamp: e.date,
+      espnId: e.id != null ? String(e.id) : undefined,
     });
   }
   return out;

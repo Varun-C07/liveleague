@@ -14,6 +14,21 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-25 17:51 EDT — Match Center panel (timeline · stats · lineups)
+- **New `MatchDetailPanel`** — `components/design/screens/soccer/MatchDetailPanel.tsx`.
+  Expandable, in-design-language match center backed by `useMatchDetail` →
+  `/api/soccer/match/[id]` (real ESPN data, stored per-match): venue/attendance/
+  referee meta, a goal/card/sub **timeline** (scorer names + descriptions,
+  side-coloured), home-vs-away **stat bars** (possession, shots, passes, …), and
+  **real lineups** rendered on a mini-pitch from the formation string (XI-list
+  fallback).
+- **Wiring** — `LiveMatch.tsx` expands into the panel (replacing the old sample
+  formation + win-probability); `Fixtures.tsx` `FixtureRow` is now tap-to-expand
+  for any live/finished game (chevron), so past games open their detail inline.
+- **Removed** the sample bits `screens/soccer/{charts,sample}.tsx`.
+- **Why:** the user wanted a descriptive, browsable match center for live + past
+  games. Live panels poll; finished games load once from the DB.
+
 ### 2026-06-19 22:31 EDT — Fix (real): mobile menu button overlapping Sign in
 - **Mobile header now reclaims width** — `components/design/DesignShell.tsx` + `GlobalStyle.tsx`.
   - Root cause (verified via Playwright screenshots at 360–414px): on `/soccer` & `/f1`

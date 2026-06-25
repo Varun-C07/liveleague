@@ -46,6 +46,7 @@ export type Match = {
   as: number | null;
   st: MatchStatus;
   approx: boolean; // unconfirmed kickoff time / placeholder
+  espnId?: string; // ESPN event id (set when matched from the live feed) → detail
 };
 
 export type StandingRow = {
