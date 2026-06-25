@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "@/components/design/theme";
 import { hex } from "@/components/design/primitives";
 
 // Reusable popup with an Apple-style entrance: the backdrop dims + blurs (llfade)
 // and the card springs in (llpop, scale .94 → 1 + slight rise) on a snappy
 // cubic-bezier. Closes on backdrop click / Esc / the ✕. Body scroll is locked.
+// Rendered through a portal to <body> so it escapes the app's stacking contexts
+// (`.wrap` z-index) and reliably covers the whole viewport, including the nav.
 export function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: ReactNode }) {
   const { t } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -22,9 +27,9 @@ export function Modal({ open, onClose, children }: { open: boolean; onClose: () 
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       onClick={onClose}
       style={{
@@ -84,6 +89,7 @@ export function Modal({ open, onClose, children }: { open: boolean; onClose: () 
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
