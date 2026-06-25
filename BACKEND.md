@@ -56,10 +56,12 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
 - $5 tier: `me`, `me/follows`, `predictions`, `leagues`, `leagues/[id]`,
   `leagues/join`, `notifications`.
 - Payments/auth: `checkout`, `webhooks/stripe`, `app/auth/callback`.
-- Cron (Bearer `CRON_SECRET`): `cron/lock`, `cron/score`, `cron/notify`.
+- Cron (Bearer `CRON_SECRET`): `cron/lock`, `cron/score`, `cron/notify`,
+  `cron/detail` (backfill/finalize match detail).
 
 **Cron:** `supabase/cron-setup.sql` (pg_cron + pg_net) — **deferred until
-go-live**; jobs `ll-lock` / `ll-score` / `ll-notify`. Not active in prod yet.
+go-live**; jobs `ll-lock` / `ll-score` / `ll-notify` / `ll-detail`. Not active in
+prod yet (detail is currently populated on-demand + via manual backfill runs).
 
 **Deploy:** GitHub Actions (`.github/workflows/deploy.yml`) gated on lint+tests;
 manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
@@ -68,6 +70,14 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 ---
 
 ## Log
+
+### 2026-06-25 18:10 EDT — Backfill / finalize match detail
+- **`app/api/cron/detail`** (Bearer `CRON_SECRET`): for every finished soccer
+  match without a stored `ft` detail, resolve the ESPN event id (one scoreboard
+  fetch per date, shared) → `fetchMatchDetail` → upsert `match_details`.
+  Idempotent + capped (40/run). Ran it now → all finished matches (56) stored, so
+  past games load instantly from the DB (no first-viewer fetch). Added `ll-detail`
+  (every 10 min) to `cron-setup.sql` for ongoing finalization.
 
 ### 2026-06-25 17:51 EDT — Match Center: rich per-match detail (ESPN summary)
 - **New source** — `lib/espn-summary.ts`: ESPN free `summary` endpoint →

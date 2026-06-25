@@ -35,8 +35,19 @@ select cron.schedule('ll-notify', '* * * * *', $job$
   );
 $job$);
 
+-- Finalize per-match detail (goals/stats/lineups) for newly-finished matches —
+-- every 10 min. Idempotent + capped; stores once per finished match so past
+-- games are pre-populated without waiting for a viewer.
+select cron.schedule('ll-detail', '*/10 * * * *', $job$
+  select net.http_post(
+    url     := '<SITE_URL>/api/cron/detail',
+    headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>')
+  );
+$job$);
+
 -- Inspect / remove:
 --   select * from cron.job;
 --   select cron.unschedule('ll-lock');
 --   select cron.unschedule('ll-score');
 --   select cron.unschedule('ll-notify');
+--   select cron.unschedule('ll-detail');
