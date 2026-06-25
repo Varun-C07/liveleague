@@ -6,6 +6,8 @@ import { useTheme } from "@/components/design/theme";
 import type { Theme } from "@/components/design/theme";
 import { card, hex, Tag, Pulse, SL, Strip } from "@/components/design/primitives";
 import { Calendar, MapPin, ChevronDown, Check, Circle } from "@/components/design/icons";
+import { Modal } from "@/components/design/Modal";
+import { RaceDetailPanel } from "@/components/design/screens/f1/RaceDetailPanel";
 import { useLiveBundle } from "@/hooks/useLive";
 
 const TRACK_AUT = "M22,86 C16,64 24,50 44,48 L150,33 C168,30 176,23 173,15 C170,8 158,9 152,16 L120,46 C104,61 92,66 96,80 C99,90 116,92 138,90 L168,87 C182,85 188,95 181,104 C175,112 156,108 138,107 L52,99 C36,97 27,98 22,86 Z";
@@ -63,10 +65,12 @@ export function F1({ initial }: { initial: LiveBundle }) {
   const ctors = useMemo(() => mapCtors(bundle.constructorStandings ?? []), [bundle.constructorStandings]);
   const races = useMemo(() => mapRaces(bundle.games), [bundle.games]);
   const [tab, setTab] = useState<"drivers" | "ctors">("drivers");
+  const [openRound, setOpenRound] = useState<number | null>(null);
   const nextRace = useMemo(() => {
     const upcoming = bundle.games.find((g) => g.status !== "final");
     return upcoming ?? null;
   }, [bundle.games]);
+  const openLive = races.find((r) => r.round === openRound)?.live ?? false;
 
   return (
     <div className="rise">
@@ -75,7 +79,7 @@ export function F1({ initial }: { initial: LiveBundle }) {
         <h1 className="disp h-page" style={{ fontWeight: 800, margin: "14px 0 0" }}>2026 Season // Board</h1>
       </div>
 
-      <NextRace t={t} game={nextRace} />
+      <NextRace t={t} game={nextRace} onOpen={setOpenRound} />
 
       <div style={{ marginTop: 26 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -109,15 +113,19 @@ export function F1({ initial }: { initial: LiveBundle }) {
 
       <div style={{ marginTop: 28 }}>
         <SL t={t}><Calendar size={15} /> Season calendar
-          <span style={{ fontSize: 11, color: t.textFaint, fontWeight: 500, fontStyle: "normal", textTransform: "none", marginLeft: 4 }}>· tap a finished race</span>
+          <span style={{ fontSize: 11, color: t.textFaint, fontWeight: 500, fontStyle: "normal", textTransform: "none", marginLeft: 4 }}>· tap a race for full detail</span>
         </SL>
-        <Strip>{races.map((r) => <RaceNode key={r.round} r={r} t={t} />)}</Strip>
+        <Strip>{races.map((r) => <RaceNode key={r.round} r={r} t={t} onOpen={setOpenRound} />)}</Strip>
       </div>
+
+      <Modal open={openRound != null} onClose={() => setOpenRound(null)}>
+        {openRound != null && <RaceDetailPanel gameId={`f1-${openRound}`} live={openLive} />}
+      </Modal>
     </div>
   );
 }
 
-function NextRace({ t, game }: { t: Theme; game: Game | null }) {
+function NextRace({ t, game, onOpen }: { t: Theme; game: Game | null; onOpen: (round: number) => void }) {
   const [now, setNow] = useState(0);
   useEffect(() => {
     setNow(Date.now());
@@ -129,7 +137,7 @@ function NextRace({ t, game }: { t: Theme; game: Game | null }) {
   const dd = Math.floor(diff / 864e5), hh = Math.floor(diff / 36e5) % 24, mm = Math.floor(diff / 6e4) % 60, ss = Math.floor(diff / 1e3) % 60;
   const ex = game && game.extra.sport === "f1" ? game.extra : null;
   return (
-    <div style={{ position: "relative", overflow: "hidden", ...card(t, { ring: hex(t.crimson, 0.38) }) }}>
+    <div onClick={() => ex && onOpen(ex.round)} style={{ position: "relative", overflow: "hidden", cursor: ex ? "pointer" : "default", ...card(t, { ring: hex(t.crimson, 0.38) }) }}>
       <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 5, background: t.crimson }} />
       <svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid meet" style={{ position: "absolute", right: -6, top: "50%", transform: "translateY(-50%)", height: "150%", opacity: 0.5, pointerEvents: "none" }}>
         <path d={TRACK_AUT} fill="none" stroke={hex(t.crimson, 0.32)} strokeWidth="5" />
@@ -230,23 +238,22 @@ function CtorTable({ t, ctors }: { t: Theme; ctors: Ctor[] }) {
   );
 }
 
-function RaceNode({ r, t }: { r: Race; t: Theme }) {
-  const [open, setOpen] = useState(false);
+function RaceNode({ r, t, onOpen }: { r: Race; t: Theme; onOpen: (round: number) => void }) {
   return (
-    <div onClick={() => r.done && setOpen(!open)} className="lift" style={{ minWidth: open ? 226 : 144, cursor: r.done ? "pointer" : "default", padding: 13, transition: "min-width .2s", ...card(t, r.live ? { ring: hex(t.crimson, 0.5) } : {}) }}>
+    <div onClick={() => onOpen(r.round)} className="lift" style={{ minWidth: 150, cursor: "pointer", padding: 13, ...card(t, r.live ? { ring: hex(t.crimson, 0.5) } : {}) }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <span style={{ fontSize: 11, color: t.textFaint, fontWeight: 700 }}>R{r.round}{r.sprint ? " · SPR" : ""}</span>
         {r.live ? <Tag sk color="#fff" bg={t.crimson}><Pulse color="#fff" size={5} />Live</Tag> : r.done ? <Check size={14} color={t.win} /> : <Circle size={11} color={t.textFaint} />}
       </div>
       <div className="disp" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1 }}>{r.name}</div>
       <div style={{ fontSize: 11, color: t.textDim, marginTop: 3 }}>{r.loc}</div>
-      {open && r.podium.length > 0 && (
-        <div className="rise" style={{ marginTop: 11, borderTop: `1px solid ${hex(t.border, 0.5)}`, paddingTop: 10 }}>
+      {r.podium.length > 0 && (
+        <div style={{ marginTop: 10, borderTop: `1px solid ${hex(t.border, 0.5)}`, paddingTop: 9 }}>
           {r.podium.map((p, i) => (
-            <div key={p.code} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-              <span className="num" style={{ fontSize: 11, fontWeight: 800, width: 16, color: i === 0 ? t.gold : i === 1 ? "#C0C0C0" : "#CD7F32" }}>P{i + 1}</span>
-              <div style={{ width: 3, height: 14, background: p.color, borderRadius: 2 }} />
-              <span className="cond" style={{ fontSize: 13, fontWeight: i === 0 ? 700 : 500 }}>{p.code}</span>
+            <div key={p.code} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <span className="num" style={{ fontSize: 10.5, fontWeight: 800, width: 15, color: i === 0 ? t.gold : i === 1 ? "#C0C0C0" : "#CD7F32" }}>P{i + 1}</span>
+              <div style={{ width: 3, height: 13, background: p.color, borderRadius: 2 }} />
+              <span className="cond" style={{ fontSize: 12.5, fontWeight: i === 0 ? 700 : 500 }}>{p.code}</span>
             </div>
           ))}
         </div>

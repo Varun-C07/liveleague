@@ -27,7 +27,8 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
   TheSportsDB free = one-time historical backfill only (`lib/tsdb.ts`); static
   schedule/venues from the snapshot (`data/`).
 - **F1:** Jolpica/Ergast (`lib/sports/f1.ts`) — driver + constructor standings,
-  podiums, full names. Free.
+  podiums, full names; per-race detail (results/grid/status/points, fastest lap,
+  qualifying, pit stops — `lib/jolpica-race.ts`). Free, post-session.
 - **Fallbacks:** per-sport snapshots; never labelled "Offline" (bundle `reason`).
 
 **Supabase migrations** (`supabase/migrations/`, applied via Management API)
@@ -50,14 +51,14 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
   `normalize.ts` (`applyEvents`/`clampLive`), `snapshot.ts`, `sports/*`.
 
 **API routes** (`app/api/`)
-- Data: `soccer`, `soccer/standings`, `soccer/match/[id]` (rich match detail,
-  DB-first + on-demand), `f1`, `live`, `agenda` (cache-first, `force-dynamic`,
-  `s-maxage`).
+- Data: `soccer`, `soccer/standings`, `soccer/match/[id]`, `f1`,
+  `f1/race/[id]` (rich race detail, DB-first + on-demand), `live`, `agenda`
+  (cache-first, `force-dynamic`, `s-maxage`).
 - $5 tier: `me`, `me/follows`, `predictions`, `leagues`, `leagues/[id]`,
   `leagues/join`, `notifications`.
 - Payments/auth: `checkout`, `webhooks/stripe`, `app/auth/callback`.
 - Cron (Bearer `CRON_SECRET`): `cron/lock`, `cron/score`, `cron/notify`,
-  `cron/detail` (backfill/finalize match detail).
+  `cron/detail` (backfill/finalize detail for **both** soccer + F1).
 
 **Cron:** `supabase/cron-setup.sql` (pg_cron + pg_net) — **deferred until
 go-live**; jobs `ll-lock` / `ll-score` / `ll-notify` / `ll-detail`. Not active in
@@ -70,6 +71,18 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 ---
 
 ## Log
+
+### 2026-06-25 18:24 EDT — Race Center: rich F1 race detail (Jolpica)
+- **New source** — `lib/jolpica-race.ts`: pure `normalizeRace` + `fetchRaceDetail`
+  build a `RaceDetail` (full classification with grid→finish, points, DNF via
+  Ergast `positionText`; fastest lap; qualifying Q1/Q2/Q3; pit-stop summary with
+  `M:SS` duration parsing).
+- **Storage** — reuses `match_details` (rows keyed `f1-<round>`, `espn_event_id`
+  null). `app/api/f1/race/[id]`: DB-first; finished races immutable, else fetch +
+  upsert. `app/api/cron/detail` extended with an F1 pass (backfills finished
+  rounds). Ran it → rounds 1-7 stored.
+- **Why:** the F1 analogue of the soccer Match Center, post-session (no live
+  lap-by-lap on the free tier). Rendered in a popup on the F1 board.
 
 ### 2026-06-25 18:10 EDT — Backfill / finalize match detail
 - **`app/api/cron/detail`** (Bearer `CRON_SECRET`): for every finished soccer

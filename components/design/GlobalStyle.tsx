@@ -19,6 +19,9 @@ export function GlobalStyle() {
       @keyframes lltip{from{opacity:0;transform:translate(-50%,4px)}to{opacity:1;transform:translate(-50%,0)}}
       @keyframes llsweep{0%{transform:translateX(-120%)}60%,100%{transform:translateX(420%)}}
       @keyframes lldash{to{stroke-dashoffset:-1000}}
+      @keyframes llfade{from{opacity:0}to{opacity:1}}
+      @keyframes llpop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+      @keyframes llsheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
       .disp{font-family:'Saira Condensed',sans-serif;font-style:italic;text-transform:uppercase;letter-spacing:.01em}
       .cond{font-family:'Saira Condensed',sans-serif;letter-spacing:.01em}
       .num{font-variant-numeric:tabular-nums}

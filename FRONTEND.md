@@ -14,6 +14,19 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-25 18:24 EDT — F1 Race Center popup (Apple-style modal)
+- **New reusable `Modal`** — `components/design/Modal.tsx`: dimmed + blurred
+  backdrop (`llfade`) with a spring-in card (`llpop`, scale .94→1 on a snappy
+  cubic-bezier), Esc / backdrop / ✕ close, body scroll lock. Keyframes added to
+  `GlobalStyle.tsx`.
+- **`RaceDetailPanel`** — `components/design/screens/f1/RaceDetailPanel.tsx`
+  (via `useRaceDetail` → `/api/f1/race/[id]`): header (GP · circuit · date · round
+  + fastest lap), full **classification** (grid→finish delta, gap, points,
+  DNF/DNS badges, ⚡ fastest-lap flag), **qualifying** grid, and a **pit-stop**
+  summary.
+- **`F1.tsx`** — calendar `RaceNode`s and the next-race card now open the modal
+  (`openRound` state); the strip keeps a compact podium preview.
+
 ### 2026-06-25 17:51 EDT — Match Center panel (timeline · stats · lineups)
 - **New `MatchDetailPanel`** — `components/design/screens/soccer/MatchDetailPanel.tsx`.
   Expandable, in-design-language match center backed by `useMatchDetail` →
