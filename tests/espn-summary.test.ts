@@ -36,6 +36,20 @@ const SUMMARY = {
     ] },
   ],
   gameInfo: { venue: { fullName: "Lumen Field" }, attendance: 66925, officials: [{ displayName: "Felix Zwayer" }] },
+  lastFiveGames: [
+    { team: { id: "660" }, events: [
+      { gameDate: "2026-03-28T19:30Z", gameResult: "L", atVs: "vs", homeTeamScore: "2", awayTeamScore: "5", opponent: { abbreviation: "BEL" } },
+      { gameDate: "2026-05-31T19:30Z", gameResult: "W", atVs: "@", homeTeamScore: "2", awayTeamScore: "3", opponent: { abbreviation: "SEN" } },
+    ] },
+    { team: { id: "628" }, events: [
+      { gameDate: "2026-03-20T00:00Z", gameResult: "D", atVs: "vs", homeTeamScore: "1", awayTeamScore: "1", opponent: { abbreviation: "JPN" } },
+    ] },
+  ],
+  headToHeadGames: [
+    { team: { abbreviation: "USA" }, events: [
+      { gameDate: "2025-10-15T01:00Z", homeTeamId: "660", awayTeamId: "628", homeTeamScore: "2", awayTeamScore: "1", opponent: { abbreviation: "AUS" } },
+    ] },
+  ],
 };
 
 describe("normalizeSummary", () => {
@@ -74,5 +88,17 @@ describe("normalizeSummary", () => {
     expect(d.venue).toBe("Lumen Field");
     expect(d.attendance).toBe(66925);
     expect(d.referee).toBe("Felix Zwayer");
+  });
+
+  it("builds recent form per side (team perspective, home/away aware)", () => {
+    expect(d.form.home).toHaveLength(2);
+    expect(d.form.home[0]).toMatchObject({ result: "L", score: "2-5", opp: "BEL" });
+    expect(d.form.home[1]).toMatchObject({ result: "W", score: "3-2", opp: "SEN" }); // away game
+    expect(d.form.away[0]).toMatchObject({ result: "D", opp: "JPN" });
+  });
+
+  it("builds head-to-head with real home/away codes", () => {
+    expect(d.h2h).toHaveLength(1);
+    expect(d.h2h[0]).toMatchObject({ home: "USA", away: "AUS", score: "2-1" });
   });
 });

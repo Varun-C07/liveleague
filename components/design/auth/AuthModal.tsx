@@ -17,7 +17,6 @@ import {
   signUpWithEmail,
   signInWithOAuth,
   checkUsernameAvailability,
-  type AuthUser,
 } from "@/components/design/auth/authClient";
 
 type Mode = "signin" | "signup";
@@ -113,9 +112,9 @@ export function AuthModal({
     setUReason(undefined);
   }
 
-  function onSuccess(user: AuthUser) {
-    // SUCCESS: real session handling is the backend seam. For now, log + close.
-    console.log("[auth] signed in (mock):", user);
+  function onSuccess() {
+    // Supabase has set the session; the app's useAuth (onAuthStateChange) updates
+    // the shell to the signed-in state. Just reset + close.
     reset();
     onClose();
   }
@@ -150,7 +149,7 @@ export function AuthModal({
         ? await signInWithEmail(email, password)
         : await signUpWithEmail({ email, password, username: username.trim() });
     setSubmitting(false);
-    if (res.ok) onSuccess(res.user);
+    if (res.ok) onSuccess();
     else setFormError(res.error);
   }
 
@@ -159,7 +158,7 @@ export function AuthModal({
     setProvider(p);
     const res = await signInWithOAuth(p);
     setProvider(null);
-    if (res.ok) onSuccess(res.user);
+    if (res.ok) onSuccess();
     else setFormError(res.error);
   }
 

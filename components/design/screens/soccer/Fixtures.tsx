@@ -2,11 +2,11 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme, type Theme } from "@/components/design/theme";
 import { card, hex, unskew, Crest, Pulse } from "@/components/design/primitives";
 import { ChevronDown, ChevronRight, MapPin, Lock } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
-import { MatchDetailPanel } from "@/components/design/screens/soccer/MatchDetailPanel";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
 import type { ApiMatch } from "@/lib/api-shape";
 
@@ -353,7 +353,7 @@ function BundleTease({ t }: { t: Theme }) {
 // lineups) inline; pin a match to the top of the board.
 function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
   const { t } = useTheme();
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
   const live = m.status === "live";
   const loc = [m.venue, m.city].filter(Boolean).join(", ");
   const score = m.status === "sched" ? "v" : `${m.homeScore ?? 0}–${m.awayScore ?? 0}`;
@@ -362,13 +362,14 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
     : m.status === "ft"
       ? `FT · ${dateLabel(m.utc)}`
       : kickoffDateTimeLabel(m.utc);
-  const expandable = m.status !== "sched";
 
+  // Tap the row → the full match page. Pin button stops propagation so it doesn't navigate.
   return (
     <div
       id={`match-${m.n}`}
-      style={{ padding: "10px 13px", cursor: expandable ? "pointer" : "default", ...card(t, live ? { ring: hex(t.live, 0.4) } : open ? { ring: hex(t.accent, 0.45) } : mine ? { ring: hex(t.accent, 0.3) } : {}) }}
-      onClick={() => expandable && setOpen((o) => !o)}
+      role="link"
+      onClick={() => router.push(`/soccer/match/${m.n}`)}
+      style={{ padding: "10px 13px", cursor: "pointer", ...card(t, live ? { ring: hex(t.live, 0.4) } : mine ? { ring: hex(t.accent, 0.3) } : {}) }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
         <span style={{ fontSize: 10, color: t.textFaint, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.stage}</span>
@@ -378,7 +379,7 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
           <span style={{ fontSize: 10.5, color: t.textDim, fontWeight: 700 }}>{statusLabel}</span>
         )}
         <PinButton matchId={`soccer-${m.n}`} size={13} />
-        {expandable && <ChevronDown size={13} color={t.textFaint} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />}
+        <ChevronRight size={14} color={t.textFaint} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
@@ -396,11 +397,6 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
           <MapPin size={11} /><span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{loc}</span>
         </div>
       ) : null}
-      {open && (
-        <div className="rise" onClick={(e) => e.stopPropagation()} style={{ marginTop: 11, borderTop: `1px solid ${hex(t.border, 0.6)}`, paddingTop: 13, cursor: "default" }}>
-          <MatchDetailPanel matchId={`soccer-${m.n}`} live={live} homeColor={m.home.color} awayColor={m.away.color} />
-        </div>
-      )}
     </div>
   );
 }

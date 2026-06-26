@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse } from "@/components/design/primitives";
-import { MapPin } from "@/components/design/icons";
+import { MapPin, ChevronRight } from "@/components/design/icons";
 import { isLightColor, kickoffLabel } from "@/components/design/map";
-import { MatchDetailPanel } from "@/components/design/screens/soccer/MatchDetailPanel";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
 import type { ApiMatch } from "@/lib/api-shape";
 
-// Real featured/live match header; tap to expand the rich match center (timeline,
-// stats, lineups) sourced from ESPN and stored per-match.
+// Real featured/live match card; tap to open the full match center page.
 export function LiveMatch({ m }: { m: ApiMatch | null }) {
   const { t } = useTheme();
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   if (!m) {
     return (
@@ -28,7 +26,7 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
   const statusLabel = live ? (m.minute ? `${m.minute}'` : "LIVE") : m.status === "ft" ? "FT" : kickoffLabel(m.utc);
 
   return (
-    <div onClick={() => setOpen(!open)} style={{ position: "relative", overflow: "hidden", cursor: "pointer", ...card(t, live ? { ring: hex(t.live, 0.5) } : {}) }}>
+    <div onClick={() => router.push(`/soccer/match/${m.n}`)} style={{ position: "relative", overflow: "hidden", cursor: "pointer", ...card(t, live ? { ring: hex(t.live, 0.5) } : {}) }}>
       {live && (
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, overflow: "hidden" }}>
           <div style={{ width: "28%", height: "100%", background: t.live, animation: "llscan 2.6s linear infinite" }} />
@@ -63,14 +61,9 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
           </div>
         </div>
 
-        {open ? (
-          <div className="rise" onClick={(e) => e.stopPropagation()} style={{ marginTop: 16, borderTop: `1px solid ${hex(t.border, 0.6)}`, paddingTop: 15, cursor: "default" }}>
-            <MatchDetailPanel matchId={`soccer-${m.n}`} live={live} homeColor={m.home.color} awayColor={m.away.color} />
-            <div onClick={() => setOpen(false)} style={{ fontSize: 11, color: t.textFaint, marginTop: 14, textAlign: "center", cursor: "pointer" }}>Tap to collapse</div>
-          </div>
-        ) : (
-          <div style={{ fontSize: 11, color: t.textFaint, marginTop: 12, textAlign: "center" }}>Tap for timeline, stats &amp; lineups</div>
-        )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 11, color: t.textFaint, marginTop: 14 }}>
+          Open match center <ChevronRight size={13} />
+        </div>
       </div>
     </div>
   );

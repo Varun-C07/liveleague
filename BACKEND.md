@@ -35,7 +35,8 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
 - `0001_core` tables · `0002_triggers` · `0003_rls` · `0004_realtime` ·
   `0005_views` · `0006_subscriptions` · `0007_league_scoring` ·
   `0008_notifications` · `0009_data_cache` · `0010_match_details` ·
-  `0011_pinned_match` (profiles.pinned_match).
+  `0011_pinned_match` (profiles.pinned_match) · `0012_username`
+  (profiles.username unique).
 
 **Tables:** `profiles`, `entitlements`, `purchases`, `followed_teams`,
 `predictions`, `leagues`, `league_members`, `notification_targets`,
@@ -57,7 +58,8 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
   (cache-first, `force-dynamic`, `s-maxage`).
 - $5 tier: `me`, `me/follows`, `predictions`, `leagues`, `leagues/[id]`,
   `leagues/join`, `notifications`.
-- Payments/auth: `checkout`, `webhooks/stripe`, `app/auth/callback`.
+- Payments/auth: `checkout`, `webhooks/stripe`, `app/auth/callback`,
+  `auth/username` (signup availability check).
 - Cron (Bearer `CRON_SECRET`): `cron/lock`, `cron/score`, `cron/notify`,
   `cron/detail` (backfill/finalize detail for **both** soccer + F1).
 
@@ -72,6 +74,20 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 ---
 
 ## Log
+
+### 2026-06-26 — Real auth (Google + email), real form/H2H, unified match page
+- **Auth (real Supabase):** rewrote `components/design/auth/authClient.ts` from a
+  mock to the real browser client — email/password, Google OAuth (redirect via
+  `/auth/callback`), username, `getSession`/`signOut`. `0012_username.sql`
+  (`profiles.username` unique) + `handle_new_user` now sets username/display_name
+  from signup metadata. `app/api/auth/username` (admin) backs the live
+  availability check. The shell already reflects the real session via `useAuth`.
+- **Real match data:** `lib/espn-summary.ts` `MatchDetail` gains `form`
+  (`lastFiveGames`, W/D/L + score + opp, home/away-aware) and `h2h`
+  (`headToHeadGames`, real home/away codes). Stored in `match_details`
+  (re-backfilled). `matchData.ts` trimmed to the win-prob placeholder (+ team-page
+  form); recent form / H2H / stakes are now real (stakes from `group-scenarios`).
+- **Why:** turn Varun's mock seams into real backend; one canonical match page.
 
 ### 2026-06-26 — Soccer fixes (pass accuracy, venue) + pin-favourite-match
 - **Pass accuracy** — `lib/espn-summary.ts` now derives it from

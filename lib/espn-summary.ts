@@ -24,6 +24,9 @@ export type StatPair = { key: string; label: string; home: number; away: number;
 export type LineupPlayer = { jersey: string | null; name: string; pos: string | null };
 export type TeamLineup = { formation: string | null; starters: LineupPlayer[] };
 
+export type FormEntry = { date: string; result: "W" | "D" | "L"; score: string; opp: string };
+export type H2HEntry = { date: string; score: string; home: string; away: string };
+
 export type MatchDetail = {
   status: "sched" | "live" | "ft";
   detail: string | null; // ESPN status detail, e.g. "FT", "66'"
@@ -32,6 +35,8 @@ export type MatchDetail = {
   events: DetailEvent[]; // goals + cards + subs, chronological
   stats: StatPair[]; // curated, ordered for display
   lineups: { home: TeamLineup; away: TeamLineup } | null;
+  form: { home: FormEntry[]; away: FormEntry[] };
+  h2h: H2HEntry[];
   venue: string | null;
   attendance: number | null;
   referee: string | null;
@@ -102,8 +107,9 @@ export function normalizeSummary(j: Json): MatchDetail {
   const status: MatchDetail["status"] = state === "post" ? "ft" : state === "in" ? "live" : "sched";
   const detail = str(obj(obj(comp.status).type).detail);
 
-  // team id → side, plus the score line.
+  // team id → side / code, plus the score line.
   const idToSide: Record<string, "home" | "away"> = {};
+  const idToCode: Record<string, string> = {};
   let home = { code: "", name: "", score: null as number | null };
   let away = { code: "", name: "", score: null as number | null };
   for (const c of competitors) {
@@ -111,6 +117,7 @@ export function normalizeSummary(j: Json): MatchDetail {
     const id = str(team.id);
     const side = str(c.homeAway) as "home" | "away" | null;
     const entry = { code: str(team.abbreviation) ?? "", name: str(team.displayName) ?? "", score: num(c.score) };
+    if (id) idToCode[id] = str(team.abbreviation) ?? "";
     if (id && side) idToSide[id] = side;
     if (side === "home") home = entry;
     else if (side === "away") away = entry;
@@ -162,6 +169,33 @@ export function normalizeSummary(j: Json): MatchDetail {
     };
   }
 
+  // recent form (last-5) per side, from the team's perspective.
+  const form: { home: FormEntry[]; away: FormEntry[] } = { home: [], away: [] };
+  for (const tg of arr(j.lastFiveGames)) {
+    const side = idToSide[str(obj(tg.team).id) ?? ""];
+    if (!side) continue;
+    form[side] = arr(tg.events).slice(0, 5).map((e): FormEntry => {
+      const away_ = str(e.atVs) === "@";
+      const ts = away_ ? num(e.awayTeamScore) : num(e.homeTeamScore);
+      const os = away_ ? num(e.homeTeamScore) : num(e.awayTeamScore);
+      const r = (str(e.gameResult) ?? "").toUpperCase();
+      return {
+        date: (str(e.gameDate) ?? "").slice(0, 10),
+        result: r === "W" ? "W" : r === "L" ? "L" : "D",
+        score: `${ts ?? 0}-${os ?? 0}`,
+        opp: str(obj(e.opponent).abbreviation) ?? "",
+      };
+    });
+  }
+
+  // head-to-head meetings (both perspectives list the same games; take the first).
+  const h2h: H2HEntry[] = arr(obj(arr(j.headToHeadGames)[0]).events).slice(0, 5).map((e): H2HEntry => ({
+    date: (str(e.gameDate) ?? "").slice(0, 10),
+    home: idToCode[str(e.homeTeamId) ?? ""] ?? "",
+    away: idToCode[str(e.awayTeamId) ?? ""] ?? "",
+    score: `${num(e.homeTeamScore) ?? 0}-${num(e.awayTeamScore) ?? 0}`,
+  }));
+
   const gi = obj(j.gameInfo);
   return {
     status,
@@ -171,6 +205,8 @@ export function normalizeSummary(j: Json): MatchDetail {
     events,
     stats,
     lineups,
+    form,
+    h2h,
     venue: str(obj(gi.venue).fullName),
     attendance: num(gi.attendance),
     referee: str(obj(arr(gi.officials)[0]).displayName),

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Match } from "@/components/design/screens/Match";
-import { liveMatchesResponse } from "@/lib/snapshot";
+import { liveMatchesResponse, liveStandingsResponse } from "@/lib/snapshot";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 // this match by id and keeps it live by polling /api/soccer. Deep-linkable.
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const res = await liveMatchesResponse();
+  const [res, standings] = await Promise.all([liveMatchesResponse(), liveStandingsResponse()]);
   const m = res.matches.find((x) => String(x.n) === id);
   if (!m) notFound();
-  return <Match initial={res} n={m.n} />;
+  return <Match initial={res} standings={standings} n={m.n} />;
 }

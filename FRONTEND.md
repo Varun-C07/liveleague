@@ -14,6 +14,16 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-26 — Real auth modal + unified match page
+- **Auth modal is real now** — `authClient.ts` calls Supabase (email/password +
+  Google + live username check); the shell's Sign-in opens it and the avatar
+  appears on success. "Check your email" shown when confirmation is required.
+- **Unified match page** (`screens/Match.tsx`) — fixtures rows + the featured
+  card now **navigate** to `/soccer/match/[id]` (no inline expand). The page
+  embeds the real match center (`MatchDetailPanel`: timeline/stats/lineups) + real
+  recent form + real head-to-head (ESPN) + real qualification stakes (group
+  solver) + the win-prob bundle tease + team links. Pin button stays on the row.
+
 ### 2026-06-26 — World Cup: all live matches, pin-to-top, stat/venue fixes
 - **Live now shows every simultaneous live match** (not just one) —
   `components/design/screens/Soccer.tsx` renders each live `LiveMatch` (falls back

@@ -1,10 +1,11 @@
 // components/design/auth/authClient.ts
 //
-// BACKEND SEAM — mock auth client.
-// This entire module is a stub. A partner can swap in Supabase by replacing each
-// function body (every one is marked "// BACKEND SEAM: replace with Supabase").
-// The UI imports ONLY these functions and never talks to a backend directly, so
-// the swap stays a small change, not a rewrite.
+// Real auth client — backed by Supabase. The UI (AuthModal) imports ONLY these
+// functions; on success the session is set by Supabase and the app's useAuth
+// (onAuthStateChange) updates the shell. Same signatures as the old mock so the
+// modal is unchanged.
+import type { User } from "@supabase/supabase-js";
+import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/db/supabase-browser";
 
 export type AuthUser = {
   id: string;
@@ -17,84 +18,75 @@ export type AuthResult =
   | { ok: true; user: AuthUser }
   | { ok: false; error: string };
 
-// Mocked network latency so the UI's loading states are visible/realistic.
-const MOCK_DELAY = 700;
-const wait = (ms: number = MOCK_DELAY): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const NOT_CONFIGURED = "Sign-in isn't available right now.";
 
-// Deterministic "taken" set for the username checker.
-const RESERVED_USERNAMES = new Set(["admin", "messi", "ronaldo", "liveleague"]);
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-let _seq = 0;
-const mockId = (): string => `mock_${Date.now().toString(36)}_${(_seq++).toString(36)}`;
-
-function buildUser(email: string, username?: string): AuthUser {
-  return {
-    id: mockId(),
-    email,
-    username,
-    displayName: username || email.split("@")[0],
-  };
+function toUser(u: User): AuthUser {
+  const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
+  const username = typeof meta.username === "string" ? meta.username : undefined;
+  const displayName =
+    (typeof meta.full_name === "string" && meta.full_name) ||
+    (typeof meta.name === "string" && meta.name) ||
+    username ||
+    (u.email ? u.email.split("@")[0] : undefined) ||
+    undefined;
+  return { id: u.id, email: u.email ?? "", username, displayName };
 }
 
-export async function signInWithEmail(
-  email: string,
-  password: string,
-): Promise<AuthResult> {
-  await wait();
-  // BACKEND SEAM: replace with supabase.auth.signInWithPassword({ email, password }).
-  if (!EMAIL_RE.test(email)) return { ok: false, error: "Enter a valid email address." };
-  if (!password || password.length < 6)
-    return { ok: false, error: "Password must be at least 6 characters." };
-  return { ok: true, user: buildUser(email) };
+// Map Supabase auth errors to friendly copy.
+function friendly(message: string | undefined): string {
+  const m = (message ?? "").toLowerCase();
+  if (m.includes("invalid login")) return "Wrong email or password.";
+  if (m.includes("already registered") || m.includes("already exists")) return "That email is already registered.";
+  if (m.includes("rate limit")) return "Too many attempts — try again in a moment.";
+  return message || "Something went wrong. Please try again.";
 }
 
-export async function signUpWithEmail(input: {
-  email: string;
-  password: string;
-  username: string;
-}): Promise<AuthResult> {
-  await wait();
-  // BACKEND SEAM: replace with supabase.auth.signUp({ email, password, options: { data: { username } } }).
-  const email = input.email.trim();
-  const username = input.username.trim();
-  if (!EMAIL_RE.test(email)) return { ok: false, error: "Enter a valid email address." };
-  if (!input.password || input.password.length < 6)
-    return { ok: false, error: "Password must be at least 6 characters." };
-  if (username.length < 3 || RESERVED_USERNAMES.has(username.toLowerCase()))
-    return { ok: false, error: "That username isn't available." };
-  return { ok: true, user: buildUser(email, username) };
+export async function signInWithEmail(email: string, password: string): Promise<AuthResult> {
+  if (!isSupabaseConfigured()) return { ok: false, error: NOT_CONFIGURED };
+  const { data, error } = await getBrowserSupabase().auth.signInWithPassword({ email: email.trim(), password });
+  if (error || !data.user) return { ok: false, error: friendly(error?.message) };
+  return { ok: true, user: toUser(data.user) };
 }
 
-export async function signInWithOAuth(
-  provider: "google" | "apple",
-): Promise<AuthResult> {
-  await wait();
-  // BACKEND SEAM: replace with supabase.auth.signInWithOAuth({ provider }) + redirect handling.
-  const email = provider === "google" ? "you@gmail.com" : "you@icloud.com";
-  return { ok: true, user: buildUser(email) };
+export async function signUpWithEmail(input: { email: string; password: string; username: string }): Promise<AuthResult> {
+  if (!isSupabaseConfigured()) return { ok: false, error: NOT_CONFIGURED };
+  const { data, error } = await getBrowserSupabase().auth.signUp({
+    email: input.email.trim(),
+    password: input.password,
+    options: { data: { username: input.username.trim() } },
+  });
+  if (error || !data.user) return { ok: false, error: friendly(error?.message) };
+  // No session ⇒ email confirmation is required (Supabase default).
+  if (!data.session) return { ok: false, error: "Account created — check your email to confirm, then sign in." };
+  return { ok: true, user: toUser(data.user) };
 }
 
-export async function checkUsernameAvailability(
-  username: string,
-): Promise<{ available: boolean; reason?: string }> {
-  await wait(600);
-  // BACKEND SEAM: replace with a profiles lookup (select where username = …, or an RPC).
-  const u = username.trim().toLowerCase();
-  if (u.length < 3) return { available: false, reason: "At least 3 characters." };
-  if (RESERVED_USERNAMES.has(u)) return { available: false, reason: "Already taken." };
-  return { available: true };
+export async function signInWithOAuth(provider: "google" | "apple"): Promise<AuthResult> {
+  if (provider !== "google") return { ok: false, error: "Apple sign-in isn't available yet." };
+  if (!isSupabaseConfigured()) return { ok: false, error: NOT_CONFIGURED };
+  const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`;
+  const { error } = await getBrowserSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+  // On success the browser redirects to Google; this only returns on error.
+  return { ok: false, error: error ? friendly(error.message) : "" };
+}
+
+export async function checkUsernameAvailability(username: string): Promise<{ available: boolean; reason?: string }> {
+  try {
+    const res = await fetch(`/api/auth/username?u=${encodeURIComponent(username.trim())}`);
+    if (!res.ok) return { available: true };
+    return res.json();
+  } catch {
+    return { available: true }; // fail open; the DB unique index is the backstop
+  }
 }
 
 export async function getSession(): Promise<AuthUser | null> {
-  await wait(150);
-  // BACKEND SEAM: replace with supabase.auth.getUser() → map to AuthUser (or null).
-  return null;
+  if (!isSupabaseConfigured()) return null;
+  const { data } = await getBrowserSupabase().auth.getUser();
+  return data.user ? toUser(data.user) : null;
 }
 
 export async function signOut(): Promise<void> {
-  await wait(200);
-  // BACKEND SEAM: replace with supabase.auth.signOut().
+  if (!isSupabaseConfigured()) return;
+  await getBrowserSupabase().auth.signOut();
 }
