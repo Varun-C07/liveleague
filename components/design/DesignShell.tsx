@@ -5,8 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTheme } from "@/components/design/theme";
 import { GlobalStyle } from "@/components/design/GlobalStyle";
-import { hex, Pulse } from "@/components/design/primitives";
+import { hex } from "@/components/design/primitives";
 import { Radio, Trophy, Zap, Bell, Check, ChevronDown } from "@/components/design/icons";
+import { Logo } from "@/components/design/Logo";
+import { ScoreTicker } from "@/components/design/ScoreTicker";
+import { AuthModalProvider, useAuthModal } from "@/components/design/auth/AuthModalProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -29,7 +32,7 @@ export function DesignShell({ children }: { children: ReactNode }) {
   const active = activeId(path);
 
   return (
-    <>
+    <AuthModalProvider>
       <GlobalStyle />
       <div
         style={{
@@ -49,10 +52,13 @@ export function DesignShell({ children }: { children: ReactNode }) {
         </div>
       </div>
 
+      {/* Live score ticker — directly under the nav, on every route. */}
+      <ScoreTicker />
+
       <div className="wrap lldesign">{children}</div>
 
       <Footer />
-    </>
+    </AuthModalProvider>
   );
 }
 
@@ -156,25 +162,6 @@ function Nav({ active }: { active: string }) {
   );
 }
 
-function Logo() {
-  const { t } = useTheme();
-  return (
-    <Link href="/" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-      <div style={{ position: "relative", width: 34, height: 30, display: "flex", alignItems: "flex-end", gap: 2.5 }}>
-        {[14, 22, 30, 18].map((h, i) => (
-          <div key={i} style={{ width: 5, height: h, background: i === 2 ? t.accent : t.text, transform: "skewX(-10deg)", borderRadius: 1 }} />
-        ))}
-        <span style={{ position: "absolute", top: -2, right: -3 }}>
-          <Pulse color={t.live} size={6} />
-        </span>
-      </div>
-      <span className="disp ll-logo-word" style={{ fontSize: 23, fontWeight: 800, color: t.text }}>
-        LIVE<span style={{ color: t.accent }}>LEAGUE</span>
-      </span>
-    </Link>
-  );
-}
-
 function timeAgo(iso: string): string {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
   if (s < 60) return "just now";
@@ -264,7 +251,8 @@ function ShellBell() {
 
 function ShellAuth() {
   const { t } = useTheme();
-  const { user, configured, signInWithGoogle } = useAuth();
+  const { user, configured } = useAuth();
+  const { openAuth } = useAuthModal();
 
   if (configured && user) {
     const name =
@@ -288,9 +276,10 @@ function ShellAuth() {
     );
   }
 
+  // Single outline button; the modal carries both Sign in / Create account tabs.
   return (
     <button
-      onClick={() => configured && signInWithGoogle()}
+      onClick={() => openAuth("signin")}
       style={{ padding: "8px 16px", borderRadius: 9, border: `1.5px solid ${hex(t.accent, 0.6)}`, background: "transparent", color: t.accent, cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}
     >
       Sign in

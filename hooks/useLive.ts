@@ -26,6 +26,20 @@ export function useOverview(initial: LiveOverview) {
   });
 }
 
+// Score ticker: same ["overview"] query the home page uses, so it shares the
+// seeded cache on Home and fetches the same aggregate elsewhere (no new fetch).
+export function useLiveTicker() {
+  return useQuery({
+    queryKey: ["overview"],
+    queryFn: () => fetchJSON<LiveOverview>("/api/live"),
+    refetchInterval: (q) => {
+      const d = q.state.data as LiveOverview | undefined;
+      if (!d) return POLL.soon;
+      return intervalFromLive(d.totalLive, d.sports.flatMap((s) => s.topGames));
+    },
+  });
+}
+
 // Cross-sport agenda (My Day / Week / Month).
 export function useAgenda(initial: AgendaResponse) {
   return useQuery({

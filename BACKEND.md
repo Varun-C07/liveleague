@@ -121,6 +121,17 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 - **Why:** a real, descriptive match center for live + historical games (replaces
   the disabled sample formation/win-prob).
 
+### 2026-06-21 — DEV-only demo-live seam (no new fetch, no prod impact)
+- **New `components/design/demoLive.ts`** — the integration seam for "is anything live?".
+  `withDemoLive(ov, now)` optionally injects ONE fake live soccer match (minute/score derived
+  from `now`) at the front of soccer's `topGames`; `useDemoNow()` ticks 1s only when the flag is
+  on. All fake values live here — components just call `withDemoLive` at the read boundary, so
+  partner's real live data will drive the same live UI with zero component changes.
+- **Flag** — `DEMO_LIVE = DEMO_LIVE_FORCE || NEXT_PUBLIC_LL_DEMO_LIVE === "1"` (default OFF). When
+  OFF, `withDemoLive` is identity and `useDemoNow` returns 0 (no interval) → production unchanged.
+- Reads the existing `["overview"]` query (`useOverview` / `useLiveTicker`) — **no new fetch, no
+  new route, no data-source change.** Not wired to any server code.
+
 ### 2026-06-19 22:10 EDT — Tighten auto-refresh cadence (no manual refresh)
 - **Adaptive client poll intervals** sped up — `lib/polling.ts`: live `15s→12s`,
   soon `60s→30s` (and the "soon" window widened 30m→60m before kickoff), idle

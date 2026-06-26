@@ -4,13 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { useTheme } from "@/components/design/theme";
 import type { Theme } from "@/components/design/theme";
-import { card, hex, carbon, unskew, Crest } from "@/components/design/primitives";
+import { card, hex, unskew, Crest } from "@/components/design/primitives";
 import { Plus, Minus, Lock, Check } from "@/components/design/icons";
 import { isLightColor, kickoffDateTimeLabel } from "@/components/design/map";
 import { useSubmitPrediction, type Prediction } from "@/hooks/usePredictions";
 import type { ApiMatch } from "@/lib/api-shape";
-
-const INK = "#14110A";
 
 const sb = (t: Theme) => ({ width: 24, height: 18, borderRadius: 5, border: "none", background: t.chip, color: t.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 });
 
@@ -88,13 +86,15 @@ export function Predict({
 
 export function Paywall() {
   const { t } = useTheme();
+  // Premium dark + gold (matches LockedPanel / the home bundle) — no caution-tape.
   return (
-    <div style={{ background: carbon(t.gold), color: INK, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", boxShadow: `inset 0 2px 12px ${hex("#000", 0.16)}, ${t.shadow}` }}>
-      <span style={{ fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 7 }}>
-        <Lock size={14} />Predicting, friend leagues &amp; alerts are part of the $5 bundle.
+    <div style={{ position: "relative", overflow: "hidden", borderRadius: 12, background: `linear-gradient(150deg, ${t.surfaceHi}, ${t.surface} 62%)`, border: `1px solid ${hex(t.gold, 0.45)}`, boxShadow: t.shadow, padding: "13px 15px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(70% 90% at 100% 0%, ${hex(t.gold, 0.12)}, transparent 60%)` }} />
+      <span style={{ position: "relative", fontSize: 12.5, fontWeight: 600, color: t.text, display: "flex", alignItems: "center", gap: 7 }}>
+        <Lock size={14} color={t.gold} />Predicting, friend leagues &amp; alerts are part of the $5 bundle.
       </span>
-      <Link href="/account" style={{ textDecoration: "none" }}>
-        <span style={{ display: "inline-flex", padding: "8px 18px", border: "none", background: INK, color: t.gold, fontWeight: 800, fontSize: 12.5, cursor: "pointer", whiteSpace: "nowrap", transform: "skewX(-9deg)" }}>
+      <Link href="/account" style={{ position: "relative", textDecoration: "none" }}>
+        <span style={{ display: "inline-flex", padding: "8px 18px", border: "none", background: t.gold, color: t.bg, fontWeight: 800, fontSize: 12.5, cursor: "pointer", whiteSpace: "nowrap", transform: "skewX(-9deg)" }}>
           <span style={unskew}>Unlock $5</span>
         </span>
       </Link>

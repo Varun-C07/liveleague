@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest } from "@/components/design/primitives";
 import { ChevronDown } from "@/components/design/icons";
@@ -41,8 +42,15 @@ export function GroupCard({
             {o ? (
               <span title={o.line} style={{ width: 6, height: 6, borderRadius: "50%", background: stateColor(o.state), flexShrink: 0 }} />
             ) : null}
-            <Crest code={r.code} color={r.color} dark={isLightColor(r.color)} size={20} />
-            <span style={{ flex: 1, fontSize: 12.5, fontWeight: mine ? 700 : 500, color: mine ? t.accent : t.text }}>{r.name}</span>
+            <Link
+              href={`/soccer/team/${r.code}`}
+              className="ll-team-link"
+              onClick={(e) => e.stopPropagation()}
+              style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0, textDecoration: "none", color: mine ? t.accent : t.text }}
+            >
+              <Crest code={r.code} color={r.color} dark={isLightColor(r.color)} size={20} />
+              <span style={{ flex: 1, fontSize: 12.5, fontWeight: mine ? 700 : 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
+            </Link>
             <span className="num" style={{ fontSize: 11, color: t.textFaint }}>{r.P}</span>
             <span className="num" style={{ fontSize: 13, fontWeight: 800, minWidth: 16, textAlign: "right" }}>{r.Pts}</span>
           </div>

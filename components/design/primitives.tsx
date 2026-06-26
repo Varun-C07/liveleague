@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { Theme } from "@/components/design/theme";
+import { flagSlug, flagUrl } from "@/components/design/flags";
 
 // ── Style helpers (ported verbatim from the prototype) ───────────────────────
 export const hex = (h: string, a: number): string => {
@@ -43,8 +44,10 @@ export function Pulse({ color, size = 8 }: { color: string; size?: number }) {
   );
 }
 
-// A team "crest" — colored disc with the team code. Caller passes the real
-// team color (from data/teams.ts) + a `dark` flag for light-on-dark contrast.
+// A team "crest" — the country flag in a tidy circular crop (Apple Sports look),
+// keyed by the team's FIFA code. Falls back to the colored disc + 3-letter code
+// when no flag is mapped or the flag image fails to load, so it's never blank.
+// (Team color/contrast hexes are data assets, not theme tokens.)
 export function Crest({
   code,
   color = "#777",
@@ -56,16 +59,29 @@ export function Crest({
   dark?: boolean;
   size?: number;
 }) {
+  const slug = flagSlug(code);
   return (
     <div
       style={{
-        width: size, height: size, borderRadius: "50%", background: color,
+        position: "relative", width: size, height: size, borderRadius: "50%",
+        overflow: "hidden", background: color, flexShrink: 0,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: size * 0.36, color: dark ? "#1a1a1a" : "#fff", fontWeight: 800,
-        flexShrink: 0, letterSpacing: "-.02em",
       }}
     >
-      {code}
+      <span style={{ fontSize: size * 0.36, color: dark ? "#1a1a1a" : "#fff", fontWeight: 800, letterSpacing: "-.02em" }}>
+        {code}
+      </span>
+      {slug ? (
+        // Flag overlays the fallback disc; onError hides it to reveal the disc.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={flagUrl(slug)}
+          alt=""
+          loading="lazy"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -95,11 +111,12 @@ export function Tag({
   );
 }
 
-// Section label (skewed accent bar + condensed heading)
+// Section label (skewed bar + condensed heading). The bar is a muted tone, not
+// the lime accent — lime is reserved for actions and live signals.
 export function SL({ t, children }: { t: Theme; children: ReactNode }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-      <span style={{ width: 4, height: 18, background: t.accent, transform: "skewX(-10deg)", borderRadius: 1 }} />
+      <span style={{ width: 4, height: 18, background: t.textDim, transform: "skewX(-10deg)", borderRadius: 1 }} />
       <span className="disp" style={{ fontSize: 19, fontWeight: 800, display: "flex", alignItems: "center", gap: 7 }}>
         {children}
       </span>
