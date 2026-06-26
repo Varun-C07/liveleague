@@ -6,6 +6,7 @@ import { card, hex, Crest, Tag, Pulse } from "@/components/design/primitives";
 import { MapPin } from "@/components/design/icons";
 import { isLightColor, kickoffLabel } from "@/components/design/map";
 import { MatchDetailPanel } from "@/components/design/screens/soccer/MatchDetailPanel";
+import { PinButton } from "@/components/design/screens/soccer/PinButton";
 import type { ApiMatch } from "@/lib/api-shape";
 
 // Real featured/live match header; tap to expand the rich match center (timeline,
@@ -39,11 +40,14 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
           <span style={{ fontSize: 11, color: t.textDim, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
             <MapPin size={12} />{m.stage} · {m.venue}
           </span>
-          {live ? (
-            <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={5} />{statusLabel}</Tag>
-          ) : (
-            <span style={{ fontSize: 12, color: t.textDim, fontWeight: 700 }}>{statusLabel}</span>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {live ? (
+              <Tag sk color={t.onAccent} bg={t.live}><Pulse color={t.onAccent} size={5} />{statusLabel}</Tag>
+            ) : (
+              <span style={{ fontSize: 12, color: t.textDim, fontWeight: 700 }}>{statusLabel}</span>
+            )}
+            <PinButton matchId={`soccer-${m.n}`} />
+          </div>
         </div>
         <div style={{ position: "relative", display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 14, padding: "4px 0" }}>
           <div style={{ position: "absolute", left: 0, top: 6, bottom: 6, width: 6, background: m.home.color, borderRadius: 2 }} />

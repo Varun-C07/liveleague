@@ -140,13 +140,14 @@ export function normalizeSummary(j: Json): MatchDetail {
     const side = idToSide[str(obj(t.team).id) ?? ""];
     if (side) sideStats[side] = statMap(t);
   }
-  const stats: StatPair[] = STAT_ROWS.map((r) => ({
-    key: r.key,
-    label: r.label,
-    home: sideStats.home[r.espn] ?? 0,
-    away: sideStats.away[r.espn] ?? 0,
-    pct: r.pct,
-  })).filter((s) => s.home !== 0 || s.away !== 0);
+  // Pass accuracy: ESPN's `passPct` is an unreliable 0–1 fraction ("0.8"), so
+  // derive it from the raw counts instead (accurate / total passes).
+  const passAcc = (s: Record<string, number>) => (s.totalPasses ? Math.round((s.accuratePasses / s.totalPasses) * 100) : 0);
+  const stats: StatPair[] = STAT_ROWS.map((r) =>
+    r.key === "passAccuracy"
+      ? { key: r.key, label: r.label, home: passAcc(sideStats.home), away: passAcc(sideStats.away), pct: true }
+      : { key: r.key, label: r.label, home: sideStats.home[r.espn] ?? 0, away: sideStats.away[r.espn] ?? 0, pct: r.pct },
+  ).filter((s) => s.home !== 0 || s.away !== 0);
 
   let lineups: MatchDetail["lineups"] = null;
   const sideLineup: Partial<Record<"home" | "away", TeamLineup>> = {};

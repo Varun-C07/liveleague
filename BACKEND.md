@@ -34,7 +34,8 @@ Auth + Realtime) · Stripe (subscriptions) · free data feeds.
 **Supabase migrations** (`supabase/migrations/`, applied via Management API)
 - `0001_core` tables · `0002_triggers` · `0003_rls` · `0004_realtime` ·
   `0005_views` · `0006_subscriptions` · `0007_league_scoring` ·
-  `0008_notifications` · `0009_data_cache` · `0010_match_details`.
+  `0008_notifications` · `0009_data_cache` · `0010_match_details` ·
+  `0011_pinned_match` (profiles.pinned_match).
 
 **Tables:** `profiles`, `entitlements`, `purchases`, `followed_teams`,
 `predictions`, `leagues`, `league_members`, `notification_targets`,
@@ -71,6 +72,18 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 ---
 
 ## Log
+
+### 2026-06-26 — Soccer fixes (pass accuracy, venue) + pin-favourite-match
+- **Pass accuracy** — `lib/espn-summary.ts` now derives it from
+  `accuratePasses/totalPasses` (ESPN's `passPct` is an unreliable 0–1 fraction
+  that rendered as "1%"). Re-backfilled all stored soccer details.
+- **Venue** — capture ESPN's (current/sponsored) venue name into the match
+  (`RawEvent.venue` → `applyEvents` sets `m.ven`; ESPN scoreboard parser sets it).
+  One-off resync via `POST /api/cron/detail?venues=1` corrected **31** stale
+  snapshot venue names in the soccer cache.
+- **Pin favourite match** — `0011_pinned_match.sql` (`profiles.pinned_match`).
+  `app/api/me/pin` (set/clear, own-row RLS); `/api/me` returns `pinnedMatch`;
+  `useEntitlements` exposes `pinnedMatch` + optimistic `setPin`. Signed-in only.
 
 ### 2026-06-25 18:24 EDT — Race Center: rich F1 race detail (Jolpica)
 - **New source** — `lib/jolpica-race.ts`: pure `normalizeRace` + `fetchRaceDetail`

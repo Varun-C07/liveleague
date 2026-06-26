@@ -6,6 +6,7 @@ import { card, hex, Crest, Pulse } from "@/components/design/primitives";
 import { ChevronDown, MapPin } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
 import { MatchDetailPanel } from "@/components/design/screens/soccer/MatchDetailPanel";
+import { PinButton } from "@/components/design/screens/soccer/PinButton";
 import type { ApiMatch } from "@/lib/api-shape";
 
 type FilterId = "all" | "today" | "live" | "mine" | "group" | "ko";
@@ -131,6 +132,7 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
         ) : (
           <span style={{ fontSize: 10.5, color: t.textDim, fontWeight: 700 }}>{statusLabel}</span>
         )}
+        <PinButton matchId={`soccer-${m.n}`} size={13} />
         {expandable && <ChevronDown size={13} color={t.textFaint} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>

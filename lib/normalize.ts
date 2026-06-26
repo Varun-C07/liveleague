@@ -42,6 +42,7 @@ export type RawEvent = {
   strProgress?: string;
   strTimestamp?: string;
   espnId?: string; // ESPN event id (only set by the ESPN parser)
+  venue?: string; // authoritative venue name (ESPN)
 };
 
 // A football match can only plausibly be "live" within this window after
@@ -95,6 +96,8 @@ export function applyEvents(
 
     // Remember the ESPN event id so we can pull rich match detail later.
     if (ev.espnId) m.espnId = ev.espnId;
+    // Prefer ESPN's (current, sponsored) venue name over the static snapshot.
+    if (ev.venue) m.ven = ev.venue;
 
     const ps = parseStatus(ev.strStatus || ev.strProgress);
     let hs = coerce(ev.intHomeScore);

@@ -19,6 +19,7 @@ type MeResponse = {
   } | null;
   entitlements: { hasPersonal: boolean; hasPro: boolean };
   points: number;
+  pinnedMatch: string | null;
 };
 
 async function fetchMe(): Promise<MeResponse> {
@@ -31,6 +32,8 @@ type EntitlementsValue = {
   hasPersonal: boolean;
   hasPro: boolean;
   points: number;
+  pinnedMatch: string | null;
+  setPin: (matchId: string | null) => void;
   loading: boolean;
   refresh: () => void;
 };
@@ -75,10 +78,27 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }, [configured, userId, qc]);
 
   const data = query.data;
+
+  // Optimistic pin: write the cache immediately, persist server-side, refetch.
+  function setPin(matchId: string | null) {
+    qc.setQueryData<MeResponse>(["me", userId], (prev) =>
+      prev ? { ...prev, pinnedMatch: matchId } : prev,
+    );
+    fetch("/api/me/pin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchId }),
+    })
+      .catch(() => {})
+      .finally(() => qc.invalidateQueries({ queryKey: ["me", userId] }));
+  }
+
   const value: EntitlementsValue = {
     hasPersonal: data?.entitlements.hasPersonal ?? false,
     hasPro: data?.entitlements.hasPro ?? false,
     points: data?.points ?? 0,
+    pinnedMatch: data?.pinnedMatch ?? null,
+    setPin,
     loading: configured ? query.isLoading : false,
     refresh: () => qc.invalidateQueries({ queryKey: ["me", userId] }),
   };

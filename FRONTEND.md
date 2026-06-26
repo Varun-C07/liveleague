@@ -14,6 +14,16 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-26 — World Cup: all live matches, pin-to-top, stat/venue fixes
+- **Live now shows every simultaneous live match** (not just one) —
+  `components/design/screens/Soccer.tsx` renders each live `LiveMatch` (falls back
+  to the next scheduled when none are live).
+- **Pin a favourite match** — `PinButton` (star) on `LiveMatch` + each
+  `FixtureRow`, signed-in only; the pinned match renders in a "Pinned" section at
+  the top of the board. Persists via the profile, gone when signed out.
+- **Match detail fixes** — pass accuracy now shows real values (was 1%/1%);
+  venue names corrected to ESPN's current/sponsored names.
+
 ### 2026-06-25 18:24 EDT — F1 Race Center popup (Apple-style modal)
 - **New reusable `Modal`** — `components/design/Modal.tsx`: dimmed + blurred
   backdrop (`llfade`) with a spring-in card (`llpop`, scale .94→1 on a snappy

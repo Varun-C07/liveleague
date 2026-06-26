@@ -12,6 +12,7 @@ export async function GET() {
       user: null,
       entitlements: { hasPersonal: false, hasPro: false },
       points: 0,
+      pinnedMatch: null,
     });
   }
 
@@ -24,7 +25,7 @@ export async function GET() {
       .maybeSingle(),
     supabase
       .from("profiles")
-      .select("display_name, avatar_url, prediction_points")
+      .select("display_name, avatar_url, prediction_points, pinned_match")
       .eq("id", user.id)
       .maybeSingle(),
   ]);
@@ -41,5 +42,6 @@ export async function GET() {
       hasPro: ent?.has_pro ?? false,
     },
     points: profile?.prediction_points ?? 0,
+    pinnedMatch: profile?.pinned_match ?? null,
   });
 }

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse, SL } from "@/components/design/primitives";
-import { Trophy, TrendingUp, Check, Lock } from "@/components/design/icons";
+import { Trophy, TrendingUp, Check, Lock, Star } from "@/components/design/icons";
 import { isLightColor, mapGroupOutlooks } from "@/components/design/map";
 import { LiveMatch } from "@/components/design/screens/soccer/LiveMatch";
 import { GroupCard } from "@/components/design/screens/soccer/GroupCard";
@@ -29,7 +29,7 @@ export function Soccer({
   const { t } = useTheme();
   const { data: mr } = useMatches(initialMatches);
   const { data: sr } = useStandings(initialStandings);
-  const { hasPersonal } = useEntitlements();
+  const { hasPersonal, pinnedMatch: pinnedId } = useEntitlements();
   const { data: predictions } = useMyPredictions();
   const { keys } = useFavorites();
 
@@ -49,7 +49,10 @@ export function Soccer({
   const live = matches.filter((m) => m.status === "live");
   const sched = matches.filter((m) => m.status === "sched");
   const ft = matches.filter((m) => m.status === "ft");
-  const featured = live[0] ?? sched[0] ?? null;
+  const pinned = pinnedId ? matches.find((m) => `soccer-${m.n}` === pinnedId) ?? null : null;
+  // All live matches (or the next scheduled when none), minus the pinned one so
+  // it isn't shown twice.
+  const liveOrNext = (live.length ? live : sched.slice(0, 1)).filter((m) => m !== pinned);
   const goals = ft.reduce((acc, m) => acc + (m.homeScore ?? 0) + (m.awayScore ?? 0), 0);
   const upcoming = sched.slice(0, 4);
   const myResults = ft.filter((m) => predByMatch.has(`soccer-${m.n}`)).slice(0, 10);
@@ -80,8 +83,20 @@ export function Soccer({
 
       <div className="mgrid">
         <div>
-          <SL t={t}><Pulse color={t.live} size={7} /> {live.length > 0 ? "Live now" : "Featured"}</SL>
-          <LiveMatch m={featured} />
+          {pinned && (
+            <div style={{ marginBottom: 26 }}>
+              <SL t={t}><Star size={14} color={t.gold} /> Pinned</SL>
+              <LiveMatch m={pinned} />
+            </div>
+          )}
+          {(liveOrNext.length > 0 || !pinned) && (
+            <>
+              <SL t={t}><Pulse color={t.live} size={7} /> {live.length > 0 ? "Live now" : "Featured"}</SL>
+              <div style={{ display: "grid", gap: 14 }}>
+                {liveOrNext.length ? liveOrNext.map((m) => <LiveMatch key={m.n} m={m} />) : <LiveMatch m={null} />}
+              </div>
+            </>
+          )}
 
           <div style={{ marginTop: 26 }}>
             <Fixtures matches={matches} favSet={favSet} />
