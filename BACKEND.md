@@ -75,6 +75,23 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 
 ## Log
 
+### 2026-06-26 — Real win-probability model (Elo + Poisson + in-play), bundle-gated
+- **Model:** new `lib/win-prob.ts` — pure, deterministic, unit-tested. Elo
+  (`computeRatings`, seeded + replayed over finished results) → Poisson/Dixon–Coles
+  goals matrix (`matchProbabilities`) → W/D/L + most-likely scoreline, plus a live
+  `inPlayProbabilities` that scales by `remainingFraction(minute)` and shifts by the
+  current score. Constants are calibrated, not trained (no free training corpus).
+- **Seed:** new `data/eloRatings.ts` — static public pre-tournament Elo (~48 teams) +
+  `DEFAULT_ELO` + `HOST_CODES` (USA/MEX/CAN get the only home-field bump). Same
+  free-data pattern as `teams.ts`.
+- **Route + gate:** new `app/api/soccer/winprob/[id]/route.ts` — `requirePersonal()`
+  is the real enforcement (403 for free/non-entitled); reads the soccer `data_cache`,
+  computes ratings, returns `WinProb` (live vs pre-match). Placeholder teams → 404.
+- **Why:** the $5-bundle "live win probability" was seeded-random nonsense; this is a
+  genuine, transparent, free-data estimate (labelled a model estimate, not odds).
+- **Tests:** `tests/win-prob.test.ts` (12) — prob sums, favourite ordering, host edge,
+  zero-sum Elo updates, chronological replay, in-play late-lead/late-deficit.
+
 ### 2026-06-26 — Real auth (Google + email), real form/H2H, unified match page
 - **Auth (real Supabase):** rewrote `components/design/auth/authClient.ts` from a
   mock to the real browser client — email/password, Google OAuth (redirect via

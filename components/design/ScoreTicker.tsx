@@ -10,15 +10,22 @@ import { mapTicker, type TickerItem } from "@/components/design/map";
 import { useDemoNow, withDemoLive } from "@/components/design/demoLive";
 import { LiveDot, TickingMinute, FlashScore } from "@/components/design/motion";
 
-// Thin live-score strip under the nav (every page). Auto-scrolls only when the
-// items overflow; pauses on hover; respects prefers-reduced-motion (manual
-// scroll instead). Data is the shared ["overview"] query — no new fetch.
-export function ScoreTicker() {
+// Thin live-score strip under the nav. Auto-scrolls only when the items overflow;
+// pauses on hover; respects prefers-reduced-motion (manual scroll instead). Data is
+// the shared ["overview"] query — no new fetch. `active` scopes which sport shows:
+// "soccer"/"f1" filter to that sport; anything else (Home) shows both.
+export function ScoreTicker({ active }: { active: string }) {
   const { t } = useTheme();
   const { data } = useLiveTicker();
   const now = useDemoNow(); // ticks only when the dev demo flag is on
   const ov = withDemoLive(data, now);
-  const items = ov ? mapTicker(ov) : [];
+  const all = ov ? mapTicker(ov) : [];
+  const items =
+    active === "soccer"
+      ? all.filter((it) => it.sportId === "soccer")
+      : active === "f1"
+        ? all.filter((it) => it.sportId === "f1")
+        : all;
   const reduceMotion = useReducedMotion();
 
   const wrapRef = useRef<HTMLDivElement>(null);

@@ -1,7 +1,9 @@
 // Remaining placeholders. Match-page recent form, head-to-head and qualification
 // stakes are now REAL (ESPN summary + the group solver) and read off the match
-// detail in Match.tsx. Still placeholder (no free 2026 source):
-//  • win-probability / predictor — shown behind the bundle lock (Match.tsx).
+// detail in Match.tsx. The real win-probability model lives in lib/win-prob.ts and
+// is served (gated) from /api/soccer/winprob. What's left here:
+//  • matchPredictor — the free-tier SAMPLE shown behind the bundle lock for
+//    non-entitled users (entitled users get the real model instead).
 //  • team-page recent form — used by the Team profile (Team.tsx).
 import type { ApiMatch } from "@/lib/api-shape";
 
@@ -26,7 +28,8 @@ export function recentForm(teamCode: string): FormResult[] {
   return out;
 }
 
-// BACKEND SEAM (PAID): a real win-probability model has no free 2026 source.
+// Free-tier SAMPLE shown behind the bundle lock (deterministic, clearly labelled
+// "Sample" in the UI). The real model is lib/win-prob.ts via /api/soccer/winprob.
 export function matchPredictor(m: ApiMatch): Predictor {
   const r = seed(m.home.code + "|" + m.away.code);
   let home = 26 + (r % 38);

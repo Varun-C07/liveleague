@@ -52,8 +52,9 @@ export function DesignShell({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {/* Live score ticker — directly under the nav, on every route. */}
-      <ScoreTicker />
+      {/* Live score ticker — under the nav, scoped to the current page's sport
+          (both on Home, soccer-only on /soccer, F1-only on /f1). */}
+      <ScoreTicker active={active} />
 
       <div className="wrap lldesign">{children}</div>
 

@@ -14,6 +14,19 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-26 — Real win-prob on match page · per-page ticker · fixtures date filter
+- **Win probability (match page):** `components/design/screens/Match.tsx` —
+  `LockedPredictor` split into `WinProbSection` + a shared `WinProbBar`. Entitled
+  ($5-bundle) users now see the **real** Elo+Poisson model (via new `hooks/useWinProb.ts`
+  → `/api/soccer/winprob`) unlocked, with an honest "Elo + Poisson · free-data estimate"
+  caption and a live-updates note; everyone else keeps the frosted lock over a clearly
+  labelled **Sample** (the old `matchPredictor`, re-documented as the sample tease).
+- **Ticker scoping:** `ScoreTicker` now takes `active` from `DesignShell` and filters by
+  `sportId` — Home shows soccer + F1, `/soccer` soccer only, `/f1` F1 only.
+- **Fixtures date filter:** `components/design/screens/soccer/Fixtures.tsx` — new
+  "Date" `<Sel>` (All dates · Today · Next 3 days · Next 7 days) using the existing
+  `etDay`/`Sel` pattern, combining with View/Stage/Group/Sort.
+
 ### 2026-06-26 — Real auth modal + unified match page
 - **Auth modal is real now** — `authClient.ts` calls Supabase (email/password +
   Google + live username check); the shell's Sign-in opens it and the avatar

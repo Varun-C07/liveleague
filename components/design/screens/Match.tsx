@@ -11,7 +11,8 @@ import { LockedPanel } from "@/components/design/LockedPanel";
 import { MatchDetailPanel } from "@/components/design/screens/soccer/MatchDetailPanel";
 import { useMatches, useStandings } from "@/hooks/useMatches";
 import { useMatchDetail } from "@/hooks/useMatchDetail";
-import { matchPredictor } from "@/components/design/screens/match/matchData";
+import { useWinProb } from "@/hooks/useWinProb";
+import { matchPredictor, type Predictor } from "@/components/design/screens/match/matchData";
 import type { ApiMatch, MatchesResponse, StandingsResponse } from "@/lib/api-shape";
 import type { FormEntry } from "@/lib/espn-summary";
 
@@ -152,16 +153,8 @@ export function Match({ initial, standings, n }: { initial: MatchesResponse; sta
         )}
       </div>
 
-      {/* PAID — win probability + predictor, behind glass */}
-      <div style={{ marginTop: 26 }}>
-        <SL t={t}>
-          Win probability
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: t.gold, background: hex(t.gold, 0.12), border: `1px solid ${hex(t.gold, 0.3)}`, borderRadius: 999, padding: "3px 9px" }}>
-            <Lock size={11} /> Bundle
-          </span>
-        </SL>
-        <LockedPredictor t={t} m={m} />
-      </div>
+      {/* PAID — real win probability for entitled users, sample tease otherwise */}
+      <WinProbSection t={t} m={m} live={!!live} />
     </div>
   );
 }
@@ -213,21 +206,16 @@ function FormRow({ t, team, entries }: { t: Theme; team: Team; entries: FormEntr
   );
 }
 
-// The real predictor, rendered then frosted with a premium lock — the win-prob
-// model is a paid feature (no free source), so the layout exists but is teased.
-function LockedPredictor({ t, m }: { t: Theme; m: ApiMatch }) {
-  const p = matchPredictor(m);
+// Shared probability bar (home / draw / away segments + labels + pick line). Used
+// both unlocked (real model) and behind the lock (sample tease).
+function WinProbBar({ t, m, p }: { t: Theme; m: ApiMatch; p: Predictor }) {
   const segs = [
     { w: p.home, c: m.home.color, label: m.home.code },
     { w: p.draw, c: t.neutral, label: "Draw" },
     { w: p.away, c: m.away.color, label: m.away.code },
   ];
   return (
-    <LockedPanel
-      t={t}
-      title="Win probability & predictor"
-      copy="Live win probability and the match predictor are part of the $5 World Cup Bundle."
-    >
+    <>
       <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden" }}>
         {segs.map((s, i) => <div key={i} style={{ width: `${s.w}%`, background: s.c }} />)}
       </div>
@@ -237,6 +225,48 @@ function LockedPredictor({ t, m }: { t: Theme; m: ApiMatch }) {
         ))}
       </div>
       <div style={{ marginTop: 14, fontSize: 12.5, color: t.textDim }}>{p.pick} · predicted {p.scoreline}</div>
-    </LockedPanel>
+    </>
+  );
+}
+
+// Win probability: the real Elo + Poisson model for $5-bundle users, or a clearly
+// labelled sample behind the premium lock for everyone else (the server route is
+// the real gate — free users never receive the real numbers).
+function WinProbSection({ t, m, live }: { t: Theme; m: ApiMatch; live: boolean }) {
+  const { winProb, entitled } = useWinProb(`soccer-${m.n}`, { enabled: true, live });
+
+  if (entitled && winProb) {
+    return (
+      <div style={{ marginTop: 26 }}>
+        <SL t={t}>Win probability</SL>
+        <div style={{ ...card(t), padding: "16px 18px" }}>
+          <WinProbBar t={t} m={m} p={winProb} />
+          <div style={{ marginTop: 12, fontSize: 10.5, color: t.textFaint, display: "flex", alignItems: "center", gap: 6 }}>
+            {live ? <LiveDot color={t.live} size={5} /> : null}
+            {winProb.basis}{live ? " · updates live" : ""}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const sample = matchPredictor(m);
+  return (
+    <div style={{ marginTop: 26 }}>
+      <SL t={t}>
+        Win probability
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: t.gold, background: hex(t.gold, 0.12), border: `1px solid ${hex(t.gold, 0.3)}`, borderRadius: 999, padding: "3px 9px" }}>
+          <Lock size={11} /> Bundle
+        </span>
+      </SL>
+      <LockedPanel
+        t={t}
+        title="Win probability & predictor"
+        copy="Live win probability and the match predictor are part of the $5 World Cup Bundle."
+      >
+        <WinProbBar t={t} m={m} p={sample} />
+        <div style={{ marginTop: 10, fontSize: 10.5, color: t.textFaint }}>Sample — not the live model</div>
+      </LockedPanel>
+    </div>
   );
 }
