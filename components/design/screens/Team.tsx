@@ -7,6 +7,7 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffLabel } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
+import { PAYWALL_ENABLED } from "@/lib/gating";
 import { PlayerTags } from "@/components/design/PlayerTags";
 import { recentForm, type FormResult } from "@/components/design/screens/match/matchData";
 import { teamSquad, teamAnalysis, type Player } from "@/components/design/screens/team/teamData";
@@ -109,23 +110,27 @@ export function Team({
         </div>
       </div>
 
-      {/* PAID — prediction & analysis, behind glass */}
-      <div style={{ marginTop: 26 }}>
-        <SL t={t}>
-          Prediction &amp; analysis
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: t.gold, background: hex(t.gold, 0.12), border: `1px solid ${hex(t.gold, 0.3)}`, borderRadius: 999, padding: "3px 9px" }}>
-            <Lock size={11} /> Bundle
-          </span>
-        </SL>
-        <LockedPanel t={t} title={`${team.name} · projection`} copy="Qualification odds, projected finish and title chances are part of the $5 World Cup Bundle.">
-          <div style={{ display: "grid", gap: 10 }}>
-            <AnalysisRow t={t} label="Reach knockouts" value={`${analysis.qualifyPct}%`} pct={analysis.qualifyPct} color={t.win} />
-            <AnalysisRow t={t} label="Projected finish" value={analysis.finish} />
-            <AnalysisRow t={t} label="Win the tournament" value={`${analysis.titlePct}%`} pct={analysis.titlePct} color={t.gold} />
-            <div style={{ fontSize: 12.5, color: t.textDim, marginTop: 2 }}>{analysis.note}</div>
-          </div>
-        </LockedPanel>
-      </div>
+      {/* PAID — prediction & analysis, behind glass. Hidden while the paywall is
+          off: this projection is placeholder data (no free 2026 source), so we
+          don't surface it as if it were real — it returns with the paywall. */}
+      {PAYWALL_ENABLED ? (
+        <div style={{ marginTop: 26 }}>
+          <SL t={t}>
+            Prediction &amp; analysis
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: t.gold, background: hex(t.gold, 0.12), border: `1px solid ${hex(t.gold, 0.3)}`, borderRadius: 999, padding: "3px 9px" }}>
+              <Lock size={11} /> Bundle
+            </span>
+          </SL>
+          <LockedPanel t={t} title={`${team.name} · projection`} copy="Qualification odds, projected finish and title chances are part of the $5 World Cup Bundle.">
+            <div style={{ display: "grid", gap: 10 }}>
+              <AnalysisRow t={t} label="Reach knockouts" value={`${analysis.qualifyPct}%`} pct={analysis.qualifyPct} color={t.win} />
+              <AnalysisRow t={t} label="Projected finish" value={analysis.finish} />
+              <AnalysisRow t={t} label="Win the tournament" value={`${analysis.titlePct}%`} pct={analysis.titlePct} color={t.gold} />
+              <div style={{ fontSize: 12.5, color: t.textDim, marginTop: 2 }}>{analysis.note}</div>
+            </div>
+          </LockedPanel>
+        </div>
+      ) : null}
     </div>
   );
 }

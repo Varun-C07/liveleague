@@ -161,36 +161,59 @@ export type UpcomingF1 = {
 };
 export type Upcoming = { soccer: UpcomingSoccer[]; f1: UpcomingF1[] };
 
-// Group the overview's top games into soccer / F1 upcoming lists. Excludes the
-// hero-featured game (by key) so it's never duplicated, and finished games.
-// Stray live items (not the hero) are kept, flagged live. `when` = the kickoff
-// date for scheduled games, the live minute for live ones.
+// Turn one overview game into the right per-sport card shape, pushing into the
+// soccer / F1 buckets. `when` = the kickoff date for scheduled, live minute for live.
+function pushGame(g: Game, sportId: "soccer" | "f1", basePath: string, soccer: UpcomingSoccer[], f1: UpcomingF1[]) {
+  const when = g.status === "live" ? statusMin(g) : dateLabel(g.utc);
+  if (sportId === "soccer") {
+    soccer.push({
+      key: g.id, status: g.status, when, href: soccerMatchHref(g.id), utc: g.utc,
+      label: g.label, a: teamSide(g.home), b: teamSide(g.away),
+      score: g.status === "sched" ? "vs" : `${g.home.score ?? 0}–${g.away.score ?? 0}`,
+    });
+  } else {
+    f1.push({
+      key: g.id, status: g.status, when, href: basePath, utc: g.utc,
+      round: g.extra.sport === "f1" ? g.extra.round : null,
+      name: g.venue || g.label,
+      loc: [g.city, g.country].filter(Boolean).join(", "),
+    });
+  }
+}
+
+const byUtc = (a: { utc: string }, b: { utc: string }) =>
+  new Date(a.utc).getTime() - new Date(b.utc).getTime();
+
+// Every currently-live game across soccer + F1 (the home "Live now" section shows
+// them all, like the World Cup board does — not just the one hero spotlight).
+export function mapLive(ov: LiveOverview): Upcoming {
+  const soccer: UpcomingSoccer[] = [];
+  const f1: UpcomingF1[] = [];
+  for (const s of ov.sports) {
+    if (s.id !== "soccer" && s.id !== "f1") continue;
+    for (const g of s.topGames) {
+      if (g.status !== "live") continue;
+      pushGame(g, s.id, s.basePath, soccer, f1);
+    }
+  }
+  soccer.sort(byUtc);
+  f1.sort(byUtc);
+  return { soccer, f1 };
+}
+
+// Scheduled (sched-only) games into soccer / F1 upcoming lists. Live games get
+// their own "Live now" section (mapLive); finished are skipped; the hero-featured
+// game is excluded by key so it's never duplicated.
 export function mapUpcoming(ov: LiveOverview, excludeKey?: string): Upcoming {
   const soccer: UpcomingSoccer[] = [];
   const f1: UpcomingF1[] = [];
   for (const s of ov.sports) {
     if (s.id !== "soccer" && s.id !== "f1") continue;
     for (const g of s.topGames) {
-      if (g.id === excludeKey || g.status === "final") continue;
-      const when = g.status === "live" ? statusMin(g) : dateLabel(g.utc);
-      if (s.id === "soccer") {
-        soccer.push({
-          key: g.id, status: g.status, when, href: soccerMatchHref(g.id), utc: g.utc,
-          label: g.label, a: teamSide(g.home), b: teamSide(g.away),
-          score: g.status === "sched" ? "vs" : `${g.home.score ?? 0}–${g.away.score ?? 0}`,
-        });
-      } else {
-        f1.push({
-          key: g.id, status: g.status, when, href: s.basePath, utc: g.utc,
-          round: g.extra.sport === "f1" ? g.extra.round : null,
-          name: g.venue || g.label,
-          loc: [g.city, g.country].filter(Boolean).join(", "),
-        });
-      }
+      if (g.id === excludeKey || g.status !== "sched") continue;
+      pushGame(g, s.id, s.basePath, soccer, f1);
     }
   }
-  const byUtc = (a: { utc: string }, b: { utc: string }) =>
-    new Date(a.utc).getTime() - new Date(b.utc).getTime();
   soccer.sort(byUtc);
   f1.sort(byUtc);
   return { soccer, f1 };

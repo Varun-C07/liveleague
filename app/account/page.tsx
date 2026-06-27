@@ -6,7 +6,7 @@ import { card, hex, carbon, unskew, Tag } from "@/components/design/primitives";
 import { Check, Lock } from "@/components/design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { useEntitlements } from "@/hooks/useEntitlements";
-import type { Sku } from "@/lib/gating";
+import { PAYWALL_ENABLED, type Sku } from "@/lib/gating";
 
 const INK = "#14110A";
 
@@ -64,12 +64,25 @@ export default function AccountPage() {
       ) : (
         <>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, margin: "18px 0 6px" }}>
-            <StatusChip t={t} label="Personal" on={hasPersonal} />
-            <StatusChip t={t} label="Pro" on={hasPro} />
+            {PAYWALL_ENABLED ? (
+              <>
+                <StatusChip t={t} label="Personal" on={hasPersonal} />
+                <StatusChip t={t} label="Pro" on={hasPro} />
+              </>
+            ) : null}
             <span style={{ fontSize: 13, color: t.textDim }}>Prediction points: <b className="num" style={{ color: t.text }}>{points}</b></span>
             <button onClick={signOut} style={{ marginLeft: "auto", padding: "7px 14px", borderRadius: 8, border: `1px solid ${t.border}`, background: "transparent", color: t.textDim, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Sign out</button>
           </div>
 
+          {!PAYWALL_ENABLED ? (
+            <div style={{ marginTop: 22, padding: "18px 20px", ...card(t) }}>
+              <div className="disp" style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Everything&apos;s free right now</div>
+              <p style={{ fontSize: 13, color: t.textDim, lineHeight: 1.6, margin: 0 }}>
+                All features — the match predictor, win probability, friend leagues, following
+                teams and alerts — are unlocked for everyone. No subscription needed.
+              </p>
+            </div>
+          ) : (
           <div style={{ marginTop: 22, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 14 }}>
             {PLANS.map((plan) => {
               const have = owns(plan.sku);
@@ -94,6 +107,7 @@ export default function AccountPage() {
               );
             })}
           </div>
+          )}
         </>
       )}
     </div>

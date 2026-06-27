@@ -5,6 +5,14 @@
 export type Sku = "personal" | "pro" | "combo";
 export type Entitlements = { hasPersonal: boolean; hasPro: boolean };
 
+// ── MASTER PAYWALL SWITCH ────────────────────────────────────────────────────
+// Single source of truth for whether the app charges for anything. While this is
+// `false`, every paid feature is free for everyone (entitlements report unlocked,
+// server gates pass, "$5/$20 bundle" promos are hidden) — but all the Stripe /
+// entitlements / gating code stays in place. Flip back to `true` to re-enable the
+// paywall with zero other changes. Client-safe (this module has no server imports).
+export const PAYWALL_ENABLED = false;
+
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
 export function entitlementsForSku(sku: Sku): Entitlements {

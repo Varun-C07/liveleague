@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readCache } from "@/lib/db/cache";
 import { requirePersonal, gateErrorResponse } from "@/lib/entitlements";
+import { PAYWALL_ENABLED } from "@/lib/gating";
 import { TEAMS, isRealTeam } from "@/data/teams";
 import { ELO_SEED, DEFAULT_ELO, HOST_CODES } from "@/data/eloRatings";
 import { computeRatings, matchProbabilities, inPlayProbabilities } from "@/lib/win-prob";
@@ -17,12 +18,15 @@ const teamName = (code: string) => TEAMS[code]?.name ?? code;
 // the authoritative enforcement — free users never receive these numbers (the UI
 // shows a clearly-labelled sample instead).
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    await requirePersonal();
-  } catch (e) {
-    const res = gateErrorResponse(e);
-    if (res) return res;
-    throw e;
+  // Paywall on → require the $5 bundle. Paywall off → open to everyone (incl. anon).
+  if (PAYWALL_ENABLED) {
+    try {
+      await requirePersonal();
+    } catch (e) {
+      const res = gateErrorResponse(e);
+      if (res) return res;
+      throw e;
+    }
   }
 
   const { id } = await params;

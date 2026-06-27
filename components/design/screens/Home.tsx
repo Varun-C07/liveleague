@@ -8,10 +8,11 @@ import {
   card, hex, Crest, Tag, Pulse, SL, Strip, unskew,
 } from "@/components/design/primitives";
 import { Calendar, ChevronDown, ChevronRight } from "@/components/design/icons";
-import { mapUpcoming, mapFeatured, mapLeagues, isLightColor, type UpcomingSoccer, type UpcomingF1 } from "@/components/design/map";
+import { mapUpcoming, mapLive, mapFeatured, mapLeagues, isLightColor, type UpcomingSoccer, type UpcomingF1 } from "@/components/design/map";
 import { useOverview } from "@/hooks/useLive";
 import { useFavorites } from "@/hooks/useFavorites";
 import { splitFavKey } from "@/lib/favorites";
+import { PAYWALL_ENABLED } from "@/lib/gating";
 import { TEAMS } from "@/data/teams";
 import { useDemoNow, withDemoLive } from "@/components/design/demoLive";
 import { LiveDot, TickingMinute, FlashScore, LiveCardGlow } from "@/components/design/motion";
@@ -25,7 +26,13 @@ export function Home({ initial }: { initial: LiveOverview }) {
   // Mobile-only accordion: which league bar is expanded (desktop shows cards).
   const [openLeague, setOpenLeague] = useState<string | null>(null);
 
-  const featured = useMemo(() => mapFeatured(ov), [ov]);
+  // All live games (across sports). When anything's live we surface them ALL in a
+  // dedicated "Live now" section (like the World Cup board) and drop the single
+  // hero spotlight so nothing is duplicated; with nothing live the hero spotlights
+  // the next match as before.
+  const liveGames = useMemo(() => mapLive(ov), [ov]);
+  const hasLive = liveGames.soccer.length > 0 || liveGames.f1.length > 0;
+  const featured = useMemo(() => (hasLive ? null : mapFeatured(ov)), [ov, hasLive]);
   const upcoming = useMemo(() => mapUpcoming(ov, featured?.key), [ov, featured]);
   const leagues = useMemo(() => mapLeagues(ov), [ov]);
   // F1 red kept as a sport identity accent; World Cup uses a muted tone so lime
@@ -119,6 +126,29 @@ export function Home({ initial }: { initial: LiveOverview }) {
           </Link>
         ) : null}
       </div>
+
+      {/* LIVE NOW — every live game across sports (not just the hero spotlight) */}
+      {hasLive ? (
+        <>
+          <SL t={t}><LiveDot color={t.live} size={7} /> Live now</SL>
+          {liveGames.soccer.length > 0 ? (
+            <>
+              <SubLabel t={t} color={t.live}>World Cup</SubLabel>
+              <div className="ll-fill">
+                {liveGames.soccer.map((u) => <SoccerUpCard key={u.key} u={u} t={t} />)}
+              </div>
+            </>
+          ) : null}
+          {liveGames.f1.length > 0 ? (
+            <>
+              <SubLabel t={t} color={f1Accent}>Formula 1</SubLabel>
+              <div className="ll-fill">
+                {liveGames.f1.map((u) => <F1UpCard key={u.key} u={u} t={t} accent={f1Accent} />)}
+              </div>
+            </>
+          ) : null}
+        </>
+      ) : null}
 
       {/* YOUR TEAMS */}
       {myTeams.length > 0 ? (
@@ -218,7 +248,9 @@ export function Home({ initial }: { initial: LiveOverview }) {
       </div>
 
       {/* BUNDLE — premium dark card; gold is a restrained accent, never a fill.
-          Contained (not full-bleed) so it reads as one chosen object. */}
+          Contained (not full-bleed) so it reads as one chosen object. Hidden while
+          the paywall is toggled off (everything's free). */}
+      {PAYWALL_ENABLED ? (
       <div style={{ position: "relative", overflow: "hidden", maxWidth: 760, margin: "42px auto 0", borderRadius: 18, background: `linear-gradient(150deg, ${t.surfaceHi}, ${t.surface} 62%)`, border: `1px solid ${hex(t.gold, 0.45)}`, boxShadow: t.shadow, padding: "30px 32px" }}>
         {/* restrained gold corner glow — premium highlight, not a wash */}
         <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(58% 78% at 100% 0%, ${hex(t.gold, 0.12)}, transparent 60%)` }} />
@@ -240,6 +272,7 @@ export function Home({ initial }: { initial: LiveOverview }) {
           </div>
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

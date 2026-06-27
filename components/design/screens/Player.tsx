@@ -6,6 +6,7 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
+import { PAYWALL_ENABLED } from "@/lib/gating";
 import { PlayerTags } from "@/components/design/PlayerTags";
 import { getPlayer, playerAnalysis } from "@/components/design/screens/player/playerData";
 import { TEAMS } from "@/data/teams";
@@ -89,23 +90,27 @@ export function Player({ id, code }: { id: string; code: string }) {
         </div>
       </div>
 
-      {/* PAID — player analysis behind glass */}
-      <div style={{ marginTop: 26 }}>
-        <SL t={t}>
-          Analysis
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: t.gold, background: hex(t.gold, 0.12), border: `1px solid ${hex(t.gold, 0.3)}`, borderRadius: 999, padding: "3px 9px" }}>
-            <Lock size={11} /> Bundle
-          </span>
-        </SL>
-        <LockedPanel t={t} title={`${player.name} · analysis`} copy="Form rating, influence heatmap and projected impact are part of the $5 World Cup Bundle.">
-          <div style={{ display: "grid", gap: 10 }}>
-            <Bar t={t} label="Form rating" value={analysis.rating.toFixed(1)} pct={analysis.rating * 10} color={t.win} />
-            <Bar t={t} label="Influence" value={`${analysis.influence}%`} pct={analysis.influence} color={t.accent} />
-            <Bar t={t} label="Projected impact" value={analysis.impact} />
-            <div style={{ fontSize: 12.5, color: t.textDim, marginTop: 2 }}>{analysis.note}</div>
-          </div>
-        </LockedPanel>
-      </div>
+      {/* PAID — player analysis behind glass. Hidden while the paywall is off:
+          these ratings are placeholder (no free source), so we don't show them as
+          real — the panel returns if the paywall is re-enabled. */}
+      {PAYWALL_ENABLED ? (
+        <div style={{ marginTop: 26 }}>
+          <SL t={t}>
+            Analysis
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: t.gold, background: hex(t.gold, 0.12), border: `1px solid ${hex(t.gold, 0.3)}`, borderRadius: 999, padding: "3px 9px" }}>
+              <Lock size={11} /> Bundle
+            </span>
+          </SL>
+          <LockedPanel t={t} title={`${player.name} · analysis`} copy="Form rating, influence heatmap and projected impact are part of the $5 World Cup Bundle.">
+            <div style={{ display: "grid", gap: 10 }}>
+              <Bar t={t} label="Form rating" value={analysis.rating.toFixed(1)} pct={analysis.rating * 10} color={t.win} />
+              <Bar t={t} label="Influence" value={`${analysis.influence}%`} pct={analysis.influence} color={t.accent} />
+              <Bar t={t} label="Projected impact" value={analysis.impact} />
+              <div style={{ fontSize: 12.5, color: t.textDim, marginTop: 2 }}>{analysis.note}</div>
+            </div>
+          </LockedPanel>
+        </div>
+      ) : null}
     </div>
   );
 }

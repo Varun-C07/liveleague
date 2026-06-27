@@ -2,11 +2,13 @@ import "server-only";
 
 import type { User } from "@supabase/supabase-js";
 import { getServerSupabase, getSessionUser } from "@/lib/db/supabase-server";
-import type { Entitlements } from "@/lib/gating";
+import { PAYWALL_ENABLED, type Entitlements } from "@/lib/gating";
 
 // Authority for feature gating. Reads the user's own entitlements row (RLS
-// scopes it). The webhook is the only writer.
+// scopes it). The webhook is the only writer. While the paywall is off, everyone
+// is fully entitled (the require* gates below then pass for any signed-in user).
 export async function getEntitlements(): Promise<Entitlements> {
+  if (!PAYWALL_ENABLED) return { hasPersonal: true, hasPro: true };
   const user = await getSessionUser();
   if (!user) return { hasPersonal: false, hasPro: false };
   const supabase = await getServerSupabase();

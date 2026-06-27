@@ -8,6 +8,7 @@ import { card, hex, unskew, Crest, Pulse } from "@/components/design/primitives"
 import { ChevronDown, ChevronRight, MapPin, Lock } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
+import { PAYWALL_ENABLED } from "@/lib/gating";
 import type { ApiMatch } from "@/lib/api-shape";
 
 type ViewId = "today" | "all" | "live" | "mine";
@@ -269,7 +270,13 @@ export function Fixtures({ matches, favSet }: { matches: ApiMatch[]; favSet: Set
           ) : null}
 
           {view === "mine" && favSet.size === 0 ? (
-            <BundleTease t={t} />
+            PAYWALL_ENABLED ? (
+              <BundleTease t={t} />
+            ) : (
+              <div style={{ padding: "16px 18px", ...card(t) }}>
+                <span style={{ fontSize: 13, color: t.textDim }}>You&apos;re not following any teams yet — tap the pin on a match or team to follow.</span>
+              </div>
+            )
           ) : total === 0 ? (
             <div style={{ padding: "16px 18px", ...card(t) }}>
               <span style={{ fontSize: 13, color: t.textDim }}>No matches for this filter.</span>

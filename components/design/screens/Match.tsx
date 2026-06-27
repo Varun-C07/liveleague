@@ -233,18 +233,27 @@ function WinProbBar({ t, m, p }: { t: Theme; m: ApiMatch; p: Predictor }) {
 // labelled sample behind the premium lock for everyone else (the server route is
 // the real gate — free users never receive the real numbers).
 function WinProbSection({ t, m, live }: { t: Theme; m: ApiMatch; live: boolean }) {
-  const { winProb, entitled } = useWinProb(`soccer-${m.n}`, { enabled: true, live });
+  const { winProb, entitled, loading } = useWinProb(`soccer-${m.n}`, { enabled: true, live });
 
-  if (entitled && winProb) {
+  // Entitled (always, while the paywall is off) → the real model, unlocked.
+  if (entitled) {
     return (
       <div style={{ marginTop: 26 }}>
         <SL t={t}>Win probability</SL>
         <div style={{ ...card(t), padding: "16px 18px" }}>
-          <WinProbBar t={t} m={m} p={winProb} />
-          <div style={{ marginTop: 12, fontSize: 10.5, color: t.textFaint, display: "flex", alignItems: "center", gap: 6 }}>
-            {live ? <LiveDot color={t.live} size={5} /> : null}
-            {winProb.basis}{live ? " · updates live" : ""}
-          </div>
+          {winProb ? (
+            <>
+              <WinProbBar t={t} m={m} p={winProb} />
+              <div style={{ marginTop: 12, fontSize: 10.5, color: t.textFaint, display: "flex", alignItems: "center", gap: 6 }}>
+                {live ? <LiveDot color={t.live} size={5} /> : null}
+                {winProb.basis}{live ? " · updates live" : ""}
+              </div>
+            </>
+          ) : (
+            <span style={{ fontSize: 12.5, color: t.textDim }}>
+              {loading ? "Calculating win probability…" : "Win probability isn’t available for this match yet."}
+            </span>
+          )}
         </div>
       </div>
     );

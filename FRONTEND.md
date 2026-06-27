@@ -14,6 +14,22 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-26 — Home "Live now" (all live games) · paywall toggled OFF
+- **Home shows every live game:** `components/design/screens/Home.tsx` gains a
+  "Live now" section listing ALL currently-live games across sports (like the World
+  Cup board), via new `mapLive()` in `components/design/map.ts`; when anything's live
+  the single hero spotlight is dropped so nothing duplicates. `mapUpcoming` is now
+  sched-only; the overview carries all live games (not a fixed top-3).
+- **Paywall off (reversible):** new `PAYWALL_ENABLED` flag in `lib/gating.ts` (set
+  `false`). While off, `useEntitlements` reports everyone fully entitled, so every
+  locked surface unlocks (predictor/win-prob, predictions, leagues, follow, pin).
+  Paywall promos are hidden: Home "World Cup Bundle" card, account plans (replaced by
+  an "Everything's free" note), Fixtures "My teams" $5 tease (now a free follow
+  prompt). The Team/Player **placeholder** projection panels are hidden entirely (we
+  don't surface fabricated numbers as real) — they return if the flag is flipped back.
+- **Match win-prob:** `WinProbSection` now always shows the real model unlocked while
+  the paywall is off (with calculating/unavailable states), never the sample lock.
+
 ### 2026-06-26 — Real win-prob on match page · per-page ticker · fixtures date filter
 - **Win probability (match page):** `components/design/screens/Match.tsx` —
   `LockedPredictor` split into `WinProbSection` + a shared `WinProbBar`. Entitled

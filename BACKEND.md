@@ -75,6 +75,17 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 
 ## Log
 
+### 2026-06-26 — Master paywall switch (off) + overview carries all live games
+- **`PAYWALL_ENABLED` flag** (`lib/gating.ts`, currently `false`) — single reversible
+  switch. While off: `getEntitlements()` (`lib/entitlements.ts`) returns
+  `{hasPersonal:true, hasPro:true}` so all `requirePersonal/requirePro` gates pass;
+  `app/api/me` reports fully entitled; `app/api/soccer/winprob/[id]` skips the gate so
+  win-prob is open to everyone (incl. anonymous). Stripe/webhook/entitlements tables
+  and all gating code stay intact — flip to `true` to re-enable with no other changes.
+- **Overview live games:** `lib/sports/overview.ts` now carries all live games
+  (`topGames(b.games, max(3, liveCount+3))`) instead of a fixed top-3, so the home
+  "Live now" section and ticker never truncate simultaneous live matches.
+
 ### 2026-06-26 — Real win-probability model (Elo + Poisson + in-play), bundle-gated
 - **Model:** new `lib/win-prob.ts` — pure, deterministic, unit-tested. Elo
   (`computeRatings`, seeded + replayed over finished results) → Poisson/Dixon–Coles

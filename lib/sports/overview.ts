@@ -20,7 +20,9 @@ function toSummary(s: SportAdapter, b: LiveBundle): SportSummary {
     syncedAt: b.syncedAt,
     liveCount: b.liveCount,
     total: b.games.length,
-    topGames: topGames(b.games, 3),
+    // Carry ALL live games (plus a few upcoming) so the home "Live now" section and
+    // ticker never truncate simultaneous live matches — not just a fixed top-3.
+    topGames: topGames(b.games, Math.max(3, b.liveCount + 3)),
   };
 }
 

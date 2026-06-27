@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase, getSessionUser } from "@/lib/db/supabase-server";
+import { PAYWALL_ENABLED } from "@/lib/gating";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +38,10 @@ export async function GET() {
       displayName: profile?.display_name ?? null,
       avatarUrl: profile?.avatar_url ?? null,
     },
+    // Paywall off → everyone is fully entitled (the gating code stays in place).
     entitlements: {
-      hasPersonal: ent?.has_personal ?? false,
-      hasPro: ent?.has_pro ?? false,
+      hasPersonal: !PAYWALL_ENABLED || (ent?.has_personal ?? false),
+      hasPro: !PAYWALL_ENABLED || (ent?.has_pro ?? false),
     },
     points: profile?.prediction_points ?? 0,
     pinnedMatch: profile?.pinned_match ?? null,

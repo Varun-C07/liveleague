@@ -9,6 +9,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBrowserSupabase } from "@/lib/db/supabase-browser";
 import { useAuth } from "@/hooks/useAuth";
+import { PAYWALL_ENABLED } from "@/lib/gating";
 
 type MeResponse = {
   user: {
@@ -94,8 +95,9 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }
 
   const value: EntitlementsValue = {
-    hasPersonal: data?.entitlements.hasPersonal ?? false,
-    hasPro: data?.entitlements.hasPro ?? false,
+    // Paywall off → everyone (incl. signed-out) is fully entitled in the UI.
+    hasPersonal: !PAYWALL_ENABLED || (data?.entitlements.hasPersonal ?? false),
+    hasPro: !PAYWALL_ENABLED || (data?.entitlements.hasPro ?? false),
     points: data?.points ?? 0,
     pinnedMatch: data?.pinnedMatch ?? null,
     setPin,
