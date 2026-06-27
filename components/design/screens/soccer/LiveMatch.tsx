@@ -23,7 +23,7 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
 
   const live = m.status === "live";
   const score = m.status === "sched" ? "vs" : `${m.homeScore ?? 0}–${m.awayScore ?? 0}`;
-  const statusLabel = live ? (m.minute ? `${m.minute}'` : "LIVE") : m.status === "ft" ? "FT" : kickoffLabel(m.utc);
+  const statusLabel = live ? (m.minute || "LIVE") : m.status === "ft" ? "FT" : kickoffLabel(m.utc);
 
   return (
     <div onClick={() => router.push(`/soccer/match/${m.n}`)} style={{ position: "relative", overflow: "hidden", cursor: "pointer", ...card(t, live ? { ring: hex(t.live, 0.5) } : {}) }}>

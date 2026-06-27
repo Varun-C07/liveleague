@@ -38,11 +38,12 @@ function statusLabel(s: EspnStatus | undefined): { status: string | null; progre
   const state = s?.type?.state; // "pre" | "in" | "post"
   if (state === "post") return { status: "FT", progress: null };
   if (state === "pre") return { status: "NS", progress: null };
-  // in-play: hand parseStatus a clean minute ("66") or "HALF".
-  const raw = s?.displayClock || s?.type?.shortDetail || "";
+  // in-play: keep stoppage time ("90+3"), not just the base minute. Strip the
+  // apostrophes ESPN uses ("90'+3'") so the +N isn't dropped.
+  const raw = (s?.displayClock || s?.type?.shortDetail || "").replace(/['']/g, "");
   if (/half|ht/i.test(raw)) return { status: null, progress: "HALF" };
-  const m = raw.match(/\d+/);
-  return { status: null, progress: m ? m[0] : "LIVE" };
+  const m = raw.match(/\d+(?:\s*\+\s*\d+)?/);
+  return { status: null, progress: m ? m[0].replace(/\s+/g, "") : "LIVE" };
 }
 
 function parse(j: Record<string, unknown> | null): RawEvent[] {

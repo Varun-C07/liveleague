@@ -231,7 +231,11 @@ export function AuthModal({
         className="ll-auth-card rise"
         style={{
           position: "relative",
-          overflow: "hidden",
+          // Vertical scroll (not clip) so a tall form fits short mobile viewports;
+          // horizontal stays clipped for the rounded corners / brand panel.
+          overflowX: "hidden",
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
           borderRadius: 18,
           border: `1px solid ${hex(t.border, 0.8)}`,
           background: t.surface,

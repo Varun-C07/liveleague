@@ -102,9 +102,12 @@ function StatBars({ t, stats, homeColor, awayColor }: { t: Theme; stats: StatPai
       <SectionLabel t={t}>📊 Match stats</SectionLabel>
       <div style={{ display: "grid", gap: 11 }}>
         {stats.map((s) => {
-          const total = s.pct ? 100 : s.home + s.away || 1;
-          const hPct = Math.round((s.home / total) * 100);
-          const aPct = s.pct ? 100 - hPct : Math.round((s.away / total) * 100);
+          // Bar widths are always relative to each other (home vs away) — even
+          // for "%" stats like pass accuracy, where the two values are
+          // independent and don't sum to 100. The labels show the true values.
+          const sum = s.home + s.away || 1;
+          const hPct = Math.round((s.home / sum) * 100);
+          const aPct = 100 - hPct;
           const fmt = (v: number) => (s.pct ? `${Math.round(v)}%` : `${v}`);
           return (
             <div key={s.key}>
