@@ -14,6 +14,15 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-27 — Fixtures date filter → calendar (single day / range)
+- Replaced the "All dates / Today / Next N" `<Sel>` on the World Cup fixtures with a
+  calendar popover: new `components/design/screens/soccer/DateRangePicker.tsx`. Pick a
+  single day or a consecutive range (click start, click end); **only days that have
+  games are selectable** (others disabled). Month nav is bounded to months with
+  fixtures; today is ringed; a Clear/× resets to all dates. `Fixtures.tsx` now holds a
+  `DateRange` state + `inSelectedRange` predicate and derives `availableDays` from the
+  match list.
+
 ### 2026-06-26 — Home "Live now" (all live games) · paywall toggled OFF
 - **Home shows every live game:** `components/design/screens/Home.tsx` gains a
   "Live now" section listing ALL currently-live games across sports (like the World

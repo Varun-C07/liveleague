@@ -8,20 +8,13 @@ import { card, hex, unskew, Crest, Pulse } from "@/components/design/primitives"
 import { ChevronDown, ChevronRight, MapPin, Lock } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
+import { DateRangePicker, type DateRange } from "@/components/design/screens/soccer/DateRangePicker";
 import { PAYWALL_ENABLED } from "@/lib/gating";
 import type { ApiMatch } from "@/lib/api-shape";
 
 type ViewId = "today" | "all" | "live" | "mine";
 type StageId = "all" | "group" | "r32" | "r16" | "qf" | "sf" | "final";
 type SortId = "date" | "group" | "team";
-type DateId = "all" | "today" | "d3" | "d7";
-
-const DATES: { id: DateId; label: string }[] = [
-  { id: "all", label: "All dates" },
-  { id: "today", label: "Today" },
-  { id: "d3", label: "Next 3 days" },
-  { id: "d7", label: "Next 7 days" },
-];
 
 const VIEWS: { id: ViewId; label: string }[] = [
   { id: "today", label: "Today" },
@@ -61,19 +54,13 @@ function dayLabel(key: string, today: string): string {
   const md = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return key === today ? `Today · ${md}` : `${wd} · ${md}`;
 }
-// "YYYY-MM-DD" n days after `today` (noon-UTC arithmetic avoids DST edges).
-function addDaysET(today: string, n: number): string {
-  const d = new Date(today + "T12:00:00Z");
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-// Does a match-day (etDay) fall inside the selected date window?
-function dateMatch(md: string, date: DateId, today: string): boolean {
-  if (date === "all") return true;
+// Does a match-day (etDay) fall inside the picked date / range? Empty selection
+// (start === null) matches everything.
+function inSelectedRange(md: string, r: DateRange): boolean {
+  if (!r.start) return true;
   if (!md) return false;
-  if (date === "today") return md === today;
-  if (date === "d3") return md >= today && md <= addDaysET(today, 2);
-  return md >= today && md <= addDaysET(today, 6); // d7
+  if (!r.end) return md === r.start;
+  return md >= r.start && md <= r.end;
 }
 
 type Section = { key: string; label: string | null; items: ApiMatch[] };
@@ -127,7 +114,17 @@ export function Fixtures({ matches, favSet }: { matches: ApiMatch[]; favSet: Set
   const [stage, setStage] = useState<StageId>("all");
   const [group, setGroup] = useState<string>("all");
   const [sort, setSort] = useState<SortId>("date");
-  const [date, setDate] = useState<DateId>("all");
+  const [range, setRange] = useState<DateRange>({ start: null, end: null });
+
+  // Only days with games are selectable in the calendar.
+  const availableDays = useMemo(() => {
+    const s = new Set<string>();
+    for (const m of matches) {
+      const d = etDay(m.utc);
+      if (d) s.add(d);
+    }
+    return s;
+  }, [matches]);
   const [toggled, setToggled] = useState<Set<string>>(new Set());
 
   const viewCounts = useMemo(
@@ -169,19 +166,13 @@ export function Fixtures({ matches, favSet }: { matches: ApiMatch[]; favSet: Set
     for (const g of GROUPS) c[g] = viewMatches.filter((m) => m.grp === g).length;
     return c;
   }, [viewMatches]);
-  const dateCounts = useMemo(() => {
-    const c = {} as Record<DateId, number>;
-    for (const d of DATES) c[d.id] = viewMatches.filter((m) => dateMatch(etDay(m.utc), d.id, today)).length;
-    return c;
-  }, [viewMatches, today]);
-
   const sections = useMemo(() => {
     const stageDef = STAGES.find((s) => s.id === stage)!;
     const filtered = viewMatches.filter(
-      (m) => stageDef.match(m) && (group === "all" || m.grp === group) && dateMatch(etDay(m.utc), date, today),
+      (m) => stageDef.match(m) && (group === "all" || m.grp === group) && inSelectedRange(etDay(m.utc), range),
     );
     return buildSections(filtered, sort, today);
-  }, [viewMatches, stage, group, sort, date, today]);
+  }, [viewMatches, stage, group, sort, range, today]);
 
   const total = useMemo(() => sections.reduce((n, s) => n + s.items.length, 0), [sections]);
 
@@ -251,13 +242,7 @@ export function Fixtures({ matches, favSet }: { matches: ApiMatch[]; favSet: Set
                 </option>
               ))}
             </Sel>
-            <Sel t={t} ariaLabel="Filter by date" value={date} onChange={(v) => setDate(v as DateId)}>
-              {DATES.map((d) => (
-                <option key={d.id} value={d.id} disabled={d.id !== "all" && dateCounts[d.id] === 0}>
-                  {d.label} ({dateCounts[d.id]})
-                </option>
-              ))}
-            </Sel>
+            <DateRangePicker availableDays={availableDays} value={range} onChange={setRange} today={today} />
             <Sel t={t} ariaLabel="Sort fixtures" value={sort} onChange={(v) => setSort(v as SortId)}>
               <option value="date">Sort: Date</option>
               <option value="group">Sort: Group</option>
