@@ -29,6 +29,11 @@ function seed(s: string): number {
 // Ages aren't in the real roster data → derived placeholder (stable per player).
 const ageOf = (code: string, number: number) => 19 + (seed(`${code}#${number}`) % 17); // 19..35
 
+// True when we have a hand-verified real roster (vs. the generic placeholder).
+export function hasRealSquad(code: string): boolean {
+  return !!REAL_SQUADS[code];
+}
+
 // ── generic placeholder squad (teams without a real roster yet) ──────────────
 const SURNAMES = [
   "Andersen", "Bauer", "Costa", "Diallo", "Eriksson", "Ferreira", "Garcia", "Horvat",

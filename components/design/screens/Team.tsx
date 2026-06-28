@@ -7,10 +7,10 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffLabel } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
-import { PAYWALL_ENABLED } from "@/lib/gating";
+import { PAYWALL_ENABLED, SHOW_PLACEHOLDERS } from "@/lib/gating";
 import { PlayerTags } from "@/components/design/PlayerTags";
 import { recentForm, type FormResult } from "@/components/design/screens/match/matchData";
-import { teamSquad, teamAnalysis, type Player } from "@/components/design/screens/team/teamData";
+import { teamSquad, teamAnalysis, hasRealSquad, type Player } from "@/components/design/screens/team/teamData";
 import { useMatches, useStandings } from "@/hooks/useMatches";
 import { TEAMS } from "@/data/teams";
 import type { MatchesResponse, StandingsResponse, ApiMatch } from "@/lib/api-shape";
@@ -61,9 +61,9 @@ export function Team({
     );
   }
 
-  const form = recentForm(code);
   const squad = teamSquad(code);
   const analysis = teamAnalysis({ code, name: team.name, grp });
+  const showSquad = hasRealSquad(code) || SHOW_PLACEHOLDERS;
   const fc = (r: FormResult) => (r === "W" ? t.win : r === "D" ? t.neutral : t.lose);
 
   return (
@@ -84,11 +84,13 @@ export function Team({
                   <b style={{ color: standing.pos <= 2 ? t.win : t.text }}>{ORD(standing.pos)}</b> · {standing.pts} pts
                 </span>
               ) : null}
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                {form.map((r, i) => (
-                  <span key={i} style={{ width: 18, height: 18, borderRadius: 4, display: "grid", placeItems: "center", fontSize: 9.5, fontWeight: 800, color: fc(r), background: hex(fc(r), 0.16), border: `1px solid ${hex(fc(r), 0.4)}` }}>{r}</span>
-                ))}
-              </span>
+              {SHOW_PLACEHOLDERS ? (
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  {recentForm(code).map((r, i) => (
+                    <span key={i} style={{ width: 18, height: 18, borderRadius: 4, display: "grid", placeItems: "center", fontSize: 9.5, fontWeight: 800, color: fc(r), background: hex(fc(r), 0.16), border: `1px solid ${hex(fc(r), 0.4)}` }}>{r}</span>
+                  ))}
+                </span>
+              ) : null}
             </div>
           </div>
         </div>
@@ -102,12 +104,19 @@ export function Team({
         </div>
       </div>
 
-      {/* SQUAD — free, rows are click-ready for a future player route */}
+      {/* SQUAD — free for hand-verified rosters; generic placeholder squads are
+          hidden (we don't pass off invented names as the real lineup). */}
       <div style={{ marginTop: 26 }}>
         <SL t={t}>Squad</SL>
-        <div style={{ display: "grid", gap: 6 }}>
-          {squad.map((p) => <SquadRow key={p.id} t={t} p={p} />)}
-        </div>
+        {showSquad ? (
+          <div style={{ display: "grid", gap: 6 }}>
+            {squad.map((p) => <SquadRow key={p.id} t={t} p={p} />)}
+          </div>
+        ) : (
+          <div style={{ ...card(t), padding: "14px 16px" }}>
+            <span style={{ fontSize: 13, color: t.textDim }}>Confirmed squad list isn&apos;t available yet for {team.name}.</span>
+          </div>
+        )}
       </div>
 
       {/* PAID — prediction & analysis, behind glass. Hidden while the paywall is
@@ -180,7 +189,9 @@ function SquadRow({ t, p }: { t: Theme; p: Player }) {
         <PlayerTags t={t} captain={p.isCaptain} goalkeeper={p.isGoalkeeper} />
       </span>
       <span style={{ fontSize: 11, color: t.textDim, fontWeight: 700, width: 30, textAlign: "right" }}>{p.pos}</span>
-      <span className="num" style={{ fontSize: 11.5, color: t.textFaint, fontWeight: 700 }}>{p.age}y</span>
+      {SHOW_PLACEHOLDERS ? (
+        <span className="num" style={{ fontSize: 11.5, color: t.textFaint, fontWeight: 700 }}>{p.age}y</span>
+      ) : null}
     </Link>
   );
 }

@@ -28,6 +28,15 @@ Last reviewed: 2026-06-27.
 
 ---
 
+## 🙈 Visibility
+
+The placeholder surfaces below are **hidden from the UI** by the `SHOW_PLACEHOLDERS`
+flag (`lib/gating.ts`, currently `false`) so nothing fabricated is shown as if it were
+real. Flip it to `true` to surface them again (design/demo). The paid analysis panels
+are separately hidden by `PAYWALL_ENABLED`. What's hidden while `SHOW_PLACEHOLDERS` is
+off: generic (non-verified) squads + their player pages, seeded player age/club/stats,
+and the seeded team-header form badges.
+
 ## ⚠️ PLACEHOLDER (fabricated / seeded — not real)
 
 | Data | File · function | Kind | Where it shows |

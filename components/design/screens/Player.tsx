@@ -6,9 +6,10 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
-import { PAYWALL_ENABLED } from "@/lib/gating";
+import { PAYWALL_ENABLED, SHOW_PLACEHOLDERS } from "@/lib/gating";
 import { PlayerTags } from "@/components/design/PlayerTags";
 import { getPlayer, playerAnalysis } from "@/components/design/screens/player/playerData";
+import { hasRealSquad } from "@/components/design/screens/team/teamData";
 import { TEAMS } from "@/data/teams";
 
 const POS: Record<string, string> = { GK: "Goalkeeper", DEF: "Defender", MID: "Midfielder", FWD: "Forward" };
@@ -18,7 +19,8 @@ export function Player({ id, code }: { id: string; code: string }) {
   const profile = getPlayer(id);
   const team = TEAMS[code as keyof typeof TEAMS];
 
-  if (!profile || !team) {
+  // Generic (non-verified) players are invented — don't surface them as real.
+  if (!profile || !team || (!hasRealSquad(code) && !SHOW_PLACEHOLDERS)) {
     return (
       <div className="rise" style={{ maxWidth: 720, margin: "0 auto", paddingTop: 18 }}>
         <BackLink t={t} code={code} name={team?.name ?? "fixtures"} />
@@ -67,7 +69,9 @@ export function Player({ id, code }: { id: string; code: string }) {
               <PlayerTags t={t} captain={player.isCaptain} goalkeeper={player.isGoalkeeper} size={10.5} />
             </div>
             <div style={{ fontSize: 12.5, color: t.textDim, fontWeight: 600, marginTop: 7 }}>
-              {POS[player.pos] ?? player.pos} · {player.age} yrs · {club}
+              {/* age + club are seeded placeholders — show only the real position
+                  unless placeholders are explicitly enabled. */}
+              {SHOW_PLACEHOLDERS ? `${POS[player.pos] ?? player.pos} · ${player.age} yrs · ${club}` : (POS[player.pos] ?? player.pos)}
             </div>
             <Link href={`/soccer/team/${code}`} className="ll-team-link" style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 9, textDecoration: "none", color: t.text }}>
               <Crest code={code} color={team.color} dark={isLightColor(team.color)} size={20} />
@@ -77,18 +81,21 @@ export function Player({ id, code }: { id: string; code: string }) {
         </div>
       </div>
 
-      {/* STATS — free, complete row (no empty slots) */}
-      <div style={{ marginTop: 26 }}>
-        <SL t={t}>Tournament</SL>
-        <div style={{ ...card(t), padding: "16px 14px", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(86px,1fr))", gap: 14 }}>
-          {statBlocks.map((s) => (
-            <div key={s.label} style={{ textAlign: "center" }}>
-              <div className="disp num" style={{ fontSize: 26, fontWeight: 800, color: s.color && s.value > 0 ? s.color : t.text, lineHeight: 1 }}>{s.value}</div>
-              <div style={{ fontSize: 10.5, color: t.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", marginTop: 5 }}>{s.label}</div>
-            </div>
-          ))}
+      {/* TOURNAMENT STATS — seeded placeholders (no free per-player source), hidden
+          unless explicitly enabled so we don't present invented numbers as real. */}
+      {SHOW_PLACEHOLDERS ? (
+        <div style={{ marginTop: 26 }}>
+          <SL t={t}>Tournament</SL>
+          <div style={{ ...card(t), padding: "16px 14px", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(86px,1fr))", gap: 14 }}>
+            {statBlocks.map((s) => (
+              <div key={s.label} style={{ textAlign: "center" }}>
+                <div className="disp num" style={{ fontSize: 26, fontWeight: 800, color: s.color && s.value > 0 ? s.color : t.text, lineHeight: 1 }}>{s.value}</div>
+                <div style={{ fontSize: 10.5, color: t.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", marginTop: 5 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* PAID — player analysis behind glass. Hidden while the paywall is off:
           these ratings are placeholder (no free source), so we don't show them as

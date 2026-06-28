@@ -13,6 +13,14 @@ export type Entitlements = { hasPersonal: boolean; hasPro: boolean };
 // paywall with zero other changes. Client-safe (this module has no server imports).
 export const PAYWALL_ENABLED = false;
 
+// ── PLACEHOLDER VISIBILITY ───────────────────────────────────────────────────
+// While `false`, fabricated/seeded data is hidden from the UI instead of shown as
+// if it were real: generic (non-verified) squads, seeded player ages/clubs/stats,
+// and the seeded team-header form badges. Real, hand-verified squads (squads.ts)
+// and all live/derived data are unaffected. Flip to `true` to surface placeholders
+// again (e.g. for design/demo). See PLACEHOLDERS.md for the full inventory.
+export const SHOW_PLACEHOLDERS = false;
+
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
 export function entitlementsForSku(sku: Sku): Entitlements {

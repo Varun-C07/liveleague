@@ -14,6 +14,18 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-27 — Hide placeholder data from the UI (`SHOW_PLACEHOLDERS` flag)
+- New `SHOW_PLACEHOLDERS` flag in `lib/gating.ts` (currently `false`). While off, the UI
+  no longer shows fabricated data as real:
+  - **Team page** (`Team.tsx`): generic (non-verified) squads are replaced with a
+    "squad not available yet" note (the 9 hand-verified squads in `squads.ts` still show);
+    seeded per-player **age** and the seeded **team-header form badges** are hidden.
+  - **Player page** (`Player.tsx`): generic players return "not available"; for real-squad
+    players the seeded **age/club** and the seeded **Tournament stats** block are hidden
+    (name / number / position / team link stay — those are real).
+- Added `hasRealSquad()` to `team/teamData.ts`. Paid analysis panels remain separately
+  hidden by `PAYWALL_ENABLED`. PLACEHOLDERS.md updated.
+
 ### 2026-06-27 — Fixtures controls simplified · calendar modal · results scoring · collapsible standings
 - **Fixtures controls** (`components/design/screens/soccer/Fixtures.tsx`): collapsed the
   view chips + stage/group selects into just **one Filter** dropdown (All / My teams /
