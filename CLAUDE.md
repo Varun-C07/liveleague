@@ -9,10 +9,12 @@ layer tracks five leagues, but the **live UI surfaces three screens: Home, World
 and F1.** Live data is server-proxied from **free** feeds (Jolpica F1, TheSportsDB soccer) with
 per-sport snapshot fallbacks. The app is the repo root. Repo: `github.com/Ayush-Chaudhary/liveleague`.
 
-Two-person team. **I (this collaborator) own the FRONTEND only.** My partner owns the BACKEND
-(Supabase data + auth, Stripe payments). Work happens on branch `frontend-polish`; nothing is
-pushed to `main` until deliberately opening a PR — that's how the partner integrates. So: build
-front-end experiences with clean PLACEHOLDER SEAMS, never real backend wiring.
+Two-person team. **I (this collaborator) own the FRONTEND.** My partner owns the BACKEND
+(Supabase data + auth, Stripe payments). **Much of the backend is now wired for real** — Supabase
+auth, Stripe checkout + webhooks, friend leagues, predictions + scoring, entitlements/gating, and
+cron jobs all exist (see **Backend (wired)** below). So the rule is now: **use the real seam where
+the backend exists; add a clean PLACEHOLDER SEAM only where it doesn't yet.** Don't reintroduce mock
+auth/payments — those are live. Branch + PR before merging to `main` so the partner can integrate.
 
 ## ⚠️ Two UI systems — read this first
 - **LIVE — `components/design/`.** This is what renders. Styles with **inline `style={{…}}`
@@ -53,15 +55,18 @@ Frame wrapped around every page. Contains:
   pauses on hover, respects prefers-reduced-motion, never empty (falls back to today/upcoming).
 
 ## Auth modal (`components/design/auth/`)
-- `authClient.ts` — **BACKEND SEAM.** Typed mock stubs (`signInWithEmail`, `signUpWithEmail`,
-  `signInWithOAuth`, `checkUsernameAvailability`, `getSession`, `signOut`) returning a typed
-  `AuthResult`. Every function marked `// BACKEND SEAM: replace with Supabase`. UI calls ONLY these.
+- `authClient.ts` — **REAL auth, backed by Supabase** (no longer a mock). Same signatures
+  (`signInWithEmail`, `signUpWithEmail`, `signInWithOAuth`, `checkUsernameAvailability`,
+  `getSession`, `signOut`) returning a typed `AuthResult`; UI calls ONLY these. Google OAuth works;
+  email sign-up requires email confirmation; **Apple sign-in is not implemented yet** (returns a
+  "not available" result — and is a hard requirement before any iOS App Store submission). The app's
+  `hooks/useAuth.tsx` (`onAuthStateChange`) drives session state in the shell.
 - `AuthModalProvider.tsx` — context exposing `openAuth(mode)` / `closeAuth()`; renders the modal.
   Any CTA (Unlock $5, Get the bundle, Join a league) can open it with one line.
 - `AuthModal.tsx` — two-column modal (brand panel + form), Sign in / Create account tabs,
   Google/Apple buttons, email/username/password, debounced live username check, full a11y (focus
-  trap, Esc/backdrop close, scroll lock). Success currently `console.log`s the user — real session
-  handling is the seam.
+  trap, Esc/backdrop close, scroll lock). On success Supabase sets the session and `useAuth` updates
+  the shell — real session handling, not a console.log.
 
 ## Theming (`components/design/theme.tsx`)
 - Named palettes: `Obsidian` (default/master), `Broadcast`, `Terminal`, `Ember`, `Paper`. Each is a
@@ -103,8 +108,12 @@ layer (NOT scattered in components). **Must default OFF** — production never s
 Gated paid features: **live prediction / predictor, real win-probability, friend leagues,
 prediction alerts, follow up to 4 teams.** Free tier: scores, standings, fixtures, basic profiles,
 clearly-labeled SAMPLE win-prob. Design rule: don't hide paid features — TEASE them premium
-(blurred/locked behind glass with the price), never the cheap yellow box. Every paid surface gets a
-placeholder seam; the partner wires Supabase/Stripe later.
+(blurred/locked behind glass with the price), never the cheap yellow box. **Payments are wired:**
+Stripe checkout (`/api/checkout`) + webhook (`/api/webhooks/stripe`) sync `entitlements`; gating is
+`lib/entitlements.ts` / `lib/gating.ts` (`hasPersonal`/`hasPro`, `PAYWALL_ENABLED` master switch —
+currently OFF, so features are unlocked). Gate UI through those entitlements, not ad-hoc booleans.
+(Mobile/iOS can't use Stripe for digital goods — that path will use Apple IAP/RevenueCat; see
+`docs/MOBILE_DEPLOYMENT_PLAN.md`.)
 
 ## Data layer (backend — all five sports)
 Each sport is one adapter implementing `SportAdapter` (`lib/sports/types.ts`): `getLive()` fetches +
@@ -116,6 +125,34 @@ fallback "Offline."** Sport detail in a discriminated `Game.extra` union.
 - Polling: `hooks/useLive.ts` + `lib/polling.ts` — ~15s live → 5m idle.
 - Live status is clock-checked (`clampLive()` in `lib/normalize.ts`) so a finished game never shows
   "live" hours later.
+
+## Backend (wired) — Supabase + Stripe
+Beyond the five-sport data layer, the partner has wired real backend infrastructure. Use it; don't
+re-mock it.
+- **Supabase clients** (`lib/db/`): `supabase-browser.ts` (client/RN-safe), `supabase-server.ts`
+  (cookie-bound SSR session), `supabase-admin.ts` (service-role, server-only — never ship to a
+  client), `cache.ts` (`data_cache` table via `readCache`/`writeCache`).
+- **Auth:** Supabase email + Google OAuth (`authClient.ts`, `hooks/useAuth.tsx`). Apple sign-in TODO.
+- **Stripe** (`lib/stripe/`): `client.ts` (server-only SDK), `skus.ts` (pure SKU registry).
+  `/api/checkout` creates sessions; `/api/webhooks/stripe` syncs entitlements.
+- **Entitlements / gating:** `lib/entitlements.ts` (`getEntitlements`, `requireUser/Personal/Pro`),
+  `lib/gating.ts` (`Entitlements` type, `PAYWALL_ENABLED`).
+- **User-scoped API routes** (Supabase-backed): `/api/me`, `/api/me/follows`, `/api/me/pin`,
+  `/api/leagues`, `/api/leagues/[id]`, `/api/leagues/join`, `/api/predictions`,
+  `/api/auth/username`, `/api/notifications`.
+- **Cron jobs:** `/api/cron/score` (batch-score predictions), `/api/cron/detail` (refresh detail
+  cache), `/api/cron/notify`, `/api/cron/lock` (distributed lock).
+- **Client hooks** over these: `useEntitlements`, `usePredictions`, `useLeagues`, `useWinProb`,
+  `useFavorites`/`usePrefs` (localStorage), `useNotifications`.
+- **Security:** RLS is the real authz layer for user-scoped tables. Only public keys (anon/Supabase
+  URL) are client-safe; service-role/Stripe-secret stay server-only.
+
+## Mobile app (planned)
+A native **iOS app (Expo / React Native)** is planned, evolving this design language; Android on the
+roadmap. The plan is a **Turborepo monorepo** (`apps/web`, `apps/mobile`, shared `packages/core` for
+the portable pure-TS data layer) with a separate Python ML prediction service. Full plans:
+`docs/MOBILE_DEPLOYMENT_PLAN.md` (deploy/infra/security/payments) and
+`docs/VARUN_MOBILE_AND_ML_PLAN.md` (mobile frontend + ML model).
 
 ## Data sources (FREE-ONLY — constraint)
 Jolpica (F1), TheSportsDB (soccer), ESPN public JSON (NBA/MLB), snapshot (cricket). **No licensed
@@ -136,10 +173,11 @@ npm run lint     # eslint
 - **Pure logic → `.ts`, not `.tsx`** (Vitest chokes on imported `.tsx`). Inject `now`/params instead
   of `Date.now()` so tests are deterministic.
 - **Client components must not import server adapters/registry.** Use client-safe modules + `import type`.
-- **Backend seams:** anything needing real backend (auth, payments, predictions, followed teams,
-  H2H/player data) goes behind ONE clearly-commented typed stub (`// BACKEND SEAM: replace with
-  Supabase`), returning mock/empty data. UI talks only to the seam. This keeps the partner's
-  integration a small swap, not a rewrite. Never scatter mock values into components.
+- **Backend seams:** auth, payments, predictions, leagues, follows are **wired** — call the real
+  module/route (see **Backend (wired)**), never re-mock them. For backend that genuinely doesn't
+  exist yet, still go behind ONE clearly-commented typed seam returning empty data, so the partner's
+  integration is a small swap. UI talks only to the seam — never scatter `fetch()`/mock values
+  across components.
 - The app models **2026** events; "now" is the runtime clock.
 - ESPN/team logos are image URLs (`logoUrl`, rendered as `<img>`), not text.
 
@@ -161,5 +199,5 @@ npm run lint     # eslint
 ## Deploy
 GitHub Actions (`.github/workflows/deploy.yml`), token-based, gated on lint + tests. Needs repo
 secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (still to be added by owner), and the
-native Vercel Git integration disconnected. Live site untouched until a deliberate PR from
-`frontend-polish`.
+native Vercel Git integration disconnected. Branch + PR for changes so the partner can integrate;
+don't push directly to a deploying branch.
