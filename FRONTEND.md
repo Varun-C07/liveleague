@@ -14,6 +14,22 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-27 — Fixtures controls simplified · calendar modal · results scoring · collapsible standings
+- **Fixtures controls** (`components/design/screens/soccer/Fixtures.tsx`): collapsed the
+  view chips + stage/group selects into just **one Filter** dropdown (All / My teams /
+  Today) and **one Sort** dropdown (Date ↑/↓, Group ↑/↓), plus the calendar. Removing the
+  old "Today"-default view also fixes the calendar filter (it previously couldn't show
+  other dates because the view pre-restricted to today).
+- **Calendar** (`DateRangePicker.tsx`): now a centered modal over a dimmed backdrop via a
+  `createPortal` to `document.body` (fixes mobile clipping + the unclear background;
+  Esc/backdrop/Done close, body scroll locked). Single-day or consecutive range; only days
+  with games selectable.
+- **Your results** (`components/design/screens/Soccer.tsx`): finished games no longer show
+  "Pending" — if the scoring cron hasn't written points yet, the result is scored
+  client-side (`lib/scoring.ts` `scorePrediction`) for display.
+- **Group standings** is now collapsible like Fixtures (chevron header).
+- **PLACEHOLDERS.md** added — full real-vs-placeholder data inventory.
+
 ### 2026-06-27 — Fixtures date filter → calendar (single day / range)
 - Replaced the "All dates / Today / Next N" `<Sel>` on the World Cup fixtures with a
   calendar popover: new `components/design/screens/soccer/DateRangePicker.tsx`. Pick a

@@ -12,30 +12,23 @@ import { DateRangePicker, type DateRange } from "@/components/design/screens/soc
 import { PAYWALL_ENABLED } from "@/lib/gating";
 import type { ApiMatch } from "@/lib/api-shape";
 
-type ViewId = "today" | "all" | "live" | "mine";
-type StageId = "all" | "group" | "r32" | "r16" | "qf" | "sf" | "final";
-type SortId = "date" | "group" | "team";
+// Two controls only: one Filter (which matches) and one Sort (how to order them),
+// plus the calendar date picker. Everything else (stage/group selects, view chips)
+// folds into these.
+type FilterId = "all" | "mine" | "today";
+type SortId = "date-asc" | "date-desc" | "group-asc" | "group-desc";
 
-const VIEWS: { id: ViewId; label: string }[] = [
-  { id: "today", label: "Today" },
-  { id: "all", label: "All" },
-  { id: "live", label: "Live" },
+const FILTERS: { id: FilterId; label: string }[] = [
+  { id: "all", label: "All matches" },
   { id: "mine", label: "My teams" },
+  { id: "today", label: "Today" },
 ];
-
-// Stage categories are derived from the data: group stage = `grp != null`;
-// knockout rounds = exact `stage` codes (the Final bucket includes 3rd place).
-const STAGES: { id: StageId; label: string; match: (m: ApiMatch) => boolean }[] = [
-  { id: "all", label: "All stages", match: () => true },
-  { id: "group", label: "Group stage", match: (m) => m.grp != null },
-  { id: "r32", label: "Round of 32", match: (m) => m.stage === "R32" },
-  { id: "r16", label: "Round of 16", match: (m) => m.stage === "R16" },
-  { id: "qf", label: "Quarter-final", match: (m) => m.stage === "QF" },
-  { id: "sf", label: "Semi-final", match: (m) => m.stage === "SF" },
-  { id: "final", label: "Final", match: (m) => m.stage === "Final" || m.stage === "3rd Place" },
+const SORTS: { id: SortId; label: string }[] = [
+  { id: "date-asc", label: "Date ↑ earliest" },
+  { id: "date-desc", label: "Date ↓ latest" },
+  { id: "group-asc", label: "Group A → Z" },
+  { id: "group-desc", label: "Group Z → A" },
 ];
-
-const GROUPS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 
 // ── date helpers (America/New_York, matching the kickoff labels) ──────────────
 function etDay(utc: string): string {
@@ -68,53 +61,49 @@ type Section = { key: string; label: string | null; items: ApiMatch[] };
 const liveFirst = (a: ApiMatch, b: ApiMatch) =>
   Number(b.status === "live") - Number(a.status === "live") || a.utc.localeCompare(b.utc);
 
-// Group the filtered list into collapsible sections per the active sort.
+// Group the filtered list into collapsible sections per the active sort. Knockout
+// matches always bucket last under group sorts (they have no group letter).
 function buildSections(list: ApiMatch[], sort: SortId, today: string): Section[] {
-  if (sort === "team") {
-    const items = [...list].sort(
-      (a, b) => a.home.name.localeCompare(b.home.name) || a.away.name.localeCompare(b.away.name),
-    );
-    return [{ key: "__flat", label: null, items }];
-  }
+  const isDate = sort.startsWith("date");
+  const asc = sort.endsWith("asc");
   const buckets = new Map<string, ApiMatch[]>();
   for (const m of list) {
-    const k = sort === "date" ? etDay(m.utc) : m.grp ?? "KO";
-    let arr = buckets.get(k);
-    if (!arr) {
-      arr = [];
-      buckets.set(k, arr);
-    }
-    arr.push(m);
+    const k = isDate ? etDay(m.utc) : m.grp ?? "KO";
+    const arr = buckets.get(k);
+    if (arr) arr.push(m);
+    else buckets.set(k, [m]);
   }
-  const keys = [...buckets.keys()].sort((a, b) => {
-    if (sort === "group") {
-      if (a === "KO") return 1;
-      if (b === "KO") return -1;
-      return a.localeCompare(b);
-    }
-    return a.localeCompare(b); // date keys sort chronologically
-  });
+
+  let keys: string[];
+  if (isDate) {
+    keys = [...buckets.keys()].sort();
+    if (!asc) keys.reverse();
+  } else {
+    const groups = [...buckets.keys()].filter((k) => k !== "KO").sort();
+    if (!asc) groups.reverse();
+    keys = buckets.has("KO") ? [...groups, "KO"] : groups;
+  }
+
   return keys.map((k) => ({
     key: k,
-    label: sort === "date" ? dayLabel(k, today) : k === "KO" ? "Knockout" : `Group ${k}`,
+    label: isDate ? dayLabel(k, today) : k === "KO" ? "Knockout" : `Group ${k}`,
     items: buckets.get(k)!.sort(liveFirst),
   }));
 }
 
-// Collapsible, filterable 104-match system (views + stage/group/sort + collapsible
-// sections), with each row expanding inline into the real match center (timeline /
-// stats / lineups) and a pin-to-top control. Lives in the soccer board's column.
+// Collapsible fixtures: a single Filter + Sort dropdown and the calendar date
+// picker drive a grouped, collapsible list of all 104 matches. Each row opens the
+// full match center; the pin control sticks a match to the top of the board.
 export function Fixtures({ matches, favSet }: { matches: ApiMatch[]; favSet: Set<string> }) {
   const { t } = useTheme();
   const today = todayET();
   const followedSet = favSet; // real followed teams (favourites)
 
   const [open, setOpen] = useState(true);
-  const [view, setView] = useState<ViewId>("today"); // default = Today
-  const [stage, setStage] = useState<StageId>("all");
-  const [group, setGroup] = useState<string>("all");
-  const [sort, setSort] = useState<SortId>("date");
+  const [filter, setFilter] = useState<FilterId>("all");
+  const [sort, setSort] = useState<SortId>("date-asc");
   const [range, setRange] = useState<DateRange>({ start: null, end: null });
+  const [toggled, setToggled] = useState<Set<string>>(new Set());
 
   // Only days with games are selectable in the calendar.
   const availableDays = useMemo(() => {
@@ -125,63 +114,36 @@ export function Fixtures({ matches, favSet }: { matches: ApiMatch[]; favSet: Set
     }
     return s;
   }, [matches]);
-  const [toggled, setToggled] = useState<Set<string>>(new Set());
 
-  const viewCounts = useMemo(
+  const mine = (m: ApiMatch) => followedSet.has(m.home.code) || followedSet.has(m.away.code);
+  const filterCounts = useMemo(
     () => ({
       all: matches.length,
+      mine: matches.filter(mine).length,
       today: matches.filter((m) => etDay(m.utc) === today).length,
-      live: matches.filter((m) => m.status === "live").length,
-      mine: matches.filter((m) => followedSet.has(m.home.code) || followedSet.has(m.away.code)).length,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [matches, followedSet, today],
   );
 
-  // View filter (+ Today → next-matchday fallback).
-  const { viewMatches, note } = useMemo(() => {
-    if (view === "live") return { viewMatches: matches.filter((m) => m.status === "live"), note: null as string | null };
-    if (view === "mine")
-      return {
-        viewMatches: matches.filter((m) => followedSet.has(m.home.code) || followedSet.has(m.away.code)),
-        note: null as string | null,
-      };
-    if (view === "today") {
-      const todays = matches.filter((m) => etDay(m.utc) === today);
-      if (todays.length) return { viewMatches: todays, note: null as string | null };
-      const next = matches.filter((m) => etDay(m.utc) > today).sort((a, b) => a.utc.localeCompare(b.utc))[0];
-      if (!next) return { viewMatches: [], note: "No upcoming matches." };
-      const nd = etDay(next.utc);
-      return { viewMatches: matches.filter((m) => etDay(m.utc) === nd), note: `No matches today — showing ${dayLabel(nd, today)}` };
-    }
-    return { viewMatches: matches, note: null as string | null };
-  }, [matches, view, followedSet, today]);
-
-  const stageCounts = useMemo(() => {
-    const c = {} as Record<StageId, number>;
-    for (const s of STAGES) c[s.id] = viewMatches.filter(s.match).length;
-    return c;
-  }, [viewMatches]);
-  const groupCounts = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const g of GROUPS) c[g] = viewMatches.filter((m) => m.grp === g).length;
-    return c;
-  }, [viewMatches]);
   const sections = useMemo(() => {
-    const stageDef = STAGES.find((s) => s.id === stage)!;
-    const filtered = viewMatches.filter(
-      (m) => stageDef.match(m) && (group === "all" || m.grp === group) && inSelectedRange(etDay(m.utc), range),
-    );
+    const filtered = matches.filter((m) => {
+      if (filter === "mine" && !mine(m)) return false;
+      if (filter === "today" && etDay(m.utc) !== today) return false;
+      return inSelectedRange(etDay(m.utc), range);
+    });
     return buildSections(filtered, sort, today);
-  }, [viewMatches, stage, group, sort, range, today]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matches, filter, followedSet, sort, range, today]);
 
   const total = useMemo(() => sections.reduce((n, s) => n + s.items.length, 0), [sections]);
 
-  // Default-open section: today's date (or next upcoming) for date sort; the
-  // first section otherwise. XOR with user toggles so closing/opening sticks.
+  // Default-open section: the one containing today for date sorts, else the first.
+  // XOR with user toggles so closing/opening sticks per section.
   const defaultOpenKey = useMemo(() => {
-    if (sort !== "date") return sections[0]?.key;
+    if (!sort.startsWith("date")) return sections[0]?.key;
     const keys = sections.map((s) => s.key);
-    return keys.includes(today) ? today : keys.find((k) => k >= today) ?? sections[0]?.key;
+    return keys.includes(today) ? today : sections[0]?.key;
   }, [sections, sort, today]);
 
   const isOpen = (key: string, label: string | null) =>
@@ -207,54 +169,22 @@ export function Fixtures({ matches, favSet }: { matches: ApiMatch[]; favSet: Set
 
       {open && (
         <>
-          {/* Control bar — view chips + refine selects (one cohesive section) */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 9 }}>
-            {VIEWS.map((v) => {
-              const on = view === v.id;
-              const n = viewCounts[v.id];
-              const disabled = n === 0 && !on && v.id === "live";
-              return (
-                <button
-                  key={v.id}
-                  onClick={() => setView(v.id)}
-                  disabled={disabled}
-                  style={{ padding: "6px 12px", borderRadius: 8, border: "none", cursor: disabled ? "default" : "pointer", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", opacity: disabled ? 0.4 : 1, background: on ? t.accent : t.chip, color: on ? t.onAccent : t.textDim }}
-                >
-                  {v.label}<span className="num" style={{ marginLeft: 6, opacity: 0.7 }}>{n}</span>
-                </button>
-              );
-            })}
-          </div>
-
+          {/* Controls — Filter · Date · Sort */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 14 }}>
-            <Sel t={t} ariaLabel="Filter by stage" value={stage} onChange={(v) => setStage(v as StageId)}>
-              {STAGES.map((s) => (
-                <option key={s.id} value={s.id} disabled={s.id !== "all" && stageCounts[s.id] === 0}>
-                  {s.label} ({stageCounts[s.id]})
-                </option>
-              ))}
-            </Sel>
-            <Sel t={t} ariaLabel="Jump to group" value={group} onChange={setGroup}>
-              <option value="all">All groups</option>
-              {GROUPS.map((g) => (
-                <option key={g} value={g} disabled={groupCounts[g] === 0}>
-                  Group {g} ({groupCounts[g]})
-                </option>
+            <Sel t={t} ariaLabel="Filter matches" value={filter} onChange={(v) => setFilter(v as FilterId)}>
+              {FILTERS.map((f) => (
+                <option key={f.id} value={f.id}>{f.label} ({filterCounts[f.id]})</option>
               ))}
             </Sel>
             <DateRangePicker availableDays={availableDays} value={range} onChange={setRange} today={today} />
             <Sel t={t} ariaLabel="Sort fixtures" value={sort} onChange={(v) => setSort(v as SortId)}>
-              <option value="date">Sort: Date</option>
-              <option value="group">Sort: Group</option>
-              <option value="team">Sort: Team</option>
+              {SORTS.map((s) => (
+                <option key={s.id} value={s.id}>{s.label}</option>
+              ))}
             </Sel>
           </div>
 
-          {note ? (
-            <div style={{ fontSize: 12, color: t.textDim, fontWeight: 600, marginBottom: 11 }}>{note}</div>
-          ) : null}
-
-          {view === "mine" && favSet.size === 0 ? (
+          {filter === "mine" && favSet.size === 0 ? (
             PAYWALL_ENABLED ? (
               <BundleTease t={t} />
             ) : (
@@ -378,8 +308,7 @@ function BundleTease({ t }: { t: Theme }) {
   );
 }
 
-// Tap a live/finished row to expand the real match center (timeline · stats ·
-// lineups) inline; pin a match to the top of the board.
+// Tap a row → the full match page. Pin button stops propagation so it doesn't navigate.
 function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
   const { t } = useTheme();
   const router = useRouter();
@@ -392,7 +321,6 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
       ? `FT · ${dateLabel(m.utc)}`
       : kickoffDateTimeLabel(m.utc);
 
-  // Tap the row → the full match page. Pin button stops propagation so it doesn't navigate.
   return (
     <div
       id={`match-${m.n}`}

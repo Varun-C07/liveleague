@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse, SL } from "@/components/design/primitives";
-import { Trophy, TrendingUp, Check, Lock, Star } from "@/components/design/icons";
+import { Trophy, TrendingUp, Check, Lock, Star, ChevronDown } from "@/components/design/icons";
+import { scorePrediction } from "@/lib/scoring";
 import { isLightColor, mapGroupOutlooks } from "@/components/design/map";
 import { LiveMatch } from "@/components/design/screens/soccer/LiveMatch";
 import { GroupCard } from "@/components/design/screens/soccer/GroupCard";
@@ -32,6 +33,7 @@ export function Soccer({
   const { hasPersonal, pinnedMatch: pinnedId } = useEntitlements();
   const { data: predictions } = useMyPredictions();
   const { keys } = useFavorites();
+  const [groupsOpen, setGroupsOpen] = useState(true);
 
   const matches = useMemo(() => mr?.matches ?? [], [mr]);
   const groups = useMemo(() => sr?.groups ?? {}, [sr]);
@@ -108,7 +110,13 @@ export function Soccer({
               <div style={{ display: "grid", gap: 8 }}>
                 {myResults.map((m) => {
                   const p = predByMatch.get(`soccer-${m.n}`)!;
-                  const pts = p.points;
+                  // Points are written by the scoring cron; if it hasn't run yet,
+                  // score the finished match client-side so it's not stuck "Pending".
+                  const pts =
+                    p.points ??
+                    (m.homeScore != null && m.awayScore != null
+                      ? scorePrediction({ home: p.pred_home, away: p.pred_away }, { home: m.homeScore, away: m.awayScore }).points
+                      : null);
                   const badge =
                     pts === 3 ? { txt: "Exact +3", bg: t.gold, fg: INK } :
                     pts === 1 ? { txt: "Outcome +1", bg: t.chip, fg: t.text } :
@@ -129,12 +137,22 @@ export function Soccer({
           )}
 
           <div style={{ marginTop: 26 }}>
-            <SL t={t}><Trophy size={15} /> Group standings</SL>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12 }}>
-              {Object.entries(groups).map(([g, rows]) => (
-                <GroupCard key={g} g={g} rows={rows} favSet={favSet} outlook={outlooks[g]} />
-              ))}
+            <div
+              onClick={() => setGroupsOpen((o) => !o)}
+              style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: groupsOpen ? 12 : 0 }}
+            >
+              <Trophy size={15} color={t.accent} />
+              <span className="disp" style={{ fontSize: 17, fontWeight: 800, flex: 1 }}>Group standings</span>
+              <span className="num" style={{ fontSize: 12, color: t.textFaint, fontWeight: 700 }}>{Object.keys(groups).length}</span>
+              <ChevronDown size={17} color={t.textFaint} style={{ transform: groupsOpen ? "none" : "rotate(-90deg)", transition: "transform .2s" }} />
             </div>
+            {groupsOpen && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12 }}>
+                {Object.entries(groups).map(([g, rows]) => (
+                  <GroupCard key={g} g={g} rows={rows} favSet={favSet} outlook={outlooks[g]} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
