@@ -1,9 +1,9 @@
 // Pure adapters: our real API shapes -> the shapes the ported design screens
 // expect. No React, no I/O — unit-tested in tests/design-map.test.ts.
-import type { Game } from "@/lib/sports/types";
-import type { LiveOverview } from "@/lib/sports/types";
-import type { ApiMatch, StandingRowDto } from "@/lib/api-shape";
-import { groupOutlook, type TeamOutlook } from "@/lib/group-scenarios";
+import type { Game } from "@liveleague/core/sports/types";
+import type { LiveOverview } from "@liveleague/core/sports/types";
+import type { ApiMatch, StandingRowDto } from "@liveleague/core/api-shape";
+import { groupOutlook, type TeamOutlook } from "@liveleague/core/group-scenarios";
 
 // Light-color test so a Crest with a pale team colour gets dark text.
 export function isLightColor(hexColor: string): boolean {

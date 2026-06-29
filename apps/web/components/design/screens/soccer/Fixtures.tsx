@@ -9,8 +9,8 @@ import { ChevronDown, ChevronRight, MapPin, Lock } from "@/components/design/ico
 import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
 import { DateRangePicker, type DateRange } from "@/components/design/screens/soccer/DateRangePicker";
-import { PAYWALL_ENABLED } from "@/lib/gating";
-import type { ApiMatch } from "@/lib/api-shape";
+import { PAYWALL_ENABLED } from "@liveleague/core/gating";
+import type { ApiMatch } from "@liveleague/core/api-shape";
 
 // Two controls only: one Filter (which matches) and one Sort (how to order them),
 // plus the calendar date picker. Everything else (stage/group selects, view chips)

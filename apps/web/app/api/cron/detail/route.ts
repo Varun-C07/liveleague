@@ -4,8 +4,8 @@ import { codeFromName } from "@/lib/normalize";
 import { fetchEspnSoccer } from "@/lib/espn-soccer";
 import { fetchMatchDetail } from "@/lib/espn-summary";
 import { fetchRaceDetail } from "@/lib/jolpica-race";
-import type { Match } from "@/lib/types";
-import type { LiveBundle } from "@/lib/sports/types";
+import type { Match } from "@liveleague/core/types";
+import type { LiveBundle } from "@liveleague/core/sports/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";

@@ -5,7 +5,7 @@
 //  • matchPredictor — the free-tier SAMPLE shown behind the bundle lock for
 //    non-entitled users (entitled users get the real model instead).
 //  • team-page recent form — used by the Team profile (Team.tsx).
-import type { ApiMatch } from "@/lib/api-shape";
+import type { ApiMatch } from "@liveleague/core/api-shape";
 
 export type FormResult = "W" | "D" | "L";
 export type Predictor = { home: number; draw: number; away: number; pick: string; scoreline: string };

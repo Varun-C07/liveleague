@@ -1,4 +1,4 @@
-import type { Venue } from "@/lib/types";
+import type { Venue } from "@liveleague/core/types";
 
 // 16 host venues, keyed by short code used in the schedule tuples.
 export const VENUES: Record<string, Venue> = {

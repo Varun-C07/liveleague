@@ -5,7 +5,7 @@ import {
   inPlayProbabilities,
   remainingFraction,
   type RatedMatch,
-} from "../lib/win-prob";
+} from "../src/win-prob";
 
 const HOSTS = new Set(["USA", "MEX", "CAN"]);
 const DEF = 1700;

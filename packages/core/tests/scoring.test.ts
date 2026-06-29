@@ -3,7 +3,7 @@ import {
   scorePrediction,
   computeScoringBatch,
   rollupPoints,
-} from "../lib/scoring";
+} from "../src/scoring";
 
 describe("scorePrediction", () => {
   it("exact win => 3 / exact", () => {

@@ -1,4 +1,4 @@
-import type { GroupLetter, TeamCode } from "@/lib/types";
+import type { GroupLetter, TeamCode } from "@liveleague/core/types";
 
 // Seeded order within each group (positions 1-4 drive the fixed fixture pattern).
 export const GROUP_ORDER: Record<GroupLetter, TeamCode[]> = {

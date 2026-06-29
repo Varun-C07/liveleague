@@ -3,7 +3,7 @@ import { Globe } from "lucide-react";
 import { SyncPill } from "./SyncPill";
 import { usePrefs } from "@/hooks/usePrefs";
 import { tzLabel, type TzMode } from "@/lib/time";
-import type { BundleReason, DataSource } from "@/lib/sports/types";
+import type { BundleReason, DataSource } from "@liveleague/core/sports/types";
 
 function nextTz(tz: TzMode): TzMode {
   return tz === "ET" ? "local" : tz === "local" ? "UTC" : "ET";

@@ -1,6 +1,6 @@
 import { getAdminSupabase } from "@/lib/db/supabase-admin";
 import { soccerAdapter } from "@/lib/sports/soccer";
-import { computeScoringBatch } from "@/lib/scoring";
+import { computeScoringBatch } from "@liveleague/core/scoring";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
 "use client";
-import type { ApiMatch } from "@/lib/api-shape";
+import type { ApiMatch } from "@liveleague/core/api-shape";
 import { MatchRow } from "./MatchRow";
 
 export function MatchList({

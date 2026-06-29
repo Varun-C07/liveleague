@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bucketFor, inAgendaWindow } from "@/lib/sports/agenda-window";
+import { bucketFor, inAgendaWindow } from "../src/sports/agenda-window";
 
 const ms = (iso: string) => Date.parse(iso);
 

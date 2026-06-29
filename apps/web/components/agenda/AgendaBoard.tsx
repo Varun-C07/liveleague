@@ -1,11 +1,11 @@
 "use client";
 import { useMemo, useState } from "react";
-import type { AgendaResponse, Game } from "@/lib/sports/types";
+import type { AgendaResponse, Game } from "@liveleague/core/sports/types";
 import { useAgenda } from "@/hooks/useLive";
 import { useMounted } from "@/hooks/useMounted";
 import { useFavorites } from "@/hooks/useFavorites";
 import { usePrefs } from "@/hooks/usePrefs";
-import { AGENDA_BUCKETS, bucketFor, type AgendaBucket } from "@/lib/sports/agenda-window";
+import { AGENDA_BUCKETS, bucketFor, type AgendaBucket } from "@liveleague/core/sports/agenda-window";
 import { SyncPill } from "@/components/shared/SyncPill";
 import { AgendaRow } from "./AgendaRow";
 import { etParts } from "@/lib/time";

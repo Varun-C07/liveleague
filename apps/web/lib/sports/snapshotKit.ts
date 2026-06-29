@@ -1,4 +1,4 @@
-import type { Game, GameExtra, GameStatus, SportId } from "./types";
+import type { Game, GameExtra, GameStatus, SportId } from "@liveleague/core/sports/types";
 
 // Compact fixture tuple -> Game, for the per-sport offline snapshots.
 export type Fixture = {

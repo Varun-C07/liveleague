@@ -5,7 +5,7 @@ import {
   canSubmitPrediction,
   canViewPro,
   showAds,
-} from "../lib/gating";
+} from "../src/gating";
 
 describe("entitlementsForSku", () => {
   it("personal grants only personal", () => {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/db/supabase-server";
 import { requireUser, gateErrorResponse } from "@/lib/entitlements";
-import { favKey } from "@/lib/favorites";
+import { favKey } from "@liveleague/core/favorites";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";

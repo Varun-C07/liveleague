@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { POLL, intervalFromLive } from "@/lib/polling";
+import { POLL, intervalFromLive } from "../src/polling";
 
 describe("intervalFromLive", () => {
   it("polls fast when something is live", () => {

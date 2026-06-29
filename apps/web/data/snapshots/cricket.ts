@@ -1,4 +1,4 @@
-import type { Game } from "@/lib/sports/types";
+import type { Game } from "@liveleague/core/sports/types";
 import { fixtureToGame, type Fixture } from "@/lib/sports/snapshotKit";
 
 // Cricket fallback. TheSportsDB/ESPN free cricket coverage is thin, so cricket

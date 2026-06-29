@@ -1,5 +1,5 @@
-import type { SportAdapter, LiveBundle } from "./types";
-import { sportMeta } from "./meta";
+import type { SportAdapter, LiveBundle } from "@liveleague/core/sports/types";
+import { sportMeta } from "@liveleague/core/sports/meta";
 import { CRICKET_SNAPSHOT } from "@/data/snapshots/cricket";
 
 const META = sportMeta("cricket")!;

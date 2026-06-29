@@ -1,4 +1,4 @@
-import type { SportAdapter } from "./types";
+import type { SportAdapter } from "@liveleague/core/sports/types";
 import { f1Adapter } from "./f1";
 import { soccerAdapter } from "./soccer";
 import { nbaAdapter } from "./nba";

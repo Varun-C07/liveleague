@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import type { Game } from "@/lib/sports/types";
-import { accentFor, isVersus, liveLabel, scoreText, topGames } from "@/lib/sports/format";
-import { sportMeta } from "@/lib/sports/meta";
+import type { Game } from "@liveleague/core/sports/types";
+import { accentFor, isVersus, liveLabel, scoreText, topGames } from "@liveleague/core/sports/format";
+import { sportMeta } from "@liveleague/core/sports/meta";
 import { etParts } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";
 

@@ -1,5 +1,5 @@
 "use client";
-import type { ApiMatch } from "@/lib/api-shape";
+import type { ApiMatch } from "@liveleague/core/api-shape";
 import { etParts } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";
 

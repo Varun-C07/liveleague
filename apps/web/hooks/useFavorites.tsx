@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { favKey, splitFavKey } from "@/lib/favorites";
+import { favKey, splitFavKey } from "@liveleague/core/favorites";
 import { useAuth } from "@/hooks/useAuth";
 
 export { favKey };

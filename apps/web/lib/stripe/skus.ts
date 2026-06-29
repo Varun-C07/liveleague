@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Sku } from "@/lib/gating";
+import type { Sku } from "@liveleague/core/gating";
 
 // Map SKU <-> Stripe Price ID, from env. Single source of truth for checkout
 // (sku -> price) and the webhook (price -> sku).

@@ -1,4 +1,4 @@
-import type { KnockoutTuple } from "@/lib/types";
+import type { KnockoutTuple } from "@liveleague/core/types";
 
 // Knockout bracket (matches 73-104). Teams are placeholders until qualified:
 //   "2A" = runner-up Group A, "1E" = winner Group E,

@@ -1,7 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import type { MatchesResponse, StandingsResponse } from "@/lib/api-shape";
-import { intervalFor } from "@/lib/polling";
+import type { MatchesResponse, StandingsResponse } from "@liveleague/core/api-shape";
+import { intervalFor } from "@liveleague/core/polling";
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(url, { headers: { Accept: "application/json" } });

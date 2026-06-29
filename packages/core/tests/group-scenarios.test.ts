@@ -3,7 +3,7 @@ import {
   groupOutlook,
   type TeamStanding,
   type RemainingMatch,
-} from "../lib/group-scenarios";
+} from "../src/group-scenarios";
 
 // Helper: 4-team group, current points only (GD/GF default 0).
 function group(pts: Record<string, number>): TeamStanding[] {

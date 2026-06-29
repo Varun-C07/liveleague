@@ -1,5 +1,5 @@
-import type { Match } from "@/lib/types";
-import type { DataSource } from "@/lib/api-shape";
+import type { Match } from "@liveleague/core/types";
+import type { DataSource } from "@liveleague/core/api-shape";
 import { freshSchedule } from "@/lib/schedule";
 import { applyEvents, type RawEvent } from "@/lib/normalize";
 import { readCache, writeCache } from "@/lib/db/cache";

@@ -7,13 +7,13 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor, dateLabel, kickoffLabel } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
-import { PAYWALL_ENABLED, SHOW_PLACEHOLDERS } from "@/lib/gating";
+import { PAYWALL_ENABLED, SHOW_PLACEHOLDERS } from "@liveleague/core/gating";
 import { PlayerTags } from "@/components/design/PlayerTags";
 import { recentForm, type FormResult } from "@/components/design/screens/match/matchData";
 import { teamSquad, teamAnalysis, hasRealSquad, type Player } from "@/components/design/screens/team/teamData";
 import { useMatches, useStandings } from "@/hooks/useMatches";
 import { TEAMS } from "@/data/teams";
-import type { MatchesResponse, StandingsResponse, ApiMatch } from "@/lib/api-shape";
+import type { MatchesResponse, StandingsResponse, ApiMatch } from "@liveleague/core/api-shape";
 
 const ORD = (n: number) => (n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : `${n}th`);
 

@@ -1,6 +1,6 @@
 import { SPORTS } from "./registry";
-import type { LiveBundle, LiveOverview, SportAdapter, SportSummary } from "./types";
-import { topGames } from "./format";
+import type { LiveBundle, LiveOverview, SportAdapter, SportSummary } from "@liveleague/core/sports/types";
+import { topGames } from "@liveleague/core/sports/format";
 
 function toSummary(s: SportAdapter, b: LiveBundle): SportSummary {
   // strip the adapter's functions, keep the static meta fields

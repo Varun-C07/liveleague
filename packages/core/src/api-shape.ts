@@ -1,4 +1,4 @@
-import type { MatchStatus } from "@/lib/types";
+import type { MatchStatus } from "./types";
 
 // Normalized contract returned by our Route Handlers. The client never sees
 // the upstream key or TheSportsDB's raw shape — only this.

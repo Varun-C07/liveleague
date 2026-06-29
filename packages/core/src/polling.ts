@@ -1,5 +1,5 @@
-import type { MatchesResponse } from "@/lib/api-shape";
-import type { GameStatus } from "@/lib/sports/types";
+import type { MatchesResponse } from "./api-shape";
+import type { GameStatus } from "./sports/types";
 
 // Adaptive refetch interval: fast while something is live, medium when one is
 // about to start, slow when truly idle. Returned in milliseconds.

@@ -1,5 +1,5 @@
 "use client";
-import type { ApiMatch } from "@/lib/api-shape";
+import type { ApiMatch } from "@liveleague/core/api-shape";
 import { Countdown } from "@/components/shared/Countdown";
 import { etParts, tzLabel } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";

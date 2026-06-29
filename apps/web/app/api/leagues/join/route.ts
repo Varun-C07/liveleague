@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSupabase } from "@/lib/db/supabase-admin";
 import { requireUser, gateErrorResponse } from "@/lib/entitlements";
-import { normalizeJoinCode, isValidJoinCode } from "@/lib/joincode";
+import { normalizeJoinCode, isValidJoinCode } from "@liveleague/core/joincode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,0 +1,33 @@
+{
+  "name": "@liveleague/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./win-prob": "./src/win-prob.ts",
+    "./scoring": "./src/scoring.ts",
+    "./polling": "./src/polling.ts",
+    "./gating": "./src/gating.ts",
+    "./favorites": "./src/favorites.ts",
+    "./group-scenarios": "./src/group-scenarios.ts",
+    "./joincode": "./src/joincode.ts",
+    "./types": "./src/types.ts",
+    "./api-shape": "./src/api-shape.ts",
+    "./sports/types": "./src/sports/types.ts",
+    "./sports/meta": "./src/sports/meta.ts",
+    "./sports/format": "./src/sports/format.ts",
+    "./sports/f1-scenarios": "./src/sports/f1-scenarios.ts",
+    "./sports/agenda-window": "./src/sports/agenda-window.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "vitest": "^4.1.9"
+  }
+}

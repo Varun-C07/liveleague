@@ -1,4 +1,4 @@
-import type { TeamRef } from "@/lib/api-shape";
+import type { TeamRef } from "@liveleague/core/api-shape";
 
 export function TeamBadge({
   team,

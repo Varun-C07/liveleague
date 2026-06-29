@@ -1,7 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import type { AgendaResponse, LiveBundle, LiveOverview, SportId } from "@/lib/sports/types";
-import { POLL, intervalFromLive } from "@/lib/polling";
+import type { AgendaResponse, LiveBundle, LiveOverview, SportId } from "@liveleague/core/sports/types";
+import { POLL, intervalFromLive } from "@liveleague/core/polling";
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(url, { headers: { Accept: "application/json" } });

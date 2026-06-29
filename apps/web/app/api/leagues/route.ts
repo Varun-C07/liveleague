@@ -5,7 +5,7 @@ import {
   requirePersonal,
   gateErrorResponse,
 } from "@/lib/entitlements";
-import { genJoinCode } from "@/lib/joincode";
+import { genJoinCode } from "@liveleague/core/joincode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -6,7 +6,7 @@ import {
   genJoinCode,
   JOINCODE_ALPHABET,
   JOINCODE_LENGTH,
-} from "../lib/joincode";
+} from "../src/joincode";
 
 describe("join codes", () => {
   it("makeJoinCode produces a length-6 code from the alphabet", () => {

@@ -1,4 +1,4 @@
-import type { GroupMatchTuple } from "@/lib/types";
+import type { GroupMatchTuple } from "@liveleague/core/types";
 
 // Official FIFA group-stage fixture list (matches 1-72).
 // [n, group, home, away, venueKey, utcISO, homeScore?, awayScore?]

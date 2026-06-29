@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { ApiMatch } from "@/lib/api-shape";
+import type { ApiMatch } from "@liveleague/core/api-shape";
 import { usePrefs } from "@/hooks/usePrefs";
 
 // Diffs scores between polls. Returns the set of match numbers that just

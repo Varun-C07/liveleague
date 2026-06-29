@@ -1,7 +1,7 @@
 "use client";
 import { RefreshCw } from "lucide-react";
 import { useMounted } from "@/hooks/useMounted";
-import type { BundleReason, DataSource } from "@/lib/sports/types";
+import type { BundleReason, DataSource } from "@liveleague/core/sports/types";
 
 export function SyncPill({
   source,

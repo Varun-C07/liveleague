@@ -1,6 +1,6 @@
-import type { SportAdapter, LiveBundle, Game, Competitor } from "./types";
-import { sportMeta } from "./meta";
-import type { Match } from "@/lib/types";
+import type { SportAdapter, LiveBundle, Game, Competitor } from "@liveleague/core/sports/types";
+import { sportMeta } from "@liveleague/core/sports/meta";
+import type { Match } from "@liveleague/core/types";
 import { getMatches } from "@/lib/tsdb";
 import { freshSchedule } from "@/lib/schedule";
 import { TEAMS } from "@/data/teams";

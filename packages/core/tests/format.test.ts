@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { isVersus, liveLabel, scoreText, topGames } from "@/lib/sports/format";
-import type { Game, GameExtra } from "@/lib/sports/types";
+import { isVersus, liveLabel, scoreText, topGames } from "../src/sports/format";
+import type { Game, GameExtra } from "../src/sports/types";
 
 function game(extra: GameExtra, over: Partial<Game> = {}): Game {
   return {

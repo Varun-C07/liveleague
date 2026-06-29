@@ -1,6 +1,6 @@
 import { after } from "next/server";
-import type { SportAdapter, LiveBundle, Game, GameStatus, StandingRow } from "./types";
-import { sportMeta } from "./meta";
+import type { SportAdapter, LiveBundle, Game, GameStatus, StandingRow } from "@liveleague/core/sports/types";
+import { sportMeta } from "@liveleague/core/sports/meta";
 import { F1_SCHEDULE, colorForConstructor, type F1Driver, type F1Round } from "@/data/snapshots/f1";
 import { readCache, writeCache } from "@/lib/db/cache";
 

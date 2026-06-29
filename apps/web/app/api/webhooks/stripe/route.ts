@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/client";
 import { getAdminSupabase } from "@/lib/db/supabase-admin";
 import { skuForPrice } from "@/lib/stripe/skus";
-import { entitlementsFromSubs, type Sku } from "@/lib/gating";
+import { entitlementsFromSubs, type Sku } from "@liveleague/core/gating";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";

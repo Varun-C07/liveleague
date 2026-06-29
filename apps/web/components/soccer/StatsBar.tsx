@@ -1,5 +1,5 @@
 "use client";
-import type { ApiMatch } from "@/lib/api-shape";
+import type { ApiMatch } from "@liveleague/core/api-shape";
 
 export function StatsBar({ matches, total }: { matches: ApiMatch[]; total: number }) {
   const played = matches.filter((m) => m.status === "ft").length;

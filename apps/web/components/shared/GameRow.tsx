@@ -1,6 +1,6 @@
 "use client";
-import type { Competitor, Game } from "@/lib/sports/types";
-import { liveLabel } from "@/lib/sports/format";
+import type { Competitor, Game } from "@liveleague/core/sports/types";
+import { liveLabel } from "@liveleague/core/sports/format";
 import { etParts, tzLabel } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";
 import { FavoritesStar } from "./FavoritesStar";

@@ -1,5 +1,5 @@
-import type { Match, MatchStatus } from "@/lib/types";
-import type { ApiMatch, TeamRef } from "@/lib/api-shape";
+import type { Match, MatchStatus } from "@liveleague/core/types";
+import type { ApiMatch, TeamRef } from "@liveleague/core/api-shape";
 import { TEAMS } from "@/data/teams";
 
 // ---- name -> code index (built once) ----

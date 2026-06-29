@@ -1,6 +1,6 @@
 import { getAdminSupabase } from "@/lib/db/supabase-admin";
 import { soccerAdapter } from "@/lib/sports/soccer";
-import type { Game } from "@/lib/sports/types";
+import type { Game } from "@liveleague/core/sports/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

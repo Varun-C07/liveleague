@@ -7,7 +7,7 @@ import {
   mapUpcoming,
   mapTicker,
 } from "../components/design/map";
-import type { Game, LiveOverview } from "../lib/sports/types";
+import type { Game, LiveOverview } from "@liveleague/core/sports/types";
 
 function soccerGame(over: Partial<Game> = {}): Game {
   return {

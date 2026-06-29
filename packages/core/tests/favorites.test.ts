@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { favKey, splitFavKey } from "@/lib/favorites";
+import { favKey, splitFavKey } from "../src/favorites";
 
 describe("favKey", () => {
   it("namespaces a code by sport", () => {

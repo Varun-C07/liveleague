@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GP_MAX, SPRINT_MAX, maxPointsRemaining, canReach, gap } from "@/lib/sports/f1-scenarios";
+import { GP_MAX, SPRINT_MAX, maxPointsRemaining, canReach, gap } from "../src/sports/f1-scenarios";
 
 describe("maxPointsRemaining", () => {
   it("sums GP and sprint maxima", () => {

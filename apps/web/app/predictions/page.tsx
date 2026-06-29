@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useMyPredictions, useSubmitPrediction } from "@/hooks/usePredictions";
-import type { LiveBundle, Game } from "@/lib/sports/types";
+import type { LiveBundle, Game } from "@liveleague/core/sports/types";
 
 export default function PredictionsPage() {
   const { user, configured, loading, signInWithGoogle } = useAuth();

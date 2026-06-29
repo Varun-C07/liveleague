@@ -1,6 +1,6 @@
-import type { AgendaResponse, Game } from "./types";
+import type { AgendaResponse, Game } from "@liveleague/core/sports/types";
 import { SPORTS } from "./registry";
-import { inAgendaWindow } from "./agenda-window";
+import { inAgendaWindow } from "@liveleague/core/sports/agenda-window";
 
 function windowed(games: Game[]): Game[] {
   const now = Date.now();

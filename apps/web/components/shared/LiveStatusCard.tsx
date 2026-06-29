@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { Game, SportSummary } from "@/lib/sports/types";
-import { isVersus, liveLabel, scoreText } from "@/lib/sports/format";
+import type { Game, SportSummary } from "@liveleague/core/sports/types";
+import { isVersus, liveLabel, scoreText } from "@liveleague/core/sports/format";
 import { Countdown } from "./Countdown";
 import { etParts } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";

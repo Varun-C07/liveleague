@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import type { Game, LiveBundle } from "@/lib/sports/types";
+import type { Game, LiveBundle } from "@liveleague/core/sports/types";
 import { useLiveBundle } from "@/hooks/useLive";
 import { SportHeader } from "@/components/shared/SportHeader";
 import { StandingsStrip } from "@/components/shared/StandingsStrip";

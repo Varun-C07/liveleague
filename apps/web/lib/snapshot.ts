@@ -3,8 +3,8 @@ import { getMatches } from "@/lib/tsdb";
 import { toApiMatch } from "@/lib/normalize";
 import { computeGroups, bestThirds } from "@/lib/standings";
 import { TEAMS } from "@/data/teams";
-import type { Match } from "@/lib/types";
-import type { MatchesResponse, StandingsResponse, StandingRowDto } from "@/lib/api-shape";
+import type { Match } from "@liveleague/core/types";
+import type { MatchesResponse, StandingsResponse, StandingRowDto } from "@liveleague/core/api-shape";
 
 function toGroupDtos(matches: Match[]): Record<string, StandingRowDto[]> {
   const groupsRaw = computeGroups(matches);

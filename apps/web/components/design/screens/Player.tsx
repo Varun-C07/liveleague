@@ -6,7 +6,7 @@ import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { Lock } from "@/components/design/icons";
 import { isLightColor } from "@/components/design/map";
 import { LockedPanel } from "@/components/design/LockedPanel";
-import { PAYWALL_ENABLED, SHOW_PLACEHOLDERS } from "@/lib/gating";
+import { PAYWALL_ENABLED, SHOW_PLACEHOLDERS } from "@liveleague/core/gating";
 import { PlayerTags } from "@/components/design/PlayerTags";
 import { getPlayer, playerAnalysis } from "@/components/design/screens/player/playerData";
 import { hasRealSquad } from "@/components/design/screens/team/teamData";

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SPORT_META } from "@/lib/sports/meta";
+import { SPORT_META } from "@liveleague/core/sports/meta";
 import { AuthControl } from "@/components/shell/AuthControl";
 
 function sportFromPath(path: string): string {
