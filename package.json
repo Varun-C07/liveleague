@@ -12,7 +12,9 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
     "dev:web": "npm run dev --workspace web",
+    "dev:mobile": "npm run start --workspace mobile",
     "build:web": "npm run build --workspace web"
   },
   "devDependencies": {

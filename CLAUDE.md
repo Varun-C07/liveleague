@@ -9,9 +9,14 @@ Context for Claude Code working in this repo. Pair with **README.md** (overview)
 > `apps/web/`. Shared pure-TS logic (win-prob, scoring, polling, gating, favorites,
 > scenarios, multi-sport types/meta/format, soccer types, API DTOs) lives in
 > **`packages/core/`** as `@liveleague/core` and is imported via that package (subpaths like
-> `@liveleague/core/win-prob`), NOT `@/lib/…`. Run `npm run dev|build|test|lint` from the
-> **repo root** (they proxy through Turbo). See `docs/PHASE_0_MONOREPO.md`. Mobile app
-> (`apps/mobile`, Expo) is next — see `docs/MOBILE_DEPLOYMENT_PLAN.md`.
+> `@liveleague/core/win-prob`), NOT `@/lib/…`. Run `npm run dev|build|test|lint|typecheck` from
+> the **repo root** (they proxy through Turbo). See `docs/PHASE_0_MONOREPO.md`.
+>
+> **`apps/mobile`** (Expo SDK 56 + expo-router) is now scaffolded — the native iOS app
+> sharing `@liveleague/core`. Screens are placeholders; Varun builds them. `npm run dev:mobile`
+> to run Metro. See `docs/PHASE_2_MOBILE_SCAFFOLD.md`, `docs/MOBILE_DEPLOYMENT_PLAN.md`, and
+> `docs/VARUN_MOBILE_AND_ML_PLAN.md`. Mobile UI = React Native (StyleSheet + theme port), NOT
+> the web's inline styles — a separate codebase under `apps/mobile/src/`.
 
 ## What this is
 A single **Next.js 15 (App Router) / React 19 / TypeScript** app for live sports. The data
