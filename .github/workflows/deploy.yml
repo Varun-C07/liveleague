@@ -4,6 +4,12 @@ name: Deploy to Vercel
 # secrets (VERCEL_TOKEN/ORG/PROJECT) are configured on the repo — otherwise they
 # skip cleanly instead of failing. Note: deploys are also done directly from the
 # dev machine via `npx vercel deploy --prod`, so this Action is optional CI.
+#
+# MONOREPO (Phase 0): this is now an npm-workspaces + Turborepo repo. Root
+# `npm run lint` / `npm test` proxy through Turbo to the workspaces (apps/web,
+# packages/core). The Next.js app lives in apps/web — so the Vercel project's
+# **Root Directory must be set to `apps/web`** (Project Settings → General) for
+# the vercel build/deploy steps (and `npx vercel deploy`) to find it.
 
 on:
   push:

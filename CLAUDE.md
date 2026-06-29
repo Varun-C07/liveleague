@@ -3,6 +3,16 @@
 Context for Claude Code working in this repo. Pair with **README.md** (overview),
 **ROADMAP.md** (timeline), **FRONTEND.md** + **BACKEND.md** (newest-first change logs).
 
+> **⚠️ Monorepo (Phase 0, 2026-06-28).** The repo is now an npm-workspaces + Turborepo
+> monorepo. **The Next.js app lives in `apps/web/`** — every path in this doc like
+> `components/design/…`, `app/…`, `lib/…`, `hooks/…`, `data/…`, `tests/…` is now under
+> `apps/web/`. Shared pure-TS logic (win-prob, scoring, polling, gating, favorites,
+> scenarios, multi-sport types/meta/format, soccer types, API DTOs) lives in
+> **`packages/core/`** as `@liveleague/core` and is imported via that package (subpaths like
+> `@liveleague/core/win-prob`), NOT `@/lib/…`. Run `npm run dev|build|test|lint` from the
+> **repo root** (they proxy through Turbo). See `docs/PHASE_0_MONOREPO.md`. Mobile app
+> (`apps/mobile`, Expo) is next — see `docs/MOBILE_DEPLOYMENT_PLAN.md`.
+
 ## What this is
 A single **Next.js 15 (App Router) / React 19 / TypeScript** app for live sports. The data
 layer tracks five leagues, but the **live UI surfaces three screens: Home, World Cup soccer,
