@@ -10,18 +10,34 @@ const ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/sc
 type EspnCompetitor = {
   homeAway?: string;
   score?: string;
+  winner?: boolean;
   team?: { abbreviation?: string; displayName?: string; name?: string };
 };
 type EspnStatus = {
   displayClock?: string;
   type?: { state?: string; shortDetail?: string; completed?: boolean };
 };
+type EspnNote = { headline?: string; text?: string };
 type EspnEvent = {
   id?: string | number;
   date?: string;
-  competitions?: { competitors?: EspnCompetitor[]; venue?: { fullName?: string } }[];
+  competitions?: { competitors?: EspnCompetitor[]; venue?: { fullName?: string }; notes?: EspnNote[] }[];
   status?: EspnStatus;
 };
+
+// Pull the shootout result from the result note ("Paraguay advance 4-3 on
+// penalties"), oriented to home/away via the competitor `winner` flag.
+function parsePens(
+  notes: EspnNote[],
+  homeWon: boolean,
+): { home: number; away: number } | undefined {
+  const text = notes.map((n) => n.headline || n.text || "").join(" ");
+  const m = text.match(/(\d+)\s*[-–]\s*(\d+)\s+on penalt/i);
+  if (!m) return undefined;
+  const winner = parseInt(m[1], 10); // note lists the advancing side first
+  const loser = parseInt(m[2], 10);
+  return { home: homeWon ? winner : loser, away: homeWon ? loser : winner };
+}
 
 // Pick a team string our resolver (codeFromName) can map: prefer whichever of
 // the abbreviation / full name it recognizes.
@@ -55,6 +71,7 @@ function parse(j: Record<string, unknown> | null): RawEvent[] {
     const away = comp.find((c) => c.homeAway === "away");
     if (!home || !away) continue;
     const { status, progress } = statusLabel(e.status);
+    const pens = parsePens(e.competitions?.[0]?.notes || [], home.winner === true);
     out.push({
       strHomeTeam: teamKey(home),
       strAwayTeam: teamKey(away),
@@ -65,6 +82,7 @@ function parse(j: Record<string, unknown> | null): RawEvent[] {
       strTimestamp: e.date,
       espnId: e.id != null ? String(e.id) : undefined,
       venue: e.competitions?.[0]?.venue?.fullName || undefined,
+      pens,
     });
   }
   return out;

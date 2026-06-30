@@ -5,7 +5,7 @@ import type { Theme } from "@/components/design/theme";
 import { hex } from "@/components/design/primitives";
 import { MapPin, Users } from "@/components/design/icons";
 import { useMatchDetail } from "@/hooks/useMatchDetail";
-import type { DetailEvent, MatchDetail, StatPair, TeamLineup } from "@/lib/espn-summary";
+import type { DetailEvent, MatchDetail, Shootout, StatPair, TeamLineup } from "@/lib/espn-summary";
 
 // Rich live + historical match center: timeline, team-stat bars and real lineups,
 // fetched on demand and stored in the DB. Rendered inside the expanded LiveMatch
@@ -38,11 +38,49 @@ export function MatchDetailPanel({
   return (
     <div style={{ display: "grid", gap: 18 }}>
       <MetaStrip t={t} d={detail} />
+      {detail.shootout && <ShootoutView t={t} s={detail.shootout} d={detail} />}
       {detail.events.length > 0 && <Timeline t={t} events={detail.events} homeColor={homeColor} awayColor={awayColor} />}
       {detail.stats.length > 0 && <StatBars t={t} stats={detail.stats} homeColor={homeColor} awayColor={awayColor} />}
       {detail.lineups && (
         <Lineups t={t} d={detail} homeColor={homeColor} awayColor={awayColor} />
       )}
+    </div>
+  );
+}
+
+// Broadcast-style penalty shootout: per side, a kick-by-kick strip (green = scored,
+// red = missed) and the tally. The advancing side is emphasised.
+function ShootoutView({ t, s, d }: { t: Theme; s: NonNullable<Shootout>; d: MatchDetail }) {
+  const homeWon = s.homeScore > s.awayScore;
+  return (
+    <div>
+      <SectionLabel t={t}>🥅 Penalty shootout</SectionLabel>
+      <div style={{ display: "grid", gap: 9 }}>
+        <ShootoutRow t={t} code={d.home.code} kicks={s.home} score={s.homeScore} won={homeWon} />
+        <ShootoutRow t={t} code={d.away.code} kicks={s.away} score={s.awayScore} won={!homeWon} />
+      </div>
+    </div>
+  );
+}
+
+function ShootoutRow({ t, code, kicks, score, won }: { t: Theme; code: string; kicks: { player: string; scored: boolean }[]; score: number; won: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <span className="cond" style={{ width: 42, fontSize: 13, fontWeight: 800, color: won ? t.text : t.textDim }}>{code}</span>
+      <div style={{ display: "flex", gap: 4, flex: 1, flexWrap: "wrap" }}>
+        {kicks.map((k, i) => {
+          const col = k.scored ? t.win : t.lose;
+          return (
+            <span
+              key={i}
+              title={`${k.player}${k.scored ? " — scored" : " — missed"}`}
+              style={{ width: 12, height: 12, borderRadius: "50%", background: hex(col, 0.9), boxShadow: `inset 0 0 0 1px ${hex(col, 0.5)}` }}
+            />
+          );
+        })}
+      </div>
+      <span className="disp num" style={{ fontSize: 17, fontWeight: 800, color: won ? t.text : t.textDim, minWidth: 16, textAlign: "right" }}>{score}</span>
+      {won ? <span style={{ fontSize: 9.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: t.win }}>adv</span> : <span style={{ width: 22 }} />}
     </div>
   );
 }

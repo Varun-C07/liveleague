@@ -75,6 +75,16 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 
 ## Log
 
+### 2026-06-30 — Penalty shootout capture (totals + per-kick)
+- **Totals** (`espn-soccer.ts` → `normalize.ts` → core `ApiMatch.pens`): parse the result
+  note ("X advance 4-3 on penalties"), orient to home/away via the competitor `winner`
+  flag, store flip-aware on the match, surface as `ApiMatch.pens` ({home, away} | null).
+- **Per-kick** (`espn-summary.ts` `MatchDetail.shootout`): the summary endpoint's
+  `shootout[].shots[]` (player, didScore) normalized per side + tallies — drives the
+  green/red dot strip.
+- Tests: `normalize.test.ts` (pens store + flip + non-shootout), `espn-summary.test.ts`
+  (shootout normalization).
+
 ### 2026-06-29 — Resolve knockout matchups from the live feed (no more stale "2A v 2B")
 - **Problem:** knockout slots ship as placeholders ("2A", "1F", "W74", "3rd …") and
   `applyEvents` matches by team pair, so once the real matchups were decided the bracket

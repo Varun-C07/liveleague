@@ -43,6 +43,7 @@ export type RawEvent = {
   strTimestamp?: string;
   espnId?: string; // ESPN event id (only set by the ESPN parser)
   venue?: string; // authoritative venue name (ESPN)
+  pens?: { home: number; away: number }; // shootout result (knockout decided on pens)
 };
 
 // A football match can only plausibly be "live" within this window after
@@ -112,6 +113,12 @@ export function applyEvents(
     if (st === "sched") { m.hs = null; m.as = null; }
     else { m.hs = hs; m.as = as; }
 
+    // Shootout result (flip-aware), only meaningful once finished.
+    const pens = ev.pens && st === "ft"
+      ? (flip ? { home: ev.pens.away, away: ev.pens.home } : ev.pens)
+      : null;
+    (m as Match & { pens?: { home: number; away: number } | null }).pens = pens;
+
     if (st === "live") liveCount++;
   }
   return { matches, liveCount };
@@ -138,6 +145,7 @@ function teamRef(code: string, grp: string | null): TeamRef {
 
 export function toApiMatch(m: Match): ApiMatch {
   const minute = (m as Match & { minute?: string | null }).minute ?? null;
+  const pens = (m as Match & { pens?: { home: number; away: number } | null }).pens ?? null;
   return {
     n: m.n,
     stage: m.stage,
@@ -153,5 +161,6 @@ export function toApiMatch(m: Match): ApiMatch {
     homeScore: m.hs,
     awayScore: m.as,
     minute: m.st === "live" ? minute : null,
+    pens,
   };
 }

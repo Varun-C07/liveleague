@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { parseStatus, clampLive } from "@/lib/normalize";
+import { parseStatus, clampLive, applyEvents, toApiMatch, type RawEvent } from "@/lib/normalize";
+import type { Match } from "@liveleague/core/types";
+
+function ko(h: string, a: string): Match {
+  return { n: 75, stage: "R32", grp: null, h, a, ven: "Gillette Stadium", city: "Boston", ctry: "USA", utc: "2026-06-29T20:30:00Z", hs: null, as: null, st: "sched", approx: true };
+}
 
 describe("parseStatus", () => {
   it("recognizes finished states", () => {
@@ -40,5 +45,30 @@ describe("clampLive (the 6pm-live-at-11pm fix)", () => {
     const now = Date.parse("2026-06-16T23:00:00Z");
     expect(clampLive("ft", kickoff, true, now)).toBe("ft");
     expect(clampLive("sched", kickoff, false, now)).toBe("sched");
+  });
+});
+
+describe("applyEvents — penalty shootout", () => {
+  const now = Date.parse("2026-06-30T00:00:00Z");
+
+  it("stores the shootout result on a finished knockout", () => {
+    const m = ko("MEX", "KOR");
+    const ev: RawEvent = { strHomeTeam: "MEX", strAwayTeam: "KOR", intHomeScore: "1", intAwayScore: "1", strStatus: "FT", pens: { home: 4, away: 3 } };
+    applyEvents([m], [ev], now);
+    expect(m.st).toBe("ft");
+    expect(toApiMatch(m).pens).toEqual({ home: 4, away: 3 });
+  });
+
+  it("orients pens to our home/away when the feed lists teams flipped", () => {
+    const m = ko("MEX", "KOR"); // our home = MEX
+    const ev: RawEvent = { strHomeTeam: "KOR", strAwayTeam: "MEX", intHomeScore: "1", intAwayScore: "1", strStatus: "FT", pens: { home: 5, away: 4 } };
+    applyEvents([m], [ev], now);
+    expect(toApiMatch(m).pens).toEqual({ home: 4, away: 5 }); // MEX (our home) took the away value
+  });
+
+  it("does not attach pens to a non-shootout match", () => {
+    const m = ko("MEX", "KOR");
+    applyEvents([m], [{ strHomeTeam: "MEX", strAwayTeam: "KOR", intHomeScore: "2", intAwayScore: "0", strStatus: "FT" }], now);
+    expect(toApiMatch(m).pens).toBeNull();
   });
 });

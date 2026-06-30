@@ -27,6 +27,9 @@ export type ApiMatch = {
   homeScore: number | null;
   awayScore: number | null;
   minute: string | null;
+  // Penalty-shootout result for a knockout decided on pens (regulation score stays
+  // in home/away). The higher value is the winner. Null when there was no shootout.
+  pens: { home: number; away: number } | null;
 };
 
 export type DataSource = "live" | "snapshot";

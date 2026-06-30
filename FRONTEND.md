@@ -14,6 +14,13 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-06-30 — Penalty shootout display
+- **Match page** (`MatchDetailPanel.tsx`): broadcast-style `ShootoutView` — per side a
+  kick-by-kick dot strip (green = scored, red = missed, hover shows the taker) + the tally,
+  advancing side emphasised. Driven by the real per-kick data from ESPN's summary.
+- **Score lines**: new `pensLabel()` in `map.ts` shows "4–3 pens" under the score on the
+  match header, the featured/live card (`LiveMatch.tsx`), and fixture rows (`Fixtures.tsx`).
+
 ### 2026-06-27 — Hide placeholder data from the UI (`SHOW_PLACEHOLDERS` flag)
 - New `SHOW_PLACEHOLDERS` flag in `lib/gating.ts` (currently `false`). While off, the UI
   no longer shows fabricated data as real:

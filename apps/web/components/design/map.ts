@@ -49,6 +49,12 @@ export function kickoffDateTimeLabel(utc: string): string {
   return d && t ? `${d}, ${t}` : d || t;
 }
 
+// Short "4–3 pens" tag for a knockout decided on penalties (null otherwise).
+export function pensLabel(m: { status: string; pens?: { home: number; away: number } | null }): string | null {
+  if (m.status !== "ft" || !m.pens) return null;
+  return `${m.pens.home}–${m.pens.away} pens`;
+}
+
 export type SlateItem = {
   key: string;
   sportId: string; // "soccer" | "f1" — picks the rail icon

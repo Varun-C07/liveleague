@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useTheme, type Theme } from "@/components/design/theme";
 import { card, hex, Crest, SL } from "@/components/design/primitives";
 import { MapPin, Lock, Calendar } from "@/components/design/icons";
-import { isLightColor, dateLabel, kickoffDateTimeLabel, mapGroupOutlooks } from "@/components/design/map";
+import { isLightColor, dateLabel, kickoffDateTimeLabel, mapGroupOutlooks, pensLabel } from "@/components/design/map";
 import { LiveDot, TickingMinute, FlashScore } from "@/components/design/motion";
 import { LockedPanel } from "@/components/design/LockedPanel";
 import { MatchDetailPanel } from "@/components/design/screens/soccer/MatchDetailPanel";
@@ -49,6 +49,7 @@ export function Match({ initial, standings, n }: { initial: MatchesResponse; sta
   }
 
   const score = m.status === "sched" ? "vs" : `${m.homeScore ?? 0}–${m.awayScore ?? 0}`;
+  const pens = pensLabel(m);
   const loc = [m.venue, m.city].filter(Boolean).join(", ");
   const h2h = detail?.h2h ?? [];
   const stakes = m.grp && outlooks[m.grp]
@@ -83,9 +84,12 @@ export function Match({ initial, standings, n }: { initial: MatchesResponse; sta
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 10 }}>
             <Side t={t} team={m.home} />
-            <span className="disp num" style={{ fontSize: "clamp(30px,7vw,44px)", fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap" }}>
-              {live ? <FlashScore score={score} accent={t.accent} settle={t.text} /> : <span style={{ color: ft ? t.text : t.textDim }}>{score}</span>}
-            </span>
+            <div style={{ textAlign: "center" }}>
+              <span className="disp num" style={{ fontSize: "clamp(30px,7vw,44px)", fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap" }}>
+                {live ? <FlashScore score={score} accent={t.accent} settle={t.text} /> : <span style={{ color: ft ? t.text : t.textDim }}>{score}</span>}
+              </span>
+              {pens ? <div className="num" style={{ fontSize: 11.5, fontWeight: 800, color: t.textDim, marginTop: 5 }}>{pens}</div> : null}
+            </div>
             <Side t={t} team={m.away} />
           </div>
           {loc ? (

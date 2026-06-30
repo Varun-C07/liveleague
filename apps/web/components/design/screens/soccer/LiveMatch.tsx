@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse } from "@/components/design/primitives";
 import { MapPin, ChevronRight } from "@/components/design/icons";
-import { isLightColor, kickoffLabel } from "@/components/design/map";
+import { isLightColor, kickoffLabel, pensLabel } from "@/components/design/map";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
 import type { ApiMatch } from "@liveleague/core/api-shape";
 
@@ -54,7 +54,10 @@ export function LiveMatch({ m }: { m: ApiMatch | null }) {
             <div style={{ display: "inline-block" }}><Crest code={m.home.code} color={m.home.color} dark={isLightColor(m.home.color)} size={48} /></div>
             <div className="cond" style={{ fontSize: 15, fontWeight: 700, marginTop: 9 }}>{m.home.name}</div>
           </div>
-          <div className="disp num" style={{ fontSize: "clamp(34px,8vw,46px)", fontWeight: 800, whiteSpace: "nowrap" }}>{score}</div>
+          <div style={{ textAlign: "center" }}>
+            <div className="disp num" style={{ fontSize: "clamp(34px,8vw,46px)", fontWeight: 800, whiteSpace: "nowrap" }}>{score}</div>
+            {pensLabel(m) ? <div className="num" style={{ fontSize: 11, fontWeight: 800, color: t.textDim, marginTop: 4 }}>{pensLabel(m)}</div> : null}
+          </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ display: "inline-block" }}><Crest code={m.away.code} color={m.away.color} dark={isLightColor(m.away.color)} size={48} /></div>
             <div className="cond" style={{ fontSize: 15, fontWeight: 700, marginTop: 9 }}>{m.away.name}</div>

@@ -27,6 +27,15 @@ export type TeamLineup = { formation: string | null; starters: LineupPlayer[] };
 export type FormEntry = { date: string; result: "W" | "D" | "L"; score: string; opp: string };
 export type H2HEntry = { date: string; score: string; home: string; away: string };
 
+// Penalty shootout, in kick order per side (didScore drives the green/red dots).
+export type ShootoutKick = { player: string; scored: boolean };
+export type Shootout = {
+  home: ShootoutKick[];
+  away: ShootoutKick[];
+  homeScore: number;
+  awayScore: number;
+} | null;
+
 export type MatchDetail = {
   status: "sched" | "live" | "ft";
   detail: string | null; // ESPN status detail, e.g. "FT", "66'"
@@ -37,6 +46,7 @@ export type MatchDetail = {
   lineups: { home: TeamLineup; away: TeamLineup } | null;
   form: { home: FormEntry[]; away: FormEntry[] };
   h2h: H2HEntry[];
+  shootout: Shootout;
   venue: string | null;
   attendance: number | null;
   referee: string | null;
@@ -196,6 +206,22 @@ export function normalizeSummary(j: Json): MatchDetail {
     score: `${num(e.homeTeamScore) ?? 0}-${num(e.awayTeamScore) ?? 0}`,
   }));
 
+  // penalty shootout (per-kick, in order) — team id maps to our home/away side.
+  let shootout: Shootout = null;
+  const so: { home: ShootoutKick[]; away: ShootoutKick[] } = { home: [], away: [] };
+  for (const t of arr(j.shootout)) {
+    const side = idToSide[str(t.id) ?? ""];
+    if (!side) continue;
+    so[side] = arr(t.shots).map((s) => ({ player: str(s.player) ?? "", scored: !!s.didScore }));
+  }
+  if (so.home.length || so.away.length) {
+    shootout = {
+      ...so,
+      homeScore: so.home.filter((k) => k.scored).length,
+      awayScore: so.away.filter((k) => k.scored).length,
+    };
+  }
+
   const gi = obj(j.gameInfo);
   return {
     status,
@@ -207,6 +233,7 @@ export function normalizeSummary(j: Json): MatchDetail {
     lineups,
     form,
     h2h,
+    shootout,
     venue: str(obj(gi.venue).fullName),
     attendance: num(gi.attendance),
     referee: str(obj(arr(gi.officials)[0]).displayName),

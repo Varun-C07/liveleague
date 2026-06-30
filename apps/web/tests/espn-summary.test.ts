@@ -50,6 +50,18 @@ const SUMMARY = {
       { gameDate: "2025-10-15T01:00Z", homeTeamId: "660", awayTeamId: "628", homeTeamScore: "2", awayTeamScore: "1", opponent: { abbreviation: "AUS" } },
     ] },
   ],
+  shootout: [
+    { id: "660", team: "United States", shots: [
+      { player: "A", shotNumber: 1, didScore: true },
+      { player: "B", shotNumber: 2, didScore: false },
+      { player: "C", shotNumber: 3, didScore: true },
+    ] },
+    { id: "628", team: "Australia", shots: [
+      { player: "D", shotNumber: 1, didScore: true },
+      { player: "E", shotNumber: 2, didScore: false },
+      { player: "F", shotNumber: 3, didScore: false },
+    ] },
+  ],
 };
 
 describe("normalizeSummary", () => {
@@ -100,5 +112,13 @@ describe("normalizeSummary", () => {
   it("builds head-to-head with real home/away codes", () => {
     expect(d.h2h).toHaveLength(1);
     expect(d.h2h[0]).toMatchObject({ home: "USA", away: "AUS", score: "2-1" });
+  });
+
+  it("normalizes the penalty shootout per side with tallies", () => {
+    expect(d.shootout).not.toBeNull();
+    expect(d.shootout!.homeScore).toBe(2); // USA scored 2 of 3
+    expect(d.shootout!.awayScore).toBe(1); // AUS scored 1 of 3
+    expect(d.shootout!.home).toHaveLength(3);
+    expect(d.shootout!.home[1]).toMatchObject({ scored: false });
   });
 });

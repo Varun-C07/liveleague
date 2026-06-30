@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme, type Theme } from "@/components/design/theme";
 import { card, hex, unskew, Crest, Pulse } from "@/components/design/primitives";
 import { ChevronDown, ChevronRight, MapPin, Lock } from "@/components/design/icons";
-import { isLightColor, dateLabel, kickoffDateTimeLabel } from "@/components/design/map";
+import { isLightColor, dateLabel, kickoffDateTimeLabel, pensLabel } from "@/components/design/map";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
 import { DateRangePicker, type DateRange } from "@/components/design/screens/soccer/DateRangePicker";
 import { PAYWALL_ENABLED } from "@liveleague/core/gating";
@@ -343,7 +343,10 @@ function FixtureRow({ m, mine }: { m: ApiMatch; mine: boolean }) {
           <Crest code={m.home.code} color={m.home.color} dark={isLightColor(m.home.color)} size={22} />
           <span className="cond" style={{ fontSize: 13.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.home.name}</span>
         </div>
-        <span className="disp num" style={{ fontSize: 17, fontWeight: 800, color: live ? t.live : t.text, whiteSpace: "nowrap" }}>{score}</span>
+        <div style={{ textAlign: "center" }}>
+          <span className="disp num" style={{ fontSize: 17, fontWeight: 800, color: live ? t.live : t.text, whiteSpace: "nowrap" }}>{score}</span>
+          {pensLabel(m) ? <div className="num" style={{ fontSize: 9.5, fontWeight: 800, color: t.textFaint, marginTop: 1 }}>{pensLabel(m)}</div> : null}
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 7, justifyContent: "flex-end", minWidth: 0 }}>
           <span className="cond" style={{ fontSize: 13.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.away.name}</span>
           <Crest code={m.away.code} color={m.away.color} dark={isLightColor(m.away.color)} size={22} />
