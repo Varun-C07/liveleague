@@ -75,6 +75,21 @@ manual `npx vercel deploy --prod --token $VERCEL_TOKEN`. Prod:
 
 ## Log
 
+### 2026-06-29 — Resolve knockout matchups from the live feed (no more stale "2A v 2B")
+- **Problem:** knockout slots ship as placeholders ("2A", "1F", "W74", "3rd …") and
+  `applyEvents` matches by team pair, so once the real matchups were decided the bracket
+  stayed stale. Our static bracket structure also doesn't mirror FIFA's real draw, and
+  shootout winners can't be read off the score → the live feed is the only reliable source.
+- **Fix:** new `apps/web/lib/resolve-knockouts.ts` — `resolveKnockoutTeams()` matches each
+  placeholder knockout slot to its ESPN event by **venue + nearest kickoff** (±2 days) and
+  copies in the real teams; then `applyEvents()` fills the score by team pair. Cascades
+  round by round as games are decided. Venue alias map handles ESPN renames (Estadio Azteca
+  → "Estadio Banorte").
+- **Plumbing** (`tsdb.ts`): `applyAll()` = applyEvents → resolve → applyEvents; `liveDates()`
+  also polls upcoming/just-decided knockout days; `liveWindowActive` stays active while a
+  nearby knockout slot is unresolved so the bracket fills promptly. Tests:
+  `apps/web/tests/resolve-knockouts.test.ts` (7).
+
 ### 2026-06-26 — Master paywall switch (off) + overview carries all live games
 - **`PAYWALL_ENABLED` flag** (`lib/gating.ts`, currently `false`) — single reversible
   switch. While off: `getEntitlements()` (`lib/entitlements.ts`) returns

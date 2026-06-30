@@ -2,6 +2,8 @@ import type { Match } from "@liveleague/core/types";
 import type { DataSource } from "@liveleague/core/api-shape";
 import { freshSchedule } from "@/lib/schedule";
 import { applyEvents, type RawEvent } from "@/lib/normalize";
+import { resolveKnockoutTeams, unresolvedKnockoutDates } from "@/lib/resolve-knockouts";
+import { isRealTeam } from "@/data/teams";
 import { readCache, writeCache } from "@/lib/db/cache";
 import { fetchEspnSoccer } from "@/lib/espn-soccer";
 
@@ -36,17 +38,37 @@ const PRE_LIVE_MS = 10 * 60_000;
 const MAX_LIVE_MS = 3.5 * 60 * 60_000;
 const DAY_MS = 86_400_000;
 
-// Is the live feed worth hitting right now? True only if a match is in its play
-// window, or just ended and we don't yet have its final result. When this is
-// false we never touch the upstream — page refreshes are free.
+// Is the live feed worth hitting right now? True if a match is in its play window,
+// just ended and we don't yet have its final result, OR there's a knockout slot
+// whose teams aren't resolved yet and it's near (so the bracket fills in as rounds
+// are decided). When false we never touch the upstream — page refreshes are free.
 function liveWindowActive(matches: Match[], now: number): boolean {
   return matches.some((m) => {
     const ko = Date.parse(m.utc);
     if (Number.isNaN(ko)) return false;
     const inPlay = now >= ko - PRE_LIVE_MS && now <= ko + MAX_LIVE_MS;
     const recentUnresolved = ko < now && now - ko < DAY_MS && m.st !== "ft";
-    return inPlay || recentUnresolved;
+    const pendingKnockout =
+      m.grp === null && (!isRealTeam(m.h) || !isRealTeam(m.a)) &&
+      ko >= now - DAY_MS && ko <= now + 2 * DAY_MS;
+    return inPlay || recentUnresolved || pendingKnockout;
   });
+}
+
+// ESPN dates to poll: the rolling now-window plus any upcoming/just-decided
+// knockout days, so newly-set matchups resolve promptly.
+function liveDates(matches: Match[], now: number): string[] {
+  return [...new Set([...recentDates(new Date(now)), ...unresolvedKnockoutDates(matches, now)])];
+}
+
+// Pull live scores, then resolve any newly-decided knockout matchups and re-apply
+// (so the resolved slots get their scores by team pair).
+function applyAll(matches: Match[], events: RawEvent[], now: number): number {
+  const { liveCount } = applyEvents(matches, events, now);
+  if (resolveKnockoutTeams(matches, events) > 0) {
+    return applyEvents(matches, events, now).liveCount;
+  }
+  return liveCount;
 }
 
 // Cache-first + live-gated. The schedule (dates, venues, teams) and finished
@@ -74,8 +96,8 @@ async function refreshLive(base: Match[]): Promise<ResolvedData> {
   const matches = base.map((m) => ({ ...m })); // clone — applyEvents mutates
   const now = Date.now();
   try {
-    const events = await fetchEspnSoccer(recentDates(new Date(now)), 10);
-    if (events.length) applyEvents(matches, events, now);
+    const events = await fetchEspnSoccer(liveDates(matches, now), 10);
+    if (events.length) applyAll(matches, events, now);
     const liveCount = matches.filter((m) => m.st === "live").length;
     await writeCache("soccer", { matches, liveCount } satisfies CachedMatches);
     return { source: "live", syncedAt: new Date().toISOString(), liveCount, matches };
@@ -94,11 +116,11 @@ async function refreshFull(live = true): Promise<ResolvedData> {
   try {
     const [tsdb, espn] = await Promise.all([
       fetchUpstream(live).catch(() => [] as RawEvent[]),
-      fetchEspnSoccer(recentDates(new Date(now)), 10).catch(() => [] as RawEvent[]),
+      fetchEspnSoccer(liveDates(matches, now), 10).catch(() => [] as RawEvent[]),
     ]);
     const events = [...tsdb, ...espn];
     if (!events.length) throw new Error("no events");
-    const { liveCount } = applyEvents(matches, events, now);
+    const liveCount = applyAll(matches, events, now);
     await writeCache("soccer", { matches, liveCount } satisfies CachedMatches);
     return { source: "live", syncedAt: new Date().toISOString(), liveCount, matches };
   } catch {
