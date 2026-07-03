@@ -2,6 +2,7 @@
   "expo": {
     "name": "Live League",
     "slug": "live-league",
+    "owner": "varunchs-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -42,6 +43,12 @@
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f8047a3a-b551-4135-9841-e4c9f6684d0b"
+      }
     }
   }
 }
