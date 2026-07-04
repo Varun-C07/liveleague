@@ -59,7 +59,10 @@ export function Crest({
   dark?: boolean;
   size?: number;
 }) {
-  const slug = flagSlug(code);
+  // Undecided knockout slots use codes with digits/slashes ("2A", "W89",
+  // "3rd A/B/C/D/F") — show a neutral "TBD" disc, never the raw code or a flag.
+  const placeholder = /[0-9/]/.test(code);
+  const slug = placeholder ? null : flagSlug(code);
   return (
     <div
       style={{
@@ -68,8 +71,8 @@ export function Crest({
         display: "flex", alignItems: "center", justifyContent: "center",
       }}
     >
-      <span style={{ fontSize: size * 0.36, color: dark ? "#1a1a1a" : "#fff", fontWeight: 800, letterSpacing: "-.02em" }}>
-        {code}
+      <span style={{ fontSize: size * (placeholder ? 0.3 : 0.36), color: dark ? "#1a1a1a" : "#fff", fontWeight: 800, letterSpacing: "-.02em" }}>
+        {placeholder ? "TBD" : code}
       </span>
       {slug ? (
         // Flag overlays the fallback disc; onError hides it to reveal the disc.

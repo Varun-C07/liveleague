@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseStatus, clampLive, applyEvents, toApiMatch, type RawEvent } from "@/lib/normalize";
+import { parseStatus, clampLive, applyEvents, toApiMatch, placeholderLabel, type RawEvent } from "@/lib/normalize";
 import type { Match } from "@liveleague/core/types";
 
 function ko(h: string, a: string): Match {
@@ -70,5 +70,16 @@ describe("applyEvents — penalty shootout", () => {
     const m = ko("MEX", "KOR");
     applyEvents([m], [{ strHomeTeam: "MEX", strAwayTeam: "KOR", intHomeScore: "2", intAwayScore: "0", strStatus: "FT" }], now);
     expect(toApiMatch(m).pens).toBeNull();
+  });
+});
+
+describe("placeholderLabel", () => {
+  it("humanizes undecided knockout slot codes", () => {
+    expect(placeholderLabel("1E")).toBe("Winner Group E");
+    expect(placeholderLabel("2A")).toBe("Runner-up Group A");
+    expect(placeholderLabel("W89")).toBe("Winner · Match 89");
+    expect(placeholderLabel("L101")).toBe("Loser · Match 101");
+    expect(placeholderLabel("3rd A/B/C/D/F")).toBe("3rd place · A/B/C/D/F");
+    expect(placeholderLabel("BRA")).toBe("BRA"); // real code passes through
   });
 });

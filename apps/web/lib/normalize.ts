@@ -130,12 +130,25 @@ function coerce(v: string | number | null | undefined): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+// Human-readable label for an undecided knockout slot code, so the UI never shows
+// raw placeholders. "2A" → "Runner-up Group A", "1E" → "Winner Group E",
+// "3rd A/B/C/D/F" → "3rd place · A/B/C/D/F", "W89" → "Winner · Match 89".
+export function placeholderLabel(code: string): string {
+  const grpPos = code.match(/^([12])([A-L])$/);
+  if (grpPos) return `${grpPos[1] === "1" ? "Winner" : "Runner-up"} Group ${grpPos[2]}`;
+  const third = code.match(/^3rd\s+(.+)$/i);
+  if (third) return `3rd place · ${third[1]}`;
+  const wl = code.match(/^([WL])(\d+)$/);
+  if (wl) return `${wl[1] === "W" ? "Winner" : "Loser"} · Match ${wl[2]}`;
+  return code;
+}
+
 // ---- serialize Match -> ApiMatch (resolve team refs) ----
 function teamRef(code: string, grp: string | null): TeamRef {
   const t = TEAMS[code];
   return {
     code,
-    name: t ? t.name : code,
+    name: t ? t.name : placeholderLabel(code),
     flag: t ? t.flag : "",
     color: t ? t.color : "#5b6b60",
     real: !!t,

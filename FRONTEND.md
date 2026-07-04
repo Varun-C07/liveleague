@@ -14,6 +14,14 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-07-04 — Humanize undecided knockout slots (no raw "W89" / "2A")
+- Undecided knockout matchups showed raw internal codes. `placeholderLabel()`
+  (`apps/web/lib/normalize.ts`, used in `teamRef`) now renders them as labels everywhere
+  the ApiMatch flows: "2A" → "Runner-up Group A", "1E" → "Winner Group E", "W89" →
+  "Winner · Match 89", "3rd A/B/C/D/F" → "3rd place · A/B/C/D/F".
+- `Crest` shows a neutral **TBD** disc (no flag, no raw code) for any placeholder code
+  (contains a digit/slash). Test: `placeholderLabel` in `tests/normalize.test.ts`.
+
 ### 2026-06-30 — Penalty shootout display
 - **Match page** (`MatchDetailPanel.tsx`): broadcast-style `ShootoutView` — per side a
   kick-by-kick dot strip (green = scored, red = missed, hover shows the taker) + the tally,
