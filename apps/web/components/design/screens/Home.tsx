@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import type { LiveOverview } from "@liveleague/core/sports/types";
+import type { LiveOverview } from "@liveleagues/core/sports/types";
 import { useTheme, type Theme } from "@/components/design/theme";
 import {
   card, hex, Crest, Tag, Pulse, SL, Strip, unskew,
@@ -11,8 +11,8 @@ import { Calendar, ChevronDown, ChevronRight } from "@/components/design/icons";
 import { mapUpcoming, mapLive, mapFeatured, mapLeagues, isLightColor, type UpcomingSoccer, type UpcomingF1 } from "@/components/design/map";
 import { useOverview } from "@/hooks/useLive";
 import { useFavorites } from "@/hooks/useFavorites";
-import { splitFavKey } from "@liveleague/core/favorites";
-import { PAYWALL_ENABLED } from "@liveleague/core/gating";
+import { splitFavKey } from "@liveleagues/core/favorites";
+import { PAYWALL_ENABLED } from "@liveleagues/core/gating";
 import { TEAMS } from "@/data/teams";
 import { useDemoNow, withDemoLive } from "@/components/design/demoLive";
 import { LiveDot, TickingMinute, FlashScore, LiveCardGlow } from "@/components/design/motion";

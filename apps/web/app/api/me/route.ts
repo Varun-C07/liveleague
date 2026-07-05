@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase, getSessionUser } from "@/lib/db/supabase-server";
-import { PAYWALL_ENABLED } from "@liveleague/core/gating";
+import { PAYWALL_ENABLED } from "@liveleagues/core/gating";
 
 export const dynamic = "force-dynamic";
 

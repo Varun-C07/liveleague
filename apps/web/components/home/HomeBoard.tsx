@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import type { LiveOverview } from "@liveleague/core/sports/types";
+import type { LiveOverview } from "@liveleagues/core/sports/types";
 import { useOverview } from "@/hooks/useLive";
 import { SyncPill } from "@/components/shared/SyncPill";
 import { GameTicker } from "@/components/shared/GameTicker";

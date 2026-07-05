@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import type { StandingRow } from "@liveleague/core/sports/types";
+import type { StandingRow } from "@liveleagues/core/sports/types";
 
 // Horizontal championship-style standings (F1 drivers, etc.) — a scrolling
 // strip of chips. Each row's first metric is shown inline. When `hrefBase` is

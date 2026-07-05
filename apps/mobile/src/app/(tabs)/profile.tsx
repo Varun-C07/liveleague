@@ -1,18 +1,30 @@
-import { Text } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../../providers/auth";
+import { colors } from "../../theme/theme";
 
-import { Card, Screen } from "@/components/Screen";
-import { theme } from "@/theme/palette";
-
-export default function ProfileScreen() {
+export default function Profile() {
+  const insets = useSafeAreaInsets();
+  const { user, signIn } = useAuth();
   return (
-    <Screen title="Profile" accent={theme.gold}>
-      <Card>
-        <Text style={{ color: theme.textDim, fontSize: 13, lineHeight: 19 }}>
-          Sign in (Supabase: Google + email; Sign in with Apple to add), followed
-          teams, friend leagues and the $5 bundle live here. Auth talks only to
-          the authClient seam; payments via the Purchases seam (free in beta).
-        </Text>
-      </Card>
-    </Screen>
+    <View style={[styles.fill, { paddingTop: insets.top + 16, paddingHorizontal: 16 }]}>
+      <Text style={styles.title}>Profile</Text>
+      <Text style={styles.sub}>
+        {user ? "Signed in." : "Sign in to follow teams, make picks and run leagues."}
+      </Text>
+      {!user ? (
+        <Pressable style={styles.btn} onPress={signIn}>
+          <Text style={styles.btnTxt}>Sign in</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: { flex: 1, backgroundColor: colors.bg },
+  title: { color: colors.text, fontSize: 26, fontWeight: "800" },
+  sub: { color: colors.textDim, fontSize: 14, marginTop: 8, lineHeight: 20, maxWidth: 320 },
+  btn: { marginTop: 18, alignSelf: "flex-start", borderColor: "rgba(255,255,255,0.15)", borderWidth: 1, paddingHorizontal: 20, paddingVertical: 11, borderRadius: 10 },
+  btnTxt: { color: colors.text, fontWeight: "800", fontSize: 14 },
+});

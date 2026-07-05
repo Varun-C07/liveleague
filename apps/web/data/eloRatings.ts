@@ -1,4 +1,4 @@
-import type { TeamCode } from "@liveleague/core/types";
+import type { TeamCode } from "@liveleagues/core/types";
 
 // Static pre-tournament team strength — approximate public World Football Elo
 // ratings (eloratings.net style) transcribed once, the same free-data pattern as

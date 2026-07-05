@@ -1,5 +1,5 @@
 import { F1_SCHEDULE, colorForConstructor } from "@/data/snapshots/f1";
-import { canReach, gap, maxPointsRemaining } from "@liveleague/core/sports/f1-scenarios";
+import { canReach, gap, maxPointsRemaining } from "@liveleagues/core/sports/f1-scenarios";
 
 const BASE = process.env.JOLPICA_BASE || "https://api.jolpi.ca/ergast/f1/2026";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Game, LiveBundle, StandingRow } from "@liveleague/core/sports/types";
+import type { Game, LiveBundle, StandingRow } from "@liveleagues/core/sports/types";
 import { useTheme } from "@/components/design/theme";
 import type { Theme } from "@/components/design/theme";
 import { card, hex, Tag, Pulse, SL, Strip } from "@/components/design/primitives";

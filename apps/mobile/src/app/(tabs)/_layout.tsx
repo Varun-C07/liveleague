@@ -1,68 +1,34 @@
 import { Tabs } from "expo-router";
-import { Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../../theme/theme";
 
-import { theme } from "@/theme/palette";
-
-// Placeholder tab icon (dependency-free): a small rounded chip with the tab's
-// initial. Swap for real icons (react-native-svg / SF Symbols) — Varun's pass.
-function TabChip({ letter, active }: { letter: string; active: boolean }) {
-  const color = active ? theme.accent : theme.textDim;
-  return (
-    <View
-      style={{
-        width: 26,
-        height: 26,
-        borderRadius: 8,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: color + "22",
-      }}
-    >
-      <Text style={{ color, fontSize: 13, fontWeight: "700" }}>{letter}</Text>
-    </View>
-  );
-}
-
+// Bottom tab bar: Home · World Cup · Formula 1 · Profile (plan §A.4).
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.accent,
-        tabBarInactiveTintColor: theme.textDim,
-        tabBarStyle: {
-          backgroundColor: theme.surface,
-          borderTopColor: theme.border,
-        },
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textDim,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        sceneStyle: { backgroundColor: colors.bg },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ focused }) => <TabChip letter="H" active={focused} />,
-        }}
+        options={{ title: "Home", tabBarIcon: ({ color, size }) => <Ionicons name="home" color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="soccer"
-        options={{
-          title: "World Cup",
-          tabBarIcon: ({ focused }) => <TabChip letter="W" active={focused} />,
-        }}
+        options={{ title: "World Cup", tabBarIcon: ({ color, size }) => <Ionicons name="football" color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="f1"
-        options={{
-          title: "Formula 1",
-          tabBarIcon: ({ focused }) => <TabChip letter="F" active={focused} />,
-        }}
+        options={{ title: "Formula 1", tabBarIcon: ({ color, size }) => <Ionicons name="car-sport" color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ focused }) => <TabChip letter="P" active={focused} />,
-        }}
+        options={{ title: "Profile", tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} /> }}
       />
     </Tabs>
   );

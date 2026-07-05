@@ -1,4 +1,4 @@
-import type { ApiMatch } from "@liveleague/core/api-shape";
+import type { ApiMatch } from "@liveleagues/core/api-shape";
 
 // Build an .ics calendar event (90-minute window) for a match.
 export function matchToICS(m: ApiMatch): string {

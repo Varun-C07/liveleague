@@ -14,6 +14,25 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-07-05 — Integrate Varun's mobile frontend + "LiveLeagues" rename
+- **Mobile screens are now real.** Ported Varun's `mobile/scaffold` work onto our SDK-56
+  Expo shell (`apps/mobile/src/`): Home (live hero + per-sport sections), World Cup
+  (day-grouped `SectionList`), Formula 1 (round schedule), shared `MatchCard`
+  (row/hero/race variants + flag emojis), loading/error/empty `states`, and real
+  `match/[id]` + `race/[id]` detail routes. Data comes from `@liveleagues/core/hooks/*`
+  (which fetch the web `/api/*`); `lib/apiBase.ts` prefixes `EXPO_PUBLIC_API_URL` on device.
+  Auth is a no-op seam; Profile is a placeholder.
+- **Mobile theme = Obsidian + lime**, not Varun's amber/FotMob look — `apps/mobile/src/theme/theme.ts`
+  mirrors the web `theme.tsx` Obsidian palette (lime accent, crimson F1).
+- **F1 schedule** now lists upcoming/live rounds first (round order), completed rounds after
+  — `apps/mobile/src/app/(tabs)/f1.tsx` `scheduleOrder()`.
+- **Web renamed "Live League" → "LiveLeagues"** (text only — palette unchanged): wordmark
+  `components/design/Logo.tsx` ("Live"/"Leagues" two-tone), page titles `app/layout.tsx`,
+  footer/aria `components/design/DesignShell.tsx`, `auth/AuthModal.tsx`.
+- **Core package renamed** `@liveleague/core` → `@liveleagues/core`; `useLive`/`useMatches`
+  hooks moved into `packages/core/src/hooks/` (web keeps thin re-export shims). Did NOT adopt
+  Varun's pnpm conversion, core reshape, SDK 54, or amber web theme.
+
 ### 2026-07-04 — Humanize undecided knockout slots (no raw "W89" / "2A")
 - Undecided knockout matchups showed raw internal codes. `placeholderLabel()`
   (`apps/web/lib/normalize.ts`, used in `teamRef`) now renders them as labels everywhere

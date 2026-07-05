@@ -3,7 +3,7 @@ import { Soccer } from "@/components/design/screens/Soccer";
 import { liveMatchesResponse, liveStandingsResponse } from "@/lib/snapshot";
 
 export const metadata: Metadata = {
-  title: "World Cup 2026 — Live Board · Live League",
+  title: "World Cup 2026 — Live Board · LiveLeagues",
   description:
     "Live board for the FIFA World Cup 2026 — all 104 matches, group standings, live scores and kickoff times.",
 };

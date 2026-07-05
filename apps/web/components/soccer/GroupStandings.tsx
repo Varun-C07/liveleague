@@ -1,5 +1,5 @@
 "use client";
-import type { StandingsResponse } from "@liveleague/core/api-shape";
+import type { StandingsResponse } from "@liveleagues/core/api-shape";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Star } from "lucide-react";
 

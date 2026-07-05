@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Match } from "@liveleague/core/types";
+import type { Match } from "@liveleagues/core/types";
 import type { RawEvent } from "@/lib/normalize";
 import { resolveKnockoutTeams, venueKeyFromName, unresolvedKnockoutDates } from "@/lib/resolve-knockouts";
 

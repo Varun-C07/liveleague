@@ -1,4 +1,4 @@
-import type { GroupLetter, Match, StandingRow } from "@liveleague/core/types";
+import type { GroupLetter, Match, StandingRow } from "@liveleagues/core/types";
 import { GROUP_ORDER, GROUP_LETTERS } from "@/data/groups";
 import { isRealTeam } from "@/data/teams";
 

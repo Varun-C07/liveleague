@@ -1,5 +1,5 @@
 {
-  "name": "@liveleague/core",
+  "name": "@liveleagues/core",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,13 +20,26 @@
     "./sports/meta": "./src/sports/meta.ts",
     "./sports/format": "./src/sports/format.ts",
     "./sports/f1-scenarios": "./src/sports/f1-scenarios.ts",
-    "./sports/agenda-window": "./src/sports/agenda-window.ts"
+    "./sports/agenda-window": "./src/sports/agenda-window.ts",
+    "./hooks/useLive": "./src/hooks/useLive.ts",
+    "./hooks/useMatches": "./src/hooks/useMatches.ts"
   },
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5",
+    "react": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-query": { "optional": true },
+    "react": { "optional": true }
+  },
   "devDependencies": {
+    "@tanstack/react-query": "^5.62.0",
+    "@types/react": "^19",
+    "react": ">=19",
     "typescript": "^5",
     "vitest": "^4.1.9"
   }

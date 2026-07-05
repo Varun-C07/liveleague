@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTheme } from "@/components/design/theme";
 import { Pulse } from "@/components/design/primitives";
 
-// The LIVELEAGUE wordmark: skewed bar-chart mark + "LIVE" (white) / "LEAGUE"
+// The LiveLeagues wordmark: skewed bar-chart mark + "Live" (white) / "Leagues"
 // (accent). Shared by the nav header (DesignShell) and the auth modal so they
 // never diverge. `hideWordOnMobile` applies the .ll-logo-word class the header
 // uses to drop the wordmark on small screens.
@@ -26,8 +26,8 @@ export function BrandMark({
           <Pulse color={t.live} size={6} />
         </span>
       </span>
-      <span className={hideWordOnMobile ? "disp ll-logo-word" : "disp"} style={{ fontSize: wordSize, fontWeight: 800, color: t.text }}>
-        LIVE<span style={{ color: t.accent }}>LEAGUE</span>
+      <span className={hideWordOnMobile ? "disp ll-logo-word" : "disp"} style={{ fontSize: wordSize, fontWeight: 800, color: t.text, textTransform: "none" }}>
+        Live<span style={{ color: t.accent }}>Leagues</span>
       </span>
     </span>
   );
@@ -36,7 +36,7 @@ export function BrandMark({
 // Header logo: the mark wrapped as a home link.
 export function Logo() {
   return (
-    <Link href="/" aria-label="Live League home" style={{ cursor: "pointer", textDecoration: "none", display: "inline-flex" }}>
+    <Link href="/" aria-label="LiveLeagues home" style={{ cursor: "pointer", textDecoration: "none", display: "inline-flex" }}>
       <BrandMark hideWordOnMobile />
     </Link>
   );

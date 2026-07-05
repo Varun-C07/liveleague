@@ -1,4 +1,4 @@
-import type { Match } from "@liveleague/core/types";
+import type { Match } from "@liveleagues/core/types";
 import { VENUES } from "@/data/venues";
 import { isRealTeam } from "@/data/teams";
 import { codeFromName, type RawEvent } from "@/lib/normalize";

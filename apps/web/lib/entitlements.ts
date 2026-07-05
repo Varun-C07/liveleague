@@ -2,7 +2,7 @@ import "server-only";
 
 import type { User } from "@supabase/supabase-js";
 import { getServerSupabase, getSessionUser } from "@/lib/db/supabase-server";
-import { PAYWALL_ENABLED, type Entitlements } from "@liveleague/core/gating";
+import { PAYWALL_ENABLED, type Entitlements } from "@liveleagues/core/gating";
 
 // Authority for feature gating. Reads the user's own entitlements row (RLS
 // scopes it). The webhook is the only writer. While the paywall is off, everyone

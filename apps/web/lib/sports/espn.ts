@@ -1,4 +1,4 @@
-import type { Competitor, Game, GameExtra, GameStatus, SportId } from "@liveleague/core/sports/types";
+import type { Competitor, Game, GameExtra, GameStatus, SportId } from "@liveleagues/core/sports/types";
 
 // Minimal subset of ESPN's public scoreboard JSON that we read.
 type EspnTeam = {

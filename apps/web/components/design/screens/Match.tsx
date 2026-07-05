@@ -13,7 +13,7 @@ import { useMatches, useStandings } from "@/hooks/useMatches";
 import { useMatchDetail } from "@/hooks/useMatchDetail";
 import { useWinProb } from "@/hooks/useWinProb";
 import { matchPredictor, type Predictor } from "@/components/design/screens/match/matchData";
-import type { ApiMatch, MatchesResponse, StandingsResponse } from "@liveleague/core/api-shape";
+import type { ApiMatch, MatchesResponse, StandingsResponse } from "@liveleagues/core/api-shape";
 import type { FormEntry } from "@/lib/espn-summary";
 
 type Team = ApiMatch["home"];

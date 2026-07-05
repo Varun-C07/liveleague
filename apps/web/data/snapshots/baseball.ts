@@ -1,4 +1,4 @@
-import type { Game } from "@liveleague/core/sports/types";
+import type { Game } from "@liveleagues/core/sports/types";
 import { fixtureToGame, type Fixture } from "@/lib/sports/snapshotKit";
 
 // Offline fallback for MLB (mid-June regular season). Illustrative.
