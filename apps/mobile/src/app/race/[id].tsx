@@ -2,19 +2,18 @@ import { ScrollView, Text, StyleSheet } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveBundle } from "@liveleagues/core/hooks/useLive";
-import type { LiveBundle } from "@liveleagues/core/sports/types";
+import { F1_SNAPSHOT } from "@liveleagues/core/snapshots";
 import { colors, fonts } from "../../theme/theme";
 import { MatchCard, raceToCard } from "../../components/MatchCard";
 import { Loading, NotFound, ComingSoon } from "../../components/states";
 
-const EMPTY: LiveBundle = { sport: "f1", source: "snapshot", syncedAt: "", liveCount: 0, games: [] };
-
 // Read-only F1 race detail. Reads the SAME ["sport","f1"] query the F1 tab uses
-// (React Query dedupes — no new fetch), and selects by id.
+// (React Query dedupes — no new fetch), seeded with the bundled snapshot, and
+// selects by id.
 export default function RaceDetail() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isLoading } = useLiveBundle("f1", EMPTY);
+  const { data, isLoading } = useLiveBundle("f1", F1_SNAPSHOT);
 
   const g = (data?.games ?? []).find((x) => x.id === id) ?? null;
 

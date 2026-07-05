@@ -21,7 +21,9 @@ export default function RootLayout() {
   const [client] = useState(
     () =>
       new QueryClient({
-        defaultOptions: { queries: { staleTime: 10_000, retry: 1, refetchOnWindowFocus: false } },
+        // staleTime 0 so the bundled snapshot seeds render instantly but are treated
+        // as stale — a live fetch fires on mount, then adaptive refetchInterval polls.
+        defaultOptions: { queries: { staleTime: 0, retry: 1, refetchOnWindowFocus: false } },
       }),
   );
 

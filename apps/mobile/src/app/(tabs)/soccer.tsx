@@ -3,21 +3,20 @@ import { SectionList, View, Text, RefreshControl, StyleSheet } from "react-nativ
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveTicker } from "@liveleagues/core/hooks/useLive";
 import { useMatches } from "@liveleagues/core/hooks/useMatches";
-import type { ApiMatch, MatchesResponse } from "@liveleagues/core/api-shape";
+import type { ApiMatch } from "@liveleagues/core/api-shape";
+import { OVERVIEW_SNAPSHOT, SOCCER_SNAPSHOT } from "@liveleagues/core/snapshots";
 import { colors, fonts } from "../../theme/theme";
 import { MatchCard, gameToCard, matchToCard, type MatchCardData } from "../../components/MatchCard";
 import { Loading, ErrorState } from "../../components/states";
 
-// useMatches needs an initial seed (it's built for SSR on web); on device we start
-// empty and it fetches /api/soccer (via the apiBase shim). No new fetch here.
-const EMPTY: MatchesResponse = { source: "snapshot", syncedAt: "", liveCount: 0, total: 0, matches: [] };
-
+// Seeded with bundled snapshots so the tab opens instantly and survives a backend
+// outage; live data (/api/soccer via the apiBase shim) replaces them on first fetch.
 type Section = { title: string; data: MatchCardData[] };
 
 export default function Soccer() {
   const insets = useSafeAreaInsets();
-  const overview = useLiveTicker();
-  const { data: mr, isLoading, isError, error, refetch, isRefetching } = useMatches(EMPTY);
+  const overview = useLiveTicker(OVERVIEW_SNAPSHOT);
+  const { data: mr, isLoading, isError, error, refetch, isRefetching } = useMatches(SOCCER_SNAPSHOT);
 
   const soccer = overview.data?.sports.find((s) => s.id === "soccer");
   const featured = (soccer?.topGames ?? []).map((g) => gameToCard(g, true));

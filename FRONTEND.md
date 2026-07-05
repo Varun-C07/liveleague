@@ -29,6 +29,12 @@ so any session can pick up the thread of what's been touched and why.
 - **Web renamed "Live League" → "LiveLeagues"** (text only — palette unchanged): wordmark
   `components/design/Logo.tsx` ("Live"/"Leagues" two-tone), page titles `app/layout.tsx`,
   footer/aria `components/design/DesignShell.tsx`, `auth/AuthModal.tsx`.
+- **Mobile is now offline-resilient (won't die if the backend is down).** Bundled fallback
+  snapshots captured from `/api/{live,soccer,f1}`, sanitized (source=snapshot, no frozen "live"),
+  frozen into `packages/core/src/snapshots/` (`@liveleagues/core/snapshots`). The mobile hooks
+  seed from them so screens render instantly and degrade gracefully; live data replaces them on
+  first fetch. `useLiveTicker(initial?)` gained an optional seed; mobile QueryClient `staleTime:0`
+  so the seed shows but a live fetch still fires on mount.
 - **Core package renamed** `@liveleague/core` → `@liveleagues/core`; `useLive`/`useMatches`
   hooks moved into `packages/core/src/hooks/` (web keeps thin re-export shims). Did NOT adopt
   Varun's pnpm conversion, core reshape, SDK 54, or amber web theme.

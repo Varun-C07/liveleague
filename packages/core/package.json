@@ -22,7 +22,8 @@
     "./sports/f1-scenarios": "./src/sports/f1-scenarios.ts",
     "./sports/agenda-window": "./src/sports/agenda-window.ts",
     "./hooks/useLive": "./src/hooks/useLive.ts",
-    "./hooks/useMatches": "./src/hooks/useMatches.ts"
+    "./hooks/useMatches": "./src/hooks/useMatches.ts",
+    "./snapshots": "./src/snapshots/index.ts"
   },
   "scripts": {
     "test": "vitest run",

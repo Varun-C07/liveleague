@@ -2,19 +2,18 @@ import { useMemo } from "react";
 import { FlatList, View, Text, RefreshControl, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveTicker, useLiveBundle } from "@liveleagues/core/hooks/useLive";
-import type { Game, LiveBundle } from "@liveleagues/core/sports/types";
+import type { Game } from "@liveleagues/core/sports/types";
+import { OVERVIEW_SNAPSHOT, F1_SNAPSHOT } from "@liveleagues/core/snapshots";
 import { colors, fonts } from "../../theme/theme";
 import { MatchCard, raceToCard, type MatchCardData } from "../../components/MatchCard";
 import { Loading, ErrorState } from "../../components/states";
 
-// useLiveBundle needs an initial seed (built for SSR on web); on device we start
-// empty and it fetches /api/f1 (via the apiBase shim). No new fetch here.
-const EMPTY: LiveBundle = { sport: "f1", source: "snapshot", syncedAt: "", liveCount: 0, games: [] };
-
+// Seeded with bundled snapshots so the tab opens instantly and survives a backend
+// outage; live data (/api/f1 via the apiBase shim) replaces them on first fetch.
 export default function F1() {
   const insets = useSafeAreaInsets();
-  const overview = useLiveTicker();
-  const { data: bundle, isLoading, isError, error, refetch, isRefetching } = useLiveBundle("f1", EMPTY);
+  const overview = useLiveTicker(OVERVIEW_SNAPSHOT);
+  const { data: bundle, isLoading, isError, error, refetch, isRefetching } = useLiveBundle("f1", F1_SNAPSHOT);
 
   const f1 = overview.data?.sports.find((s) => s.id === "f1");
   const races = bundle?.games ?? [];

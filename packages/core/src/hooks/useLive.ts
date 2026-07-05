@@ -33,10 +33,15 @@ export function useOverview(initial: LiveOverview) {
 
 // Score ticker: same ["overview"] query the home page uses, so it shares the
 // seeded cache on Home and fetches the same aggregate elsewhere (no new fetch).
-export function useLiveTicker() {
+// `initial` is optional: the web ticker shares Home's cache (no seed), while the
+// mobile app passes a bundled snapshot so it renders instantly and survives a
+// backend outage. With the mobile QueryClient's staleTime:0 the seed is treated
+// as stale, so a live fetch still fires on mount.
+export function useLiveTicker(initial?: LiveOverview) {
   return useQuery({
     queryKey: ["overview"],
     queryFn: () => fetchJSON<LiveOverview>("/api/live"),
+    ...(initial ? { initialData: initial } : {}),
     refetchInterval: (q) => {
       const d = q.state.data as LiveOverview | undefined;
       if (!d) return POLL.soon;

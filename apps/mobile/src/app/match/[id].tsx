@@ -3,22 +3,21 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveTicker } from "@liveleagues/core/hooks/useLive";
 import { useMatches } from "@liveleagues/core/hooks/useMatches";
-import type { MatchesResponse } from "@liveleagues/core/api-shape";
+import { OVERVIEW_SNAPSHOT, SOCCER_SNAPSHOT } from "@liveleagues/core/snapshots";
 import { colors, fonts } from "../../theme/theme";
 import { MatchCard, matchToCard, gameToCard, type MatchCardData } from "../../components/MatchCard";
 import { Loading, NotFound, ComingSoon } from "../../components/states";
 
-const EMPTY: MatchesResponse = { source: "snapshot", syncedAt: "", liveCount: 0, total: 0, matches: [] };
-
 // Read-only soccer match detail. A tapped card can originate from EITHER source —
 // the World Cup fixtures list (`useMatches`) OR the overview topGames that feed
 // Home + the featured strip (`useLiveTicker`). Both ids are `soccer-${n}`, so we
-// resolve against both (same shared React Query cache — no new fetch).
+// resolve against both (same shared React Query cache — no new fetch). Both hooks
+// share the bundled snapshot seeds, so detail works even before/without a fetch.
 export default function MatchDetail() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isLoading: matchesLoading } = useMatches(EMPTY);
-  const { data: ov, isLoading: overviewLoading } = useLiveTicker();
+  const { data, isLoading: matchesLoading } = useMatches(SOCCER_SNAPSHOT);
+  const { data: ov, isLoading: overviewLoading } = useLiveTicker(OVERVIEW_SNAPSHOT);
 
   const apiMatch = (data?.matches ?? []).find((x) => `soccer-${x.n}` === id) ?? null;
   const game = ov?.sports.find((s) => s.id === "soccer")?.topGames.find((g) => g.id === id) ?? null;

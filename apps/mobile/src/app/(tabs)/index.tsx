@@ -2,15 +2,18 @@ import { ScrollView, View, Text, RefreshControl, StyleSheet } from "react-native
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveTicker } from "@liveleagues/core/hooks/useLive";
 import type { Game, SportSummary } from "@liveleagues/core/sports/types";
+import { OVERVIEW_SNAPSHOT } from "@liveleagues/core/snapshots";
 import { colors, fonts } from "../../theme/theme";
 import { MatchCard, gameToCard } from "../../components/MatchCard";
 import { Loading, ErrorState } from "../../components/states";
 
 // Home (read-only): the cross-sport overview, straight from the shared core hook
-// (the same /api/live query the web app polls). No logic is duplicated here.
+// (the same /api/live query the web app polls). Seeded with a bundled snapshot so
+// it renders instantly and survives a backend outage; live data replaces it on the
+// first successful fetch. No logic is duplicated here.
 export default function Home() {
   const insets = useSafeAreaInsets();
-  const { data: ov, isLoading, isError, error, refetch, isRefetching } = useLiveTicker();
+  const { data: ov, isLoading, isError, error, refetch, isRefetching } = useLiveTicker(OVERVIEW_SNAPSHOT);
 
   if (isLoading) return <Loading label="Loading scores…" />;
   if (isError) {
