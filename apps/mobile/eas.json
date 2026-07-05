@@ -20,6 +20,13 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6787629770",
+        "ascApiKeyPath": "/Users/ayushch/keys/asc-key/AuthKey_AX76HMF5Y6.p8",
+        "ascApiKeyId": "AX76HMF5Y6",
+        "ascApiKeyIssuerId": "f1189dcf-aeee-4852-bf6f-38a67aa3f028"
+      }
+    }
   }
 }
