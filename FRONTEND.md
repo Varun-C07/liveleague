@@ -14,6 +14,20 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-07-05 — Mobile: standings, live ticker, Home 404 fix
+- **Fixed Home 404.** expo-router v6 (SDK 56) needs `export const unstable_settings =
+  { anchor: "(tabs)" }` in `src/app/_layout.tsx` to resolve the initial `/` route to the tab
+  group; without it the front page hit the not-found screen while other tabs worked.
+- **World Cup tab:** added a **Fixtures / Groups** segmented toggle; Groups shows all 12 group
+  tables (rank, flag, P/GD/Pts; top-2 green, best-thirds gold) from `/api/soccer/standings`.
+- **F1 tab:** added a **Schedule / Standings** toggle; Standings shows Drivers' + Constructors'
+  championship tables (already present in the `/api/f1` bundle — no new fetch).
+- **Home:** added a horizontal **live-score ticker** strip (reuses `gameToCard`/`raceToCard`,
+  taps through to detail). New shared components: `components/standings.tsx` (`GroupCard`,
+  `ChampionshipTable`) and `components/Segmented.tsx`.
+- **Offline data:** bundled `SOCCER_STANDINGS_SNAPSHOT` into `@liveleagues/core/snapshots` so
+  the group tables render without the backend, like the other snapshots.
+
 ### 2026-07-05 — Integrate Varun's mobile frontend + "LiveLeagues" rename
 - **Mobile screens are now real.** Ported Varun's `mobile/scaffold` work onto our SDK-56
   Expo shell (`apps/mobile/src/`): Home (live hero + per-sport sections), World Cup

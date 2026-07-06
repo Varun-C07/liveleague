@@ -1,22 +1,29 @@
-import { useMemo } from "react";
-import { FlatList, View, Text, RefreshControl, StyleSheet } from "react-native";
+import { useMemo, useState } from "react";
+import { FlatList, ScrollView, View, Text, RefreshControl, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveTicker, useLiveBundle } from "@liveleagues/core/hooks/useLive";
 import type { Game } from "@liveleagues/core/sports/types";
 import { OVERVIEW_SNAPSHOT, F1_SNAPSHOT } from "@liveleagues/core/snapshots";
 import { colors, fonts } from "../../theme/theme";
 import { MatchCard, raceToCard, type MatchCardData } from "../../components/MatchCard";
+import { ChampionshipTable } from "../../components/standings";
+import { Segmented } from "../../components/Segmented";
 import { Loading, ErrorState } from "../../components/states";
 
 // Seeded with bundled snapshots so the tab opens instantly and survives a backend
 // outage; live data (/api/f1 via the apiBase shim) replaces them on first fetch.
+const TABS = ["Schedule", "Standings"] as const;
+
 export default function F1() {
   const insets = useSafeAreaInsets();
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Schedule");
   const overview = useLiveTicker(OVERVIEW_SNAPSHOT);
   const { data: bundle, isLoading, isError, error, refetch, isRefetching } = useLiveBundle("f1", F1_SNAPSHOT);
 
   const f1 = overview.data?.sports.find((s) => s.id === "f1");
   const races = bundle?.games ?? [];
+  const drivers = bundle?.standings ?? [];
+  const constructors = bundle?.constructorStandings ?? [];
 
   // Featured hero = next/most relevant race (live if any, else soonest upcoming),
   // from the overview's topGames; full schedule from the bundle, sorted by round.
@@ -30,20 +37,48 @@ export default function F1() {
 
   const rounds = races.length;
   const heroName = hero ? hero.venue || hero.label : null;
+  const pad = { paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 16 };
+  const refresh = (
+    <RefreshControl refreshing={isRefetching} onRefresh={() => { refetch(); overview.refetch(); }} tintColor={colors.accent} />
+  );
+
+  const header = (
+    <View>
+      <Text style={styles.title}>Formula 1</Text>
+      <Text style={[styles.stat, rounds > 0 && styles.statMono]}>
+        {rounds > 0 ? `${rounds} rounds${heroName ? ` · next ${heroName}` : ""}` : "Season schedule"}
+      </Text>
+      <Segmented options={TABS} value={tab} onChange={setTab} />
+    </View>
+  );
+
+  if (tab === "Standings") {
+    return (
+      <ScrollView style={styles.fill} contentContainerStyle={pad} refreshControl={refresh}>
+        {header}
+        {drivers.length > 0 ? (
+          <ChampionshipTable title={bundle?.standingsTitle ?? "Drivers' Championship"} rows={drivers} accent={colors.f1} />
+        ) : null}
+        {constructors.length > 0 ? (
+          <ChampionshipTable title={bundle?.constructorTitle ?? "Constructors' Championship"} rows={constructors} accent={colors.f1} />
+        ) : null}
+        {drivers.length === 0 && constructors.length === 0 ? (
+          <View style={[styles.card, styles.empty]}><Text style={styles.dim}>No standings available yet.</Text></View>
+        ) : null}
+      </ScrollView>
+    );
+  }
 
   return (
     <FlatList
       style={styles.fill}
-      contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 16 }}
+      contentContainerStyle={pad}
       data={schedule}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <MatchCard m={item} pressable />}
       ListHeaderComponent={
         <View>
-          <Text style={styles.title}>Formula 1</Text>
-          <Text style={[styles.stat, rounds > 0 && styles.statMono]}>
-            {rounds > 0 ? `${rounds} rounds${heroName ? ` · next ${heroName}` : ""}` : "Season schedule"}
-          </Text>
+          {header}
           {hero ? <MatchCard m={raceToCard(hero)} hero accent={colors.f1} pressable /> : null}
           {schedule.length > 0 ? (
             <View style={styles.subLabel}>
@@ -58,13 +93,7 @@ export default function F1() {
           <Text style={styles.dim}>No schedule available yet.</Text>
         </View>
       }
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={() => { refetch(); overview.refetch(); }}
-          tintColor={colors.accent}
-        />
-      }
+      refreshControl={refresh}
     />
   );
 }
