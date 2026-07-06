@@ -10,6 +10,12 @@ import { AuthProvider } from "../providers/auth";
 import { colors } from "../theme/theme";
 import { installApiBase } from "../lib/apiBase";
 
+// The initial route when the app opens at "/". Without this anchor, expo-router
+// (SDK 54+/v6) can land on the not-found screen for "/" even though the (tabs)
+// files exist — which showed up as a 404 on the Home/front page while the other
+// tabs still worked.
+export const unstable_settings = { anchor: "(tabs)" };
+
 // Point @liveleagues/core's relative /api fetches at the web origin (see apiBase).
 installApiBase();
 
