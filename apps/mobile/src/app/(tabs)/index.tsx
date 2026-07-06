@@ -16,11 +16,6 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const { data: ov, isLoading, isError, error, refetch, isRefetching } = useLiveTicker(OVERVIEW_SNAPSHOT);
 
-  if (isLoading) return <Loading label="Loading scores…" />;
-  if (isError) {
-    return <ErrorState title="Couldn't load scores" message={(error as Error)?.message} onRetry={() => refetch()} />;
-  }
-
   const sports = (ov?.sports ?? []).filter((s) => s.id === "soccer" || s.id === "f1");
 
   // Ticker = a horizontal glance strip across the visible sports (live first, then
@@ -40,6 +35,16 @@ export default function Home() {
     .filter((x) => x.games.length > 0);
 
   const hasAny = !!hero || sections.length > 0;
+  // We're on bundled/last-known data when the fetch errored (e.g. backend 404) or
+  // every sport is still flagged snapshot. Only fall back to the loading/error
+  // screens when there's genuinely nothing to show — a backend outage keeps showing
+  // the bundled data (honestly labelled SAMPLE) instead of an error screen.
+  const offline = isError || (ov?.sports ?? []).every((s) => s.source === "snapshot");
+
+  if (isLoading && !hasAny) return <Loading label="Loading scores…" />;
+  if (isError && !hasAny) {
+    return <ErrorState title="Couldn't load scores" message={(error as Error)?.message} onRetry={() => refetch()} />;
+  }
 
   return (
     <ScrollView
@@ -51,7 +56,11 @@ export default function Home() {
         <Text style={styles.wordmark}>
           Live<Text style={{ color: colors.accent }}>Leagues</Text>
         </Text>
-        {ov && ov.totalLive > 0 ? (
+        {offline ? (
+          <View style={styles.sampleBadge}>
+            <Text style={styles.sampleTxt}>SAMPLE</Text>
+          </View>
+        ) : ov && ov.totalLive > 0 ? (
           <View style={styles.liveBadge}>
             <View style={styles.liveDot} />
             <Text style={styles.liveTxt}>{ov.totalLive} LIVE</Text>
@@ -170,6 +179,8 @@ const styles = StyleSheet.create({
   liveBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6, backgroundColor: colors.surfaceHi },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.live },
   liveTxt: { color: colors.live, fontSize: 11, fontFamily: fonts.mono, letterSpacing: 0.5 },
+  sampleBadge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6, backgroundColor: colors.surfaceHi, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  sampleTxt: { color: colors.textDim, fontSize: 10, fontFamily: fonts.mono, letterSpacing: 0.8 },
   sectionHead: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
   bar: { width: 3, height: 16, borderRadius: 2 },
   sectionTitle: { color: colors.text, fontSize: 14, fontWeight: "800", letterSpacing: 0.6 },
