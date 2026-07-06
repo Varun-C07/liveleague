@@ -14,6 +14,15 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-07-05 — Mobile: qualification outlook + hard 404 fix
+- **World Cup group tables now show live qualification outlook** — reuses core
+  `groupOutlook()` (remaining group fixtures × the table) to mark each team Through /
+  In contention / Eliminated below its group. Pure core logic, guaranteed data.
+- **404, take two:** added `src/app/+not-found.tsx` (`<Redirect href="/">`) + registered
+  it in the root Stack, so any unmatched route (incl. a stray dev-client launch URL that
+  resolves after first paint) bounces to Home. NB: route-config changes need a Metro
+  `--clear` restart + full app relaunch — Fast Refresh doesn't rebuild the route manifest.
+
 ### 2026-07-05 — Mobile: standings, live ticker, Home 404 fix
 - **Fixed Home 404.** expo-router v6 (SDK 56) needs `export const unstable_settings =
   { anchor: "(tabs)" }` in `src/app/_layout.tsx` to resolve the initial `/` route to the tab

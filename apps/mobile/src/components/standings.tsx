@@ -1,20 +1,31 @@
 import { View, Text, StyleSheet } from "react-native";
 import type { StandingRowDto } from "@liveleagues/core/api-shape";
 import type { StandingRow } from "@liveleagues/core/sports/types";
+import type { TeamOutlook, OutlookState } from "@liveleagues/core/group-scenarios";
 import { colors, fonts } from "../theme/theme";
+
+const stateColor = (s: OutlookState): string =>
+  s === "through" ? colors.win : s === "contention" ? colors.gold : s === "out" ? colors.lose : colors.textFaint;
 
 // ── Soccer: one World Cup group table ────────────────────────────────────────
 // Rows arrive pre-sorted. Top 2 advance (green rank); best third-placed teams
-// (codes in `bestThirds`) get a gold dot. Mirrors the web GroupCard columns.
+// (codes in `bestThirds`) get a gold dot. `outlook` (optional) adds the live
+// qualification verdict per team below the table. Mirrors the web GroupCard.
 export function GroupCard({
   group,
   rows,
   bestThirds,
+  outlook,
 }: {
   group: string;
   rows: StandingRowDto[];
   bestThirds: Set<string>;
+  outlook?: Record<string, TeamOutlook>;
 }) {
+  // Verdicts worth surfacing: anything that isn't a plain "still alive".
+  const verdicts = outlook
+    ? rows.map((r) => outlook[r.code]).filter((o): o is TeamOutlook => !!o && o.state !== "alive")
+    : [];
   return (
     <View style={styles.card}>
       <Text style={styles.groupTitle}>GROUP {group}</Text>
@@ -50,6 +61,17 @@ export function GroupCard({
           </View>
         );
       })}
+      {verdicts.length > 0 ? (
+        <View style={styles.qual}>
+          {verdicts.map((o) => (
+            <View key={o.code} style={styles.qualRow}>
+              <View style={[styles.qualDot, { backgroundColor: stateColor(o.state) }]} />
+              <Text style={styles.qualCode}>{o.code}</Text>
+              <Text style={styles.qualLine} numberOfLines={1}>{o.line}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -103,6 +125,12 @@ const styles = StyleSheet.create({
   team: { color: colors.text, fontSize: 13, fontWeight: "600", flexShrink: 1 },
   numCol: { width: 34, textAlign: "right" },
   num: { fontFamily: fonts.mono, fontSize: 12, color: colors.textDim },
+  // qualification verdicts
+  qual: { marginTop: 10, paddingTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, gap: 5 },
+  qualRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  qualDot: { width: 6, height: 6, borderRadius: 3 },
+  qualCode: { width: 34, color: colors.textDim, fontSize: 11, fontWeight: "800", fontFamily: fonts.mono },
+  qualLine: { flex: 1, color: colors.textDim, fontSize: 11.5 },
   ptsCol: { width: 40, textAlign: "right" },
   pts: { fontFamily: fonts.mono, fontSize: 14, fontWeight: "800", color: colors.text },
   // F1

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLiveTicker } from "@liveleagues/core/hooks/useLive";
 import { useMatches, useStandings } from "@liveleagues/core/hooks/useMatches";
 import type { ApiMatch } from "@liveleagues/core/api-shape";
+import { groupOutlook, type TeamOutlook } from "@liveleagues/core/group-scenarios";
 import { OVERVIEW_SNAPSHOT, SOCCER_SNAPSHOT, SOCCER_STANDINGS_SNAPSHOT } from "@liveleagues/core/snapshots";
 import { colors, fonts } from "../../theme/theme";
 import { MatchCard, gameToCard, matchToCard, type MatchCardData } from "../../components/MatchCard";
@@ -29,6 +30,24 @@ export default function Soccer() {
   const sections = useMemo<Section[]>(() => buildSections(matches), [matches]);
   const groupKeys = useMemo(() => Object.keys(st?.groups ?? {}).sort(), [st]);
   const bestThirds = useMemo(() => new Set(st?.bestThirds ?? []), [st]);
+
+  // Live qualification outlook per group: enumerate remaining group fixtures (the
+  // not-yet-played matches in this group) against the table. Pure core logic —
+  // shows who's mathematically through / eliminated / still in contention.
+  const outlookByGroup = useMemo<Record<string, Record<string, TeamOutlook>>>(() => {
+    if (!st) return {};
+    const out: Record<string, Record<string, TeamOutlook>> = {};
+    for (const g of Object.keys(st.groups)) {
+      const remaining = matches
+        .filter((m) => m.grp === g && m.status === "sched")
+        .map((m) => ({ home: m.home.code, away: m.away.code }));
+      out[g] = groupOutlook(
+        st.groups[g].map((r) => ({ code: r.code, Pts: r.Pts, GD: r.GD, GF: r.GF })),
+        remaining,
+      );
+    }
+    return out;
+  }, [st, matches]);
 
   if (isLoading && matches.length === 0) return <Loading label="Loading fixtures…" />;
   if (isError && matches.length === 0) {
@@ -70,7 +89,9 @@ export default function Soccer() {
         contentContainerStyle={pad}
         data={groupKeys}
         keyExtractor={(k) => k}
-        renderItem={({ item }) => <GroupCard group={item} rows={st!.groups[item]} bestThirds={bestThirds} />}
+        renderItem={({ item }) => (
+          <GroupCard group={item} rows={st!.groups[item]} bestThirds={bestThirds} outlook={outlookByGroup[item]} />
+        )}
         ListHeaderComponent={header(false)}
         ListFooterComponent={
           <Text style={styles.legend}>Top 2 advance · best 8 third-placed teams also qualify</Text>
