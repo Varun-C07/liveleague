@@ -53,6 +53,7 @@ export default function RootLayout() {
               screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
             >
               <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
               {/* Real detail routes — native header gives back + swipe-to-go-back. */}
               <Stack.Screen
                 name="match/[id]"
