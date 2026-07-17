@@ -6,7 +6,7 @@ import { card, hex, Crest, Tag, Pulse } from "@/components/design/primitives";
 import { MapPin, ChevronRight } from "@/components/design/icons";
 import { isLightColor, kickoffLabel, pensLabel } from "@/components/design/map";
 import { PinButton } from "@/components/design/screens/soccer/PinButton";
-import type { ApiMatch } from "@liveleague/core/api-shape";
+import type { ApiMatch } from "@liveleagues/core/api-shape";
 
 // Real featured/live match card; tap to open the full match center page.
 export function LiveMatch({ m }: { m: ApiMatch | null }) {

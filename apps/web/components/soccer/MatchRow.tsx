@@ -1,5 +1,5 @@
 "use client";
-import type { ApiMatch } from "@liveleague/core/api-shape";
+import type { ApiMatch } from "@liveleagues/core/api-shape";
 import { TeamBadge } from "./TeamBadge";
 import { FavoritesStar } from "@/components/shared/FavoritesStar";
 import { ShareMenu } from "./ShareMenu";

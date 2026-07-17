@@ -6,7 +6,7 @@ import { card, hex, carbon, unskew, Tag } from "@/components/design/primitives";
 import { Check, Lock } from "@/components/design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { useEntitlements } from "@/hooks/useEntitlements";
-import { PAYWALL_ENABLED, type Sku } from "@liveleague/core/gating";
+import { PAYWALL_ENABLED, type Sku } from "@liveleagues/core/gating";
 
 const INK = "#14110A";
 

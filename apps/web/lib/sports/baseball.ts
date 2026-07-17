@@ -1,5 +1,5 @@
-import type { SportAdapter, LiveBundle, Game, GameExtra } from "@liveleague/core/sports/types";
-import { sportMeta } from "@liveleague/core/sports/meta";
+import type { SportAdapter, LiveBundle, Game, GameExtra } from "@liveleagues/core/sports/types";
+import { sportMeta } from "@liveleagues/core/sports/meta";
 import { fetchEspnScoreboard, mapEspnEvent, type EspnMapped } from "./espn";
 import { MLB_SNAPSHOT } from "@/data/snapshots/baseball";
 

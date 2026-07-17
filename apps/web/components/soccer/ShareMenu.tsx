@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { CalendarPlus, Share2, Check } from "lucide-react";
-import type { ApiMatch } from "@liveleague/core/api-shape";
+import type { ApiMatch } from "@liveleagues/core/api-shape";
 import { downloadICS } from "@/lib/ics";
 
 export function ShareMenu({ match }: { match: ApiMatch }) {

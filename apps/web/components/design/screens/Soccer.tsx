@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest, Tag, Pulse, SL } from "@/components/design/primitives";
 import { Trophy, TrendingUp, Check, Lock, Star, ChevronDown } from "@/components/design/icons";
-import { scorePrediction } from "@liveleague/core/scoring";
+import { scorePrediction } from "@liveleagues/core/scoring";
 import { isLightColor, mapGroupOutlooks } from "@/components/design/map";
 import { LiveMatch } from "@/components/design/screens/soccer/LiveMatch";
 import { GroupCard } from "@/components/design/screens/soccer/GroupCard";
@@ -15,8 +15,8 @@ import { useMatches, useStandings } from "@/hooks/useMatches";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useMyPredictions } from "@/hooks/usePredictions";
 import { useFavorites } from "@/hooks/useFavorites";
-import { splitFavKey } from "@liveleague/core/favorites";
-import type { MatchesResponse, StandingsResponse } from "@liveleague/core/api-shape";
+import { splitFavKey } from "@liveleagues/core/favorites";
+import type { MatchesResponse, StandingsResponse } from "@liveleagues/core/api-shape";
 
 const INK = "#14110A";
 

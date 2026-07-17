@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { Game } from "@liveleague/core/sports/types";
+import type { Game } from "@liveleagues/core/sports/types";
 import { usePrefs } from "@/hooks/usePrefs";
 
 // Generic version of useGoalFlash: diffs scores between polls across any sport

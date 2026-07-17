@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import type { Game, LiveBundle, SportId } from "@liveleague/core/sports/types";
+import type { Game, LiveBundle, SportId } from "@liveleagues/core/sports/types";
 import { useLiveBundle } from "@/hooks/useLive";
 import { useScoreFlash } from "@/hooks/useScoreFlash";
 import { useFavorites } from "@/hooks/useFavorites";

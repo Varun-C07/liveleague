@@ -9,7 +9,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBrowserSupabase } from "@/lib/db/supabase-browser";
 import { useAuth } from "@/hooks/useAuth";
-import { PAYWALL_ENABLED } from "@liveleague/core/gating";
+import { PAYWALL_ENABLED } from "@liveleagues/core/gating";
 
 type MeResponse = {
   user: {

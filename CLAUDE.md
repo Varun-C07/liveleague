@@ -1,20 +1,30 @@
-# CLAUDE.md — Live League
+# CLAUDE.md — LiveLeagues
 
 Context for Claude Code working in this repo. Pair with **README.md** (overview),
 **ROADMAP.md** (timeline), **FRONTEND.md** + **BACKEND.md** (newest-first change logs).
+
+> **Brand:** the product is **"LiveLeagues"** (one word). The iOS app / bundle
+> `com.liveleague.app` / EAS project keep the legacy `liveleague` id — only the
+> user-facing display name is "LiveLeagues".
 
 > **⚠️ Monorepo (Phase 0, 2026-06-28).** The repo is now an npm-workspaces + Turborepo
 > monorepo. **The Next.js app lives in `apps/web/`** — every path in this doc like
 > `components/design/…`, `app/…`, `lib/…`, `hooks/…`, `data/…`, `tests/…` is now under
 > `apps/web/`. Shared pure-TS logic (win-prob, scoring, polling, gating, favorites,
 > scenarios, multi-sport types/meta/format, soccer types, API DTOs) lives in
-> **`packages/core/`** as `@liveleague/core` and is imported via that package (subpaths like
-> `@liveleague/core/win-prob`), NOT `@/lib/…`. Run `npm run dev|build|test|lint|typecheck` from
-> the **repo root** (they proxy through Turbo). See `docs/PHASE_0_MONOREPO.md`.
+> **`packages/core/`** as `@liveleagues/core` and is imported via that package (subpaths like
+> `@liveleagues/core/win-prob`), NOT `@/lib/…`. The shared React data hooks (`useLive`,
+> `useMatches`) also live in core now, at `@liveleagues/core/hooks/*` (web re-exports them
+> via thin shims in `apps/web/hooks/`); import them via that subpath, NOT the barrel. Run
+> `npm run dev|build|test|lint|typecheck` from the **repo root** (they proxy through Turbo).
+> See `docs/PHASE_0_MONOREPO.md`.
 >
-> **`apps/mobile`** (Expo SDK 56 + expo-router) is now scaffolded — the native iOS app
-> sharing `@liveleague/core`. Screens are placeholders; Varun builds them. `npm run dev:mobile`
-> to run Metro. See `docs/PHASE_2_MOBILE_SCAFFOLD.md`, `docs/MOBILE_DEPLOYMENT_PLAN.md`, and
+> **`apps/mobile`** (Expo SDK 56 + expo-router) shares `@liveleagues/core`. The screens are
+> now **real** (ported from Varun's `mobile/scaffold`, 2026-07-05): Home (live hero + per-sport
+> sections), World Cup (day-grouped fixtures), Formula 1 (round schedule), shared `MatchCard`
+> (row/hero/race variants), and `match/[id]` + `race/[id]` detail routes. Auth (`providers/auth.tsx`)
+> is still a no-op seam; Profile is a placeholder. `npm run dev:mobile` to run Metro. See
+> `docs/PHASE_2_MOBILE_SCAFFOLD.md`, `docs/MOBILE_DEPLOYMENT_PLAN.md`, and
 > `docs/VARUN_MOBILE_AND_ML_PLAN.md`. Mobile UI = React Native (StyleSheet + theme port), NOT
 > the web's inline styles — a separate codebase under `apps/mobile/src/`.
 

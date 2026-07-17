@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useEntitlements } from "@/hooks/useEntitlements";
-import type { WinProb } from "@liveleague/core/win-prob";
+import type { WinProb } from "@liveleagues/core/win-prob";
 
 async function fetchWinProb(matchId: string): Promise<WinProb | null> {
   const res = await fetch(`/api/soccer/winprob/${matchId}`);

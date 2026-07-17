@@ -1,5 +1,5 @@
 // Metro config for the Expo app inside the npm-workspaces monorepo.
-// Lets Metro watch + resolve the shared workspace package (@liveleague/core),
+// Lets Metro watch + resolve the shared workspace package (@liveleagues/core),
 // which ships TypeScript source (Metro transpiles it). See:
 // https://docs.expo.dev/guides/monorepos/
 const { getDefaultConfig } = require("expo/metro-config");
@@ -19,7 +19,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, "node_modules"),
 ];
 
-// 3. @liveleague/core uses package.json "exports" subpaths → enable them.
+// 3. @liveleagues/core uses package.json "exports" subpaths → enable them.
 config.resolver.unstable_enablePackageExports = true;
 
 module.exports = config;

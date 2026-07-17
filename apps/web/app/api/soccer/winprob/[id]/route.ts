@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { readCache } from "@/lib/db/cache";
 import { requirePersonal, gateErrorResponse } from "@/lib/entitlements";
-import { PAYWALL_ENABLED } from "@liveleague/core/gating";
+import { PAYWALL_ENABLED } from "@liveleagues/core/gating";
 import { TEAMS, isRealTeam } from "@/data/teams";
 import { ELO_SEED, DEFAULT_ELO, HOST_CODES } from "@/data/eloRatings";
-import { computeRatings, matchProbabilities, inPlayProbabilities } from "@liveleague/core/win-prob";
-import type { Match } from "@liveleague/core/types";
+import { computeRatings, matchProbabilities, inPlayProbabilities } from "@liveleagues/core/win-prob";
+import type { Match } from "@liveleagues/core/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

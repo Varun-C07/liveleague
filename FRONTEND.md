@@ -14,6 +14,54 @@ so any session can pick up the thread of what's been touched and why.
 
 ## Log
 
+### 2026-07-05 — Mobile: qualification outlook + hard 404 fix
+- **World Cup group tables now show live qualification outlook** — reuses core
+  `groupOutlook()` (remaining group fixtures × the table) to mark each team Through /
+  In contention / Eliminated below its group. Pure core logic, guaranteed data.
+- **404, take two:** added `src/app/+not-found.tsx` (`<Redirect href="/">`) + registered
+  it in the root Stack, so any unmatched route (incl. a stray dev-client launch URL that
+  resolves after first paint) bounces to Home. NB: route-config changes need a Metro
+  `--clear` restart + full app relaunch — Fast Refresh doesn't rebuild the route manifest.
+
+### 2026-07-05 — Mobile: standings, live ticker, Home 404 fix
+- **Fixed Home 404.** expo-router v6 (SDK 56) needs `export const unstable_settings =
+  { anchor: "(tabs)" }` in `src/app/_layout.tsx` to resolve the initial `/` route to the tab
+  group; without it the front page hit the not-found screen while other tabs worked.
+- **World Cup tab:** added a **Fixtures / Groups** segmented toggle; Groups shows all 12 group
+  tables (rank, flag, P/GD/Pts; top-2 green, best-thirds gold) from `/api/soccer/standings`.
+- **F1 tab:** added a **Schedule / Standings** toggle; Standings shows Drivers' + Constructors'
+  championship tables (already present in the `/api/f1` bundle — no new fetch).
+- **Home:** added a horizontal **live-score ticker** strip (reuses `gameToCard`/`raceToCard`,
+  taps through to detail). New shared components: `components/standings.tsx` (`GroupCard`,
+  `ChampionshipTable`) and `components/Segmented.tsx`.
+- **Offline data:** bundled `SOCCER_STANDINGS_SNAPSHOT` into `@liveleagues/core/snapshots` so
+  the group tables render without the backend, like the other snapshots.
+
+### 2026-07-05 — Integrate Varun's mobile frontend + "LiveLeagues" rename
+- **Mobile screens are now real.** Ported Varun's `mobile/scaffold` work onto our SDK-56
+  Expo shell (`apps/mobile/src/`): Home (live hero + per-sport sections), World Cup
+  (day-grouped `SectionList`), Formula 1 (round schedule), shared `MatchCard`
+  (row/hero/race variants + flag emojis), loading/error/empty `states`, and real
+  `match/[id]` + `race/[id]` detail routes. Data comes from `@liveleagues/core/hooks/*`
+  (which fetch the web `/api/*`); `lib/apiBase.ts` prefixes `EXPO_PUBLIC_API_URL` on device.
+  Auth is a no-op seam; Profile is a placeholder.
+- **Mobile theme = Obsidian + lime**, not Varun's amber/FotMob look — `apps/mobile/src/theme/theme.ts`
+  mirrors the web `theme.tsx` Obsidian palette (lime accent, crimson F1).
+- **F1 schedule** now lists upcoming/live rounds first (round order), completed rounds after
+  — `apps/mobile/src/app/(tabs)/f1.tsx` `scheduleOrder()`.
+- **Web renamed "Live League" → "LiveLeagues"** (text only — palette unchanged): wordmark
+  `components/design/Logo.tsx` ("Live"/"Leagues" two-tone), page titles `app/layout.tsx`,
+  footer/aria `components/design/DesignShell.tsx`, `auth/AuthModal.tsx`.
+- **Mobile is now offline-resilient (won't die if the backend is down).** Bundled fallback
+  snapshots captured from `/api/{live,soccer,f1}`, sanitized (source=snapshot, no frozen "live"),
+  frozen into `packages/core/src/snapshots/` (`@liveleagues/core/snapshots`). The mobile hooks
+  seed from them so screens render instantly and degrade gracefully; live data replaces them on
+  first fetch. `useLiveTicker(initial?)` gained an optional seed; mobile QueryClient `staleTime:0`
+  so the seed shows but a live fetch still fires on mount.
+- **Core package renamed** `@liveleague/core` → `@liveleagues/core`; `useLive`/`useMatches`
+  hooks moved into `packages/core/src/hooks/` (web keeps thin re-export shims). Did NOT adopt
+  Varun's pnpm conversion, core reshape, SDK 54, or amber web theme.
+
 ### 2026-07-04 — Humanize undecided knockout slots (no raw "W89" / "2A")
 - Undecided knockout matchups showed raw internal codes. `placeholderLabel()`
   (`apps/web/lib/normalize.ts`, used in `teamRef`) now renders them as labels everywhere

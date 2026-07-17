@@ -1,4 +1,4 @@
-import type { GroupLetter, Match } from "@liveleague/core/types";
+import type { GroupLetter, Match } from "@liveleagues/core/types";
 import { GROUP_STAGE } from "@/data/groupStage";
 import { KNOCKOUTS } from "@/data/knockouts";
 import { venueOf } from "@/data/venues";

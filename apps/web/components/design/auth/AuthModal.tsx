@@ -437,7 +437,7 @@ export function AuthModal({
           </form>
 
           <p style={{ textAlign: "center", fontSize: 12.5, color: t.textDim, marginTop: 16, marginBottom: 0 }}>
-            {mode === "signin" ? "New to Live League? " : "Already have an account? "}
+            {mode === "signin" ? "New to LiveLeagues? " : "Already have an account? "}
             <button
               type="button"
               onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}

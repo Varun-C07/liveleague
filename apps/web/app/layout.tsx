@@ -14,13 +14,13 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://live-league.vercel.app
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "Live League — Multi-Sport Live Tracker",
-    template: "%s · Live League",
+    default: "LiveLeagues — Multi-Sport Live Tracker",
+    template: "%s · LiveLeagues",
   },
   description:
     "One board for every live league — F1, World Cup soccer, NBA, cricket and MLB. Live scores, standings and schedules that refresh themselves.",
   openGraph: {
-    title: "Live League — Multi-Sport Live Tracker",
+    title: "LiveLeagues — Multi-Sport Live Tracker",
     description: "Live scores and standings across F1, soccer, NBA, cricket and MLB — all in one place.",
     type: "website",
   },

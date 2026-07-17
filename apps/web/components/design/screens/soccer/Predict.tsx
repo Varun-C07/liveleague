@@ -8,7 +8,7 @@ import { card, hex, unskew, Crest } from "@/components/design/primitives";
 import { Plus, Minus, Lock, Check } from "@/components/design/icons";
 import { isLightColor, kickoffDateTimeLabel } from "@/components/design/map";
 import { useSubmitPrediction, type Prediction } from "@/hooks/usePredictions";
-import type { ApiMatch } from "@liveleague/core/api-shape";
+import type { ApiMatch } from "@liveleagues/core/api-shape";
 
 const sb = (t: Theme) => ({ width: 24, height: 18, borderRadius: 5, border: "none", background: t.chip, color: t.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 });
 

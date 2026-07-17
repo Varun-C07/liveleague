@@ -292,7 +292,7 @@ function Footer() {
   const { t } = useTheme();
   return (
     <div style={{ borderTop: `1px solid ${hex(t.border, 0.6)}`, padding: "22px", textAlign: "center", fontSize: 11.5, color: t.textFaint }}>
-      Live League · World Cup &amp; Formula 1 · live data from TheSportsDB and Jolpica.
+      LiveLeagues · World Cup &amp; Formula 1 · live data from TheSportsDB and Jolpica.
     </div>
   );
 }

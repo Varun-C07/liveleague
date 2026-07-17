@@ -10,7 +10,7 @@
 // to true below. Leave OFF (false / unset) for production.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
-import type { Game, LiveOverview } from "@liveleague/core/sports/types";
+import type { Game, LiveOverview } from "@liveleagues/core/sports/types";
 import { TEAMS } from "@/data/teams";
 
 const DEMO_LIVE_FORCE = false; // DEV ONLY — flip to true to force the demo match

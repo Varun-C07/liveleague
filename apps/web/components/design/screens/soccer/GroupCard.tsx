@@ -6,8 +6,8 @@ import { useTheme } from "@/components/design/theme";
 import { card, hex, Crest } from "@/components/design/primitives";
 import { ChevronDown } from "@/components/design/icons";
 import { isLightColor } from "@/components/design/map";
-import type { StandingRowDto } from "@liveleague/core/api-shape";
-import type { TeamOutlook, OutlookState } from "@liveleague/core/group-scenarios";
+import type { StandingRowDto } from "@liveleagues/core/api-shape";
+import type { TeamOutlook, OutlookState } from "@liveleagues/core/group-scenarios";
 
 // Group standings card, wired to real /api/soccer/standings rows. `outlook`
 // (optional) carries the live qualification verdict per team code.

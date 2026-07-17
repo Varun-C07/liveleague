@@ -4,7 +4,7 @@ import { readCache } from "@/lib/db/cache";
 import { codeFromName } from "@/lib/normalize";
 import { fetchEspnSoccer } from "@/lib/espn-soccer";
 import { fetchMatchDetail, type MatchDetail } from "@/lib/espn-summary";
-import type { Match } from "@liveleague/core/types";
+import type { Match } from "@liveleagues/core/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

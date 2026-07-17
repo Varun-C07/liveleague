@@ -1,4 +1,4 @@
-import type { Team, TeamCode } from "@liveleague/core/types";
+import type { Team, TeamCode } from "@liveleagues/core/types";
 
 // 48 nations — verified final draw incl. March 2026 playoff winners.
 // Preserve every field: emoji flags, colors, group, and API name aliases.

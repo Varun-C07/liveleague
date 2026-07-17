@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { parseStatus, clampLive, applyEvents, toApiMatch, placeholderLabel, type RawEvent } from "@/lib/normalize";
-import type { Match } from "@liveleague/core/types";
+import type { Match } from "@liveleagues/core/types";
 
 function ko(h: string, a: string): Match {
   return { n: 75, stage: "R32", grp: null, h, a, ven: "Gillette Stadium", city: "Boston", ctry: "USA", utc: "2026-06-29T20:30:00Z", hs: null, as: null, st: "sched", approx: true };

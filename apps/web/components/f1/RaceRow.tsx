@@ -1,5 +1,5 @@
 "use client";
-import type { Game } from "@liveleague/core/sports/types";
+import type { Game } from "@liveleagues/core/sports/types";
 import { Podium } from "./Podium";
 import { etParts, tzLabel } from "@/lib/time";
 import { usePrefs } from "@/hooks/usePrefs";

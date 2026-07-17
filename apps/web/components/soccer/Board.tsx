@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { Volume2, VolumeX, Globe } from "lucide-react";
-import type { MatchesResponse, StandingsResponse, ApiMatch } from "@liveleague/core/api-shape";
+import type { MatchesResponse, StandingsResponse, ApiMatch } from "@liveleagues/core/api-shape";
 import { useMatches, useStandings } from "@/hooks/useMatches";
 import { useGoalFlash } from "@/hooks/useGoalFlash";
 import { useFavorites } from "@/hooks/useFavorites";
