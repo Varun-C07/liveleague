@@ -18,24 +18,30 @@ Read this doc top to bottom once, then use it as a reference.
 - Mobile has **real screens** now (Home, World Cup, F1, match/race detail) —
   ported and built out this week. It's **offline-resilient** (bundled snapshot
   fallback) but its **default live-data URL is currently a dead deployment** —
-  see Known Issue #1, that's the first thing to fix.
+  see Known Issue #1 (that's Ayush's to actually fix; there's a small
+  mobile-side polish item in it for you too).
 - Latest work is on branch **`integrate/mobile-frontend`**, already pushed with
   an open PR: **https://github.com/Varun-C07/liveleague/pull/1**. `main` does
   NOT have this work yet — review/merge that PR as your first action.
 - Product is renamed **"LiveLeagues"** (bundle id / EAS project keep the legacy
   `liveleague` slug — only the display name changed).
+- **Your scope is mobile** (`apps/mobile` + whatever backend it touches —
+  Supabase auth, predictions, etc.). The web app / Vercel deployment stays
+  with Ayush — you don't need Vercel access and shouldn't need to touch
+  `apps/web` deploy config. See the access table and Known Issue #1 below for
+  how that affects local testing.
 
 ---
 
-## 1. Get access (do this first — some of it blocks device testing)
+## 1. Get access (do this first)
 
 | System | Status | Action |
 |---|---|---|
 | **GitHub** — `github.com/Varun-C07/liveleague` | You already own this repo. | `gh auth login` as yourself if not already authenticated locally. |
 | **Expo/EAS** — `@varunchs-team/live-league` | You already own this account. | `npx eas-cli@latest login` (your Expo account). |
-| **Apple Developer / App Store Connect** — team `34Y6654R5M`, bundle `com.liveleague.app`, ASC App ID `6787629770` | **Coordinate directly with Ayush, out of band** (call/text/AirDrop — never paste keys into GitHub, Slack, or this doc). | Either (a) get added as an App Store Connect team member (Admin/App Manager role), or (b) get a copy of the `.p8` API key file + Key ID (`AX76HMF5Y6`) + Issuer ID transferred securely. This currently lives only at `~/keys/asc-key/AuthKey_AX76HMF5Y6.p8` on Ayush's Mac and is referenced by absolute path in `apps/mobile/eas.json`, so **device builds + TestFlight submits only work on Ayush's Mac until this is sorted.** This is the #1 access blocker — sort it before you try `eas build` for a device. |
-| **Supabase + Stripe** | Per project convention (CLAUDE.md) you already own backend infra as the original backend owner. | Confirm you can still log into both dashboards; if not, get Ayush to re-invite you (standard dashboard "invite member" flow — normal SaaS access, no secret-sharing needed). |
-| **Vercel** | The only current deployment (`live-league.vercel.app`) is under **Ayush's** Vercel account, tied to the *old* pre-monorepo repo structure, and its `/api/*` routes are **dead** (404 — see Known Issue #1). | **Recommended: don't chase access to the old project.** Import your own `Varun-C07/liveleague` repo into a **fresh Vercel project** under your account — cleaner, and you get PR preview deployments for free. Set **Root Directory = `apps/web`** (critical, easy to miss) and the env vars from `apps/web/.env.local.example`. |
+| **Apple Developer / App Store Connect** — team `34Y6654R5M`, bundle `com.liveleague.app`, ASC App ID `6787629770` | **You already have the `.p8` API key** (Key ID `AX76HMF5Y6`) — no transfer needed. | Just make sure the key file is at the path referenced in `apps/mobile/eas.json` (`ascApiKeyPath`) on **your** Mac before running `eas build`/`eas submit` — that field is currently an absolute path pointing at Ayush's machine (`/Users/ayushch/keys/...`); update it to your own local path (see Known Issue #1a). |
+| **Supabase + Stripe** | Per project convention (CLAUDE.md) you already own backend infra as the original backend owner. | Confirm you can still log into both dashboards; if not, get Ayush to re-invite you (standard dashboard "invite member" flow — normal SaaS access, no secret-sharing needed). Mobile auth will eventually call this directly. |
+| **Vercel / web deploy** | **Not your concern.** You're scoped to mobile — the web app and its Vercel deployment stay with Ayush. | Nothing to set up. For local mobile testing you don't need Vercel at all — see §5 for running a local backend instead. |
 
 ---
 
@@ -89,6 +95,12 @@ published App Store "Expo Go" build. Expo Go will report the project as
 incompatible even if Expo Go itself is up to date. You need a **development
 build (dev client)** instead — one-time setup, then hot reload like normal.
 
+Before your first build, fix the `.p8` key path — `apps/mobile/eas.json`
+`submit.production.ios.ascApiKeyPath` is currently an absolute path on Ayush's
+Mac (`/Users/ayushch/keys/asc-key/AuthKey_AX76HMF5Y6.p8`). Put your copy of the
+key somewhere on your Mac and update that path to match (don't commit the key
+file itself — it's already gitignored, just double-check).
+
 ```bash
 cd apps/mobile
 
@@ -96,7 +108,6 @@ cd apps/mobile
 npx eas-cli@latest device:create
 
 # One-time: build + install the dev client (~15 min, cloud build via EAS).
-# NOTE: needs Apple Developer access sorted first (see access table above).
 npx eas-cli@latest build --platform ios --profile development-device
 # → open the build's install link on your iPhone when it finishes
 
@@ -134,10 +145,16 @@ background it).
    never repointed at `apps/web`). The app **does not crash** — it falls back
    to bundled snapshots (`@liveleagues/core/snapshots`) and shows an honest
    **SAMPLE** pill on Home — but World Cup/F1 tabs don't yet show that same
-   pill (inconsistent — worth fixing while you're in there). **Fix:** stand up
-   a real Vercel deployment (see access table §1) and either hardcode that URL
-   as the new default, or wire proper per-environment config
-   (dev/preview/production) so this isn't a hardcoded fallback long-term.
+   pill (inconsistent — worth fixing while you're in there, this part IS
+   yours). The underlying fix (standing up a working deployed backend) is
+   **Ayush's side, not yours** — ask him when a stable URL is ready, then just
+   update the default in `apiBase.ts`. Day to day, don't wait on that: run
+   `npm run dev:web` yourself and point `EXPO_PUBLIC_API_URL` at your Mac's
+   LAN IP (§5) for live data while developing.
+
+   **1a.** `apps/mobile/eas.json` → `submit.production.ios.ascApiKeyPath` is
+   an absolute path on Ayush's Mac — update it to wherever you put your copy
+   of the `.p8` key (see §1) before running `eas build`/`eas submit`.
 
 2. **`apps/mobile/tsconfig.json` gets auto-edited.** Running `expo start` or
    `expo export` sometimes strips `.expo/types/**/*.ts` and `expo-env.d.ts`
@@ -147,10 +164,9 @@ background it).
    committing.
 
 3. **`.github/workflows/deploy.yml` isn't monorepo-aware.** It predates both
-   the npm-workspaces/Turborepo conversion (Phase 0) and this mobile work —
-   needs updating for the new workspace layout and to build/deploy `apps/web`
-   specifically (Root Directory `apps/web` in whatever it invokes). Flagged
-   originally in BACKEND.md; still unresolved.
+   the npm-workspaces/Turborepo conversion (Phase 0) and this mobile work.
+   This is **web/deploy, Ayush's side** — not something you need to fix,
+   included here just so you're not confused if you notice CI looking stale.
 
 4. **TestFlight tester invite for `ayushch6301@gmail.com` is unresolved.**
    Ayush wanted to add themselves as a tester on the app. An automated
@@ -243,10 +259,13 @@ highest-impact.
   (flagged as a known follow-up in CLAUDE.md — verify still reproducible).
 
 ### Backend / infra
-- **Fix `deploy.yml`** for the npm-workspaces/Turborepo monorepo (Known Issue
-  #3) — needed before CI/CD is trustworthy again.
-- **Stand up a real Vercel deployment** for `apps/web` (Known Issue #1) — this
-  unblocks mobile showing live data instead of snapshots.
+*Web deploy items below are Ayush's, listed here only for context — not
+blocking your mobile work.*
+- ~~Fix `deploy.yml` for the monorepo~~ / ~~stand up a real Vercel
+  deployment~~ (Known Issue #1) — Ayush's side.
+- Mobile-relevant backend: wiring Supabase auth for mobile (deep-link OAuth),
+  Sign in with Apple, push notifications (OneSignal is already wired
+  server-side) — these ARE yours, see Mobile frontend above.
 - Traffic/analytics (visitor counts, web + mobile) — not implemented; see
   `docs/MOBILE_DEPLOYMENT_PLAN.md` for the PostHog-based plan Ayush drafted.
 - Observability (Sentry or similar) — not implemented.
